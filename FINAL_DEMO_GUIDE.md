@@ -20,18 +20,18 @@ Show the responsive Retrieval Studio, installable PWA, scene cards, browser memo
 
 Open `http://127.0.0.1:8000` and hard-refresh once with `Ctrl+F5` if an older cached stylesheet is visible.
 
-The sidebar status should become **Engine online**. The Discover metrics should report:
+The sidebar status should become **Engine online**. Under **Settings > Runtime diagnostics**, the metrics should report:
 
 - 7,615 catalog/movie vectors;
 - 158 scene vectors and 7,773 total vectors;
 - 3 currently ingested offline media documents;
 - NVIDIA GeForce GTX 1650 Ti through CUDA.
 
-Open **System** and briefly show that scene detection, FFmpeg subtitles, faster-whisper, BLIP vision, the movie index, and the scene index are independently observable.
+Expand the runtime diagnostics and briefly show that scene detection, FFmpeg subtitles, faster-whisper, BLIP vision, the movie index, and the scene index are independently observable. They are intentionally kept off the main Search screen.
 
 ## 3. Prove Scene Retrieval
 
-Run these searches in **Discover**:
+Run these searches in **Search**:
 
 ```text
 a lonely detective enters a dark room and investigates a mystery
@@ -41,7 +41,7 @@ a lonely detective enters a dark room and investigates a mystery
 کارآگاهی تنها وارد اتاقی تاریک می شود و دنبال سرنخ می گردد
 ```
 
-For the English synthetic benchmark, `Benchmark Show` should rank first. The Persian fixture is currently within the top five, not reliably first. Point out the matched keyframe, transcript, timestamp, source label, and retrieval score. A scene result provides evidence beyond a whole-film plot; do not treat its score as a confidence percentage.
+For the English synthetic benchmark, `Benchmark Show` should rank first. The Persian fixture is currently within the top five, not reliably first. Open **Details** to inspect the matched keyframe, full transcript, timestamp, and source label. Raw ranking scores are not presented as confidence percentages. Save the title, open it again from **Saved & history**, then demonstrate removal. Copy the search link and reopen it to reproduce the query and filter.
 
 For a real local-film example, search `پاتریشیا پسرها کجان صدای گریه`. The verified result is *The Curse of La Llorona*, scene 11, starting at 348.22 seconds. `در رو ببند لطفاً اون بهمون صدمه میزنه` matches scene 13 at 540.08 seconds. These are inspected acceptance examples from the ingested subtitle, not held-out research queries.
 
@@ -57,15 +57,15 @@ a shark terrorizes a seaside town
 
 ## 4. Upload A Video In The App
 
-Open **Scene Lab**.
+Open **Your videos > Add a video**, or use **Add video** in the top bar.
 
 1. Drag an MP4/MKV/MOV/AVI/WEBM file into **Media source**.
 2. Add SRT/VTT/ASS/SSA tracks when available.
 3. Enter a clean movie or episode title.
-4. Keep **Embedded subtitles** enabled.
+4. Expand **Processing settings** and keep **Embedded subtitles** enabled.
 5. Enable **Speech transcription** only when subtitles are unavailable.
 6. Enable **Visual captioning** for the strongest scene descriptions.
-7. Choose **Analyze and index video**.
+7. Choose **Process video**.
 
 The live pipeline should advance through:
 
@@ -77,7 +77,7 @@ Upload
   -> Search ready
 ```
 
-When complete, choose **Explore all scenes** to paginate the full timeline, search recovered text, filter dialogue/vision, and play a selected scene. The local feature film has 153 scenes, all with visual captions, and 115 with recovered timed text. Return to Discover and search for evidence from one scene. No manual full-index rebuild is needed after upload. Progress survives a page refresh; a server restart requires retrying interrupted work.
+When complete, choose **Explore scenes** to paginate the full timeline, search recovered text, filter dialogue/vision, and play a selected scene. The local feature film has 153 scenes, all with visual captions, and 115 with recovered timed text. Return to Search and search for evidence from one scene. No manual full-index rebuild is needed after upload. Progress survives a page refresh; use **Reconnect to processing** if polling loses its connection. A server restart requires retrying interrupted work.
 
 ## 5. Demonstrate Subtitle Fallbacks
 
@@ -91,7 +91,7 @@ The scene record stores `subtitle_sources` and `caption_source`, so the origin o
 
 ## 6. Demonstrate The Folder Crawler
 
-The lower part of Scene Lab supports batch media folders. Use **Probe** before starting to confirm supported videos and sidecar subtitles.
+Open **Your videos > Import a folder**. Use **Check folder** to confirm supported videos and sidecar subtitles. This form has independent **Processing settings** for subtitles, speech, vision, and scene detection. Select **Import videos** to start.
 
 Recommended series layout:
 

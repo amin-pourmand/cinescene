@@ -28,7 +28,8 @@ The runtime combines both FAISS indexes with lexical evidence, Persian query exp
 - Automatic catalog and scene-index refresh after ingestion.
 - Movie/series filename parsing, including `S01E01` metadata.
 - Persian and English scene queries.
-- Search history, favorites, relevance feedback, and SQLite persistence.
+- Full title details, save/remove controls, search history with confirmation, and SQLite persistence.
+- Shareable search links, recent searches, persistent preferences, and keyboard-accessible mobile navigation.
 - Responsive frontend, local media playback, and an installable public PWA.
 - Complete, searchable timelines with pagination, dialogue/vision filters, and H.264 scene previews.
 - Durable background-job progress and recovery after page refresh.
@@ -64,21 +65,21 @@ Open `http://127.0.0.1:8000`.
 
 The full runtime also requires local catalog files, model weights, and indexes; these large generated assets are excluded from Git. The public PWA runs independently. On this development machine, `models/` and `data/` are directory junctions into `E:\CineSceneCache\cinescene`; `.env` routes model caches and multipart temporary files there too, keeping new large files off C. See `.env.example` to configure another machine.
 
-The first screen is the working retrieval interface. Open **Scene Lab** to upload a video, attach subtitles, choose the analysis profile, and watch the pipeline progress from upload to searchable scene vectors.
+The first screen is **Search**. **Your videos** contains uploads, processed timelines, and folder imports; **Saved & history** manages saved titles and past queries; **Settings** holds preferences and expandable runtime diagnostics. English is the interface language, with automatic text direction for Persian searches.
 
-## Use Scene Lab
+## Process A Video
 
-1. Drop an MP4, MKV, MOV, AVI, or WEBM file into **Media source**.
+1. Open **Your videos > Add a video**, then drop an MP4, MKV, MOV, AVI, or WEBM file into **Media source**.
 2. Optionally attach one or more SRT/VTT/ASS/SSA subtitle tracks.
-3. Keep **Embedded subtitles** enabled for MKV subtitle extraction.
+3. Expand **Processing settings**. Keep **Embedded subtitles** enabled for MKV subtitle extraction.
 4. Enable **Speech transcription** when the media has no subtitles.
 5. Enable **Visual captioning** for BLIP-based keyframe descriptions.
-6. Select **Analyze and index video**.
-7. Search for a line, action, object, lighting condition, or mood in **Discover**.
+6. Select **Process video**.
+7. Search for a line, action, object, lighting condition, or mood in **Search**.
 
 Ingestion is a background job. The UI reports upload progress, scene detection, media intelligence, vector indexing, and the final scene timeline. A full movie-index rebuild is not required after an upload because the independent scene index refreshes automatically.
 
-Use **Explore all scenes** to browse the complete timeline, search a dialogue fragment, filter recovered dialogue or vision captions, and play a selected scene. Scene previews are generated and cached as H.264/AAC clips, including when the source container or codec is unsupported by the browser. System reports actual dialogue and vision coverage separately from catalog size.
+Use **Explore scenes** to browse the complete timeline, search a dialogue fragment, filter recovered dialogue or vision captions, and play a selected scene. Scene previews are generated and cached as H.264/AAC clips, including when the source container or codec is unsupported by the browser. **Settings > Runtime diagnostics** reports actual dialogue and vision coverage separately from catalog size.
 
 ## Offline Pipeline
 
@@ -110,7 +111,7 @@ data/index/scenes.index
 
 ## Folder Crawler
 
-Scene Lab also accepts a local folder path for batch ingestion. The CLI equivalent is:
+**Your videos > Import a folder** accepts a local folder path. Use **Check folder** to inspect detected media, choose that form's independent **Processing settings**, then select **Import videos**. The CLI equivalent is:
 
 ```powershell
 .\.venv\Scripts\python.exe .\scripts\crawl_offline_videos.py "D:\Series" --min-scene-sec 4 --max-scene-sec 45 --threshold 0.35 --sample-fps 2
@@ -148,10 +149,12 @@ The small batch size is intentional for a 4 GB GTX 1650 Ti.
 .\.venv\Scripts\python.exe .\scripts\runtime_acceptance.py --upload
 .\.venv\Scripts\python.exe -m unittest discover -s tests -v
 node .\scripts\visual_smoke_test.js
+node .\scripts\workspace_smoke_test.js http://127.0.0.1:8000 --upload
+node .\scripts\workspace_smoke_test.js http://127.0.0.1:4178 static
 node .\scripts\pwa_offline_smoke.js http://127.0.0.1:4178
 ```
 
-The retrieval benchmark reports Hit@1, Hit@5, MRR@10, per-query rank, and latency. Add `--api-url http://127.0.0.1:8000` to reuse a running engine without loading a second copy of the models. The visual test checks desktop/mobile layouts, browser errors, overflow, and decoded local video playback. The PWA offline test expects `docs/` served on port 4178.
+The retrieval benchmark reports Hit@1, Hit@5, MRR@10, per-query rank, and latency. Add `--api-url http://127.0.0.1:8000` to reuse a running engine without loading a second copy of the models. The visual test checks desktop/mobile layouts, browser errors, overflow, and decoded local video playback. Workspace tests cover title details, saving/removal, history confirmation, shared links, connection recovery, Persian input, folder probing/settings, and preferences. `--upload` additionally submits the tiny synthetic episode through the actual browser UI. Static/PWA tests expect `docs/` served on port 4178.
 
 ### Verified snapshot
 
@@ -168,7 +171,7 @@ The final local validation on the bundled GTX 1650 Ti runtime produced:
 | Retrieval metrics | Current results in `benchmarks/latest.json` |
 | Corrected-suite Hit@5 | 85.19%, compared with 55.56% for the original engine |
 | Corrected-suite Hit@1 | 48.15%; first-result accuracy still needs improvement |
-| Unit/regression tests | 21 passing locally; model-dependent ranking tests skip in lightweight CI |
+| Unit/regression tests | 33 passing locally; model-dependent ranking tests skip in lightweight CI |
 | Browser QA | Desktop and mobile, zero JS errors and zero horizontal overflow |
 | Upload E2E | Video + SRT -> 3 scenes -> 3 keyframes -> rank-1 scene result |
 
@@ -185,7 +188,7 @@ The current index combines the enriched TMDB movie corpus with a normalized publ
 .\.venv\Scripts\python.exe .\scripts\append_catalog_to_index.py --input data\processed\tv_series_enriched.json
 ```
 
-`scripts/import_tvmaze_series.py` is also available for environments with TVMaze API access. Provider metadata is treated as title-level recall; true scene retrieval still requires authorized video/subtitle ingestion through Scene Lab.
+`scripts/import_tvmaze_series.py` is also available for environments with TVMaze API access. Provider metadata is treated as title-level recall; true scene retrieval still requires authorized video/subtitle ingestion through **Your videos**.
 
 ## Public PWA
 

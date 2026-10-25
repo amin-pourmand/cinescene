@@ -1,10 +1,14 @@
+function storedArray(name) { try { const value = JSON.parse(localStorage.getItem(name) || "[]"); return Array.isArray(value) ? value : []; } catch (_) { return []; } }
+
 const state = {
   catalog: [],
-  history: JSON.parse(localStorage.getItem("cinescene-pwa-history") || "[]"),
-  favorites: JSON.parse(localStorage.getItem("cinescene-pwa-favorites") || "[]"),
+  history: storedArray("cinescene-pwa-history"),
+  favorites: storedArray("cinescene-pwa-favorites"),
   installPrompt: null,
   selectedVideo: null,
   selectedVideoUrl: "",
+  query: "",
+  results: [],
 };
 
 const ids = [
@@ -12,11 +16,15 @@ const ids = [
   "metricCatalog", "metricIndexed", "metricOffline", "metricScenes", "metricLatency", "queryInput",
   "topKInput", "sourceFilter", "searchButton", "clearButton", "resultMeta", "results", "statusPill",
   "sceneTimeline", "historyList", "favoriteList", "videoDropZone", "videoInput", "videoDropTitle",
-  "videoDropMeta", "chooseVideoButton", "selectedVideo", "removeVideoButton", "subtitleInput",
+  "videoDropMeta", "chooseVideoButton", "selectedVideo", "removeVideoButton",
   "previewVideoButton", "playerDialog", "scenePlayer", "playerTitle", "playerTimecode", "playerCaption",
   "closePlayerButton", "toastRegion",
+  "recentSearches", "shareSearchButton", "clearHistoryButton",
 ];
 const els = Object.fromEntries(ids.map((id) => [id, document.getElementById(id)]));
+const ui = window.CineSceneUI;
+const navigation = ui.navigation();
+ui.memoryTabs();
 
 const persianExpansions = {
   "کارآگاه": "detective investigation mystery",
@@ -109,9 +117,10 @@ function setView(view, updateHash = true) {
   const next = ["discover", "scenes", "library", "system"].includes(view) ? view : "discover";
   document.querySelectorAll(".view").forEach((item) => item.classList.toggle("active", item.dataset.view === next));
   document.querySelectorAll(".nav-item").forEach((item) => item.classList.toggle("active", item.dataset.viewLink === next));
-  const titles = { discover: "Discover", scenes: "Scene Lab", library: "Library", system: "System" };
+  const titles = { discover: "Search", scenes: "Videos", library: "Saved & history", system: "Settings" };
   els.viewTitle.textContent = titles[next];
-  document.body.classList.remove("nav-open");
+  navigation.close();
+  document.querySelectorAll(".nav-item").forEach((item) => { if (item.dataset.viewLink === next) item.setAttribute("aria-current", "page"); else item.removeAttribute("aria-current"); });
   if (updateHash) history.replaceState(null, "", `#${next}`);
   if (next === "library") renderMemory();
 }
@@ -124,9 +133,7 @@ function setStatus(message, ok = true) {
 }
 
 function sourceLabel(item) {
-  if (item.source === "offline_video_ingestion") return "Scene index";
-  if (item.media_type === "series") return "Series catalog";
-  return "Movie catalog";
+  return item.source === "offline_video_ingestion" ? "Scene match" : "Story match";
 }
 
 function mediaLabel(item) {
@@ -187,6 +194,7 @@ function scoreItem(item, query) {
   score += scoreText(moods, terms, 1.8);
   score += scoreText(genres, terms, 1.5);
   score += scoreText(overview, terms, 1.2);
+  if (score === 0) return { score: 0, scene: null };
   score += Math.min(1.8, Number(item.rating || 0) / 5);
   if (item.source === "offline_video_ingestion" && match.score >= 4) score += 5;
   return { score, scene: match.scene };
@@ -214,6 +222,10 @@ function chips(items, limit = 7) {
 }
 
 function renderResults(entries, query, elapsedMs) {
+  state.results = entries;
+  state.history = [{ query, at: new Date().toISOString(), count: entries.length }, ...state.history.filter((entry) => entry.query !== query)].slice(0, 24);
+  saveMemory();
+  ui.recent(els.recentSearches, state.history.map((item) => item.query));
   els.metricLatency.textContent = `${elapsedMs.toFixed(0)}ms`;
   els.resultMeta.textContent = entries.length ? `${entries.length} ranked titles` : "No matches";
   if (!entries.length) {
@@ -230,25 +242,24 @@ function renderResults(entries, query, elapsedMs) {
       ? `<div class="result-media"><img src="./${escapeHtml(image)}" alt="Keyframe from ${escapeHtml(item.title)}" loading="lazy" /><span class="result-rank">Rank ${index + 1}</span><span class="result-source">${escapeHtml(sourceLabel(item))}</span></div>`
       : `<div class="catalog-result-header"><i data-lucide="${item.media_type === "series" ? "tv" : "film"}"></i><b>Rank ${index + 1}</b><span class="catalog-source">${escapeHtml(sourceLabel(item))}</span></div>`;
     const sceneCopy = scene?.transcript || scene?.visual_caption || (item.scenes || [])[0] || "No scene transcript is available in the public sample.";
-    const tags = [...(scene?.mood_tags || []), ...(scene?.visual_tags || []), ...(item.genres || []), ...(item.mood || [])];
+    const tags = [...new Set([...(scene?.mood_tags || []), ...(item.genres || []), ...(item.mood || [])])].slice(0, 3);
     return `<article class="result-card ${image ? "has-frame" : "catalog-only"}">
       ${media}
       <div class="result-body">
-        <div class="result-title-row"><div><h4>${escapeHtml(item.title)}</h4><small>${escapeHtml(mediaLabel(item))} &middot; ${escapeHtml(item.year || "N/A")}${item.director && item.director !== "Unknown" ? ` &middot; ${escapeHtml(item.director)}` : ""}</small></div><span class="score-ring" title="Showcase retrieval score">${score.toFixed(1)}</span></div>
+        <div class="result-title-row"><div><button class="title-link" data-details="${index}" type="button">${escapeHtml(item.title)}</button><small>${escapeHtml(mediaLabel(item))}${ui.known(item.year) ? ` &middot; ${escapeHtml(item.year)}` : ""}${item.director && item.director !== "Unknown" ? ` &middot; ${escapeHtml(item.director)}` : ""}</small></div></div>
         ${item.source === "offline_video_ingestion" ? "" : `<p class="result-overview">${escapeHtml(item.overview || "")}</p>`}
         ${scene ? `<div class="matched-scene"><div class="scene-label"><span>Best matching scene</span><time>${timecode(scene.start_sec)} - ${timecode(scene.end_sec)}</time></div><p dir="auto">${escapeHtml(sceneCopy)}</p></div>` : ""}
         <div class="chip-row">${chips(tags)}</div>
         <div class="result-actions">
-          <button class="button secondary" type="button" data-similar="${escapeHtml(item.title)} ${(item.mood || []).map(escapeHtml).join(" ")}"><i data-lucide="scan-search"></i>Find similar</button>
-          <button class="icon-button ghost" type="button" data-favorite="${escapeHtml(item.id)}" title="Save" aria-label="Save result"><i data-lucide="bookmark"></i></button>
+          <button class="button secondary" type="button" data-details="${index}"><i data-lucide="info"></i>Details</button>
+          ${item.source === "offline_video_ingestion" ? `<button class="icon-button ghost" type="button" data-open-media="${escapeHtml(item.id)}" title="Explore scenes" aria-label="Explore scenes"><i data-lucide="list-video"></i></button>` : ""}
+          <button class="icon-button ghost" type="button" data-favorite="${escapeHtml(item.id)}" aria-pressed="${isSaved(item)}" title="${isSaved(item) ? "Remove from saved" : "Save title"}" aria-label="${isSaved(item) ? "Remove from saved" : "Save title"}"><i data-lucide="bookmark"></i></button>
         </div>
       </div>
     </article>`;
   }).join("");
   refreshIcons(els.results);
 
-  state.history = [{ query, at: new Date().toLocaleString(), count: entries.length }, ...state.history.filter((entry) => entry.query !== query)].slice(0, 24);
-  saveMemory();
 }
 
 function runSearch(queryOverride) {
@@ -259,6 +270,9 @@ function runSearch(queryOverride) {
     return;
   }
   setView("discover");
+  state.query = query;
+  ui.searchState(query, els.sourceFilter.value, els.topKInput.value);
+  els.shareSearchButton.disabled = false;
   els.queryInput.value = query;
   els.resultMeta.textContent = "Searching scene memory";
   const start = performance.now();
@@ -268,11 +282,13 @@ function runSearch(queryOverride) {
 
 function renderMemory() {
   els.historyList.innerHTML = state.history.length
-    ? state.history.map((item) => `<button class="library-item" type="button" data-query="${escapeHtml(item.query)}"><strong>${escapeHtml(item.query)}</strong><span>${escapeHtml(item.at)} &middot; ${item.count} results</span></button>`).join("")
-    : `<div class="empty-inline">Searches made on this device will appear here.</div>`;
+    ? state.history.map((item) => `<article class="memory-row"><button type="button" data-query="${escapeHtml(item.query)}"><strong dir="auto">${escapeHtml(item.query)}</strong><span>${item.count} results &middot; ${escapeHtml(ui.formatDate(item.at))}</span></button><i data-lucide="arrow-up-right"></i></article>`).join("")
+    : `<div class="empty-inline">No search history yet.</div>`;
   els.favoriteList.innerHTML = state.favorites.length
-    ? state.favorites.map((item) => `<button class="library-item" type="button" data-query="${escapeHtml(item.title)}"><strong>${escapeHtml(item.title)}</strong><span>${escapeHtml(sourceLabel(item))} &middot; ${escapeHtml(item.year)}</span></button>`).join("")
-    : `<div class="empty-inline">Saved titles will appear here.</div>`;
+    ? state.favorites.map((item, index) => `<article class="memory-row"><button type="button" data-open-saved="${index}"><strong>${escapeHtml(item.title)}</strong><span>${escapeHtml(mediaLabel(item))}${ui.known(item.year) ? ` &middot; ${escapeHtml(item.year)}` : ""}</span></button><button class="icon-button ghost" type="button" data-remove-saved="${index}" title="Remove from saved" aria-label="Remove ${escapeHtml(item.title)} from saved"><i data-lucide="bookmark-minus"></i></button></article>`).join("")
+    : `<div class="empty-inline">No saved titles yet.</div>`;
+  els.clearHistoryButton.disabled = !state.history.length;
+  ui.recent(els.recentSearches, state.history.map((item) => item.query));
   refreshIcons();
 }
 
@@ -285,17 +301,14 @@ function renderTimeline() {
   }
   els.sceneTimeline.className = "media-timeline";
   els.sceneTimeline.innerHTML = offline.map((item) => {
-    const scenes = (item.scene_timeline || []).slice(0, 4).map((scene) => `<article class="scene-tile">
-      ${scene.keyframe ? `<img src="./${escapeHtml(scene.keyframe)}" alt="${escapeHtml(item.title)} scene" loading="lazy" />` : `<div class="frame-placeholder"><i data-lucide="image-off"></i></div>`}
-      <div><strong>${timecode(scene.start_sec)} - ${timecode(scene.end_sec)}</strong><p dir="auto">${escapeHtml(scene.transcript || scene.visual_caption || "Visual scene record")}</p></div>
-    </article>`).join("");
-    return `<section class="timeline-media"><div class="timeline-media-header"><h4>${escapeHtml(item.title)}</h4><div class="timeline-actions"><span>${Number(item.scene_count || 0).toLocaleString()} detected scenes</span><button class="button secondary compact" data-open-media="${escapeHtml(item.id)}" type="button"><i data-lucide="list-video"></i>Explore all scenes</button></div></div><div class="scene-strip">${scenes}</div></section>`;
+    const frame = item.poster || item.scene_timeline?.find((scene) => scene.keyframe)?.keyframe;
+    return `<article class="video-library-item">${frame ? `<img src="./${escapeHtml(frame)}" alt="Scene from ${escapeHtml(item.title)}" loading="lazy" />` : ""}<div class="video-library-copy"><h4>${escapeHtml(item.title)}</h4><p>${escapeHtml(mediaLabel(item))} &middot; ${item.scene_count || 0} scenes</p></div><button class="button secondary compact" data-open-media="${escapeHtml(item.id)}" type="button"><i data-lucide="list-video"></i>Explore scenes</button></article>`;
   }).join("");
   refreshIcons(els.sceneTimeline);
 }
 
 function selectVideo(file) {
-  if (!file || !file.type.startsWith("video/")) {
+  if (!file || (!file.type.startsWith("video/") && !/\.(mp4|mkv|avi|mov|webm|m4v|wmv)$/i.test(file.name))) {
     toast("Choose a supported video file.", "error");
     return;
   }
@@ -346,7 +359,13 @@ async function loadCatalog() {
     setStatus("Showcase ready", true);
     renderTimeline();
     renderMemory();
-    runSearch("a lonely detective enters a dark room and investigates a mystery");
+    const shared = ui.readSearch();
+    if ([...els.sourceFilter.options].some((option) => option.value === shared.type)) els.sourceFilter.value = shared.type;
+    els.topKInput.value = (!location.hash || location.hash === "#discover") && new URL(location.href).searchParams.has("count") ? shared.count : Math.min(20, Math.max(1, Number(localStorage.getItem("cinescene-pwa-results-count")) || 8));
+    if (shared.query) {
+      els.queryInput.value = shared.query;
+      if (!location.hash || location.hash === "#discover") runSearch(shared.query);
+    }
   } catch (error) {
     setStatus("Catalog unavailable", false);
     els.resultMeta.textContent = "Load error";
@@ -359,31 +378,43 @@ async function loadCatalog() {
 document.addEventListener("click", (event) => {
   const viewLink = event.target.closest("[data-view-link]");
   const queryLink = event.target.closest("[data-query]");
-  const similar = event.target.closest("[data-similar]");
+  const details = event.target.closest("[data-details]");
   const favorite = event.target.closest("[data-favorite]");
   if (viewLink) {
     event.preventDefault();
     setView(viewLink.dataset.viewLink);
   }
   if (queryLink) runSearch(queryLink.dataset.query);
-  if (similar) runSearch(similar.dataset.similar);
+  if (details) { const entry = state.results[Number(details.dataset.details)]; if (entry) state.details.open(asMovie(entry.item, entry.scene)); }
   if (favorite) {
     const item = state.catalog.find((entry) => String(entry.id) === favorite.dataset.favorite);
-    if (item && !state.favorites.some((entry) => String(entry.id) === String(item.id))) {
-      state.favorites = [item, ...state.favorites].slice(0, 36);
-      saveMemory();
-      favorite.classList.add("selected");
-      toast(`${item.title} saved.`, "success");
-    }
+    if (item) { try { toggleFavorite(item); } catch (error) { toast(error.message, "error"); } }
   }
+  const saved = event.target.closest("[data-open-saved]");
+  const remove = event.target.closest("[data-remove-saved]");
+  if (saved) state.details.open(asMovie(state.favorites[Number(saved.dataset.openSaved)]));
+  if (remove) { try { toggleFavorite(state.favorites[Number(remove.dataset.removeSaved)]); } catch (error) { toast(error.message, "error"); } }
+  const scene = event.target.closest("[data-open-media]");
+  if (scene) state.explorer.open(scene.dataset.openMedia);
 });
 
-els.mobileMenuButton.addEventListener("click", () => document.body.classList.toggle("nav-open"));
 els.searchButton.addEventListener("click", () => runSearch());
 els.clearButton.addEventListener("click", () => {
   els.queryInput.value = "";
+  state.query = "";
+  state.results = [];
+  els.resultMeta.textContent = "Ready";
+  els.results.className = "results-grid empty-results";
+  els.results.innerHTML = `<div class="empty-visual"><i data-lucide="scan-search"></i></div><strong>No search yet</strong>`;
+  els.shareSearchButton.disabled = true;
+  ui.searchState("", "all", 8);
+  refreshIcons();
   els.queryInput.focus();
 });
+els.sourceFilter.addEventListener("change", () => { if (state.query) runSearch(state.query); });
+els.topKInput.addEventListener("change", () => { els.topKInput.value = Math.min(20, Math.max(1, Number(els.topKInput.value) || 8)); localStorage.setItem("cinescene-pwa-results-count", els.topKInput.value); });
+els.shareSearchButton.addEventListener("click", async () => { try { await navigator.clipboard.writeText(location.href); toast("Search link copied."); } catch (_) { toast("The search URL is available in the address bar.", "error"); } });
+els.clearHistoryButton.addEventListener("click", async () => { if (await ui.confirmAction("Clear your search history?", "Clear history")) { state.history = []; saveMemory(); renderMemory(); toast("Search history cleared."); } });
 els.queryInput.addEventListener("keydown", (event) => {
   if ((event.ctrlKey || event.metaKey) && event.key === "Enter") runSearch();
 });
@@ -409,10 +440,9 @@ els.videoDropZone.addEventListener("drop", (event) => {
 });
 els.removeVideoButton.addEventListener("click", clearVideo);
 els.previewVideoButton.addEventListener("click", previewVideo);
-els.closePlayerButton.addEventListener("click", () => {
-  els.scenePlayer.pause();
-  els.playerDialog.close();
-});
+els.closePlayerButton.addEventListener("click", () => els.playerDialog.close());
+els.playerDialog.addEventListener("close", () => { els.scenePlayer.pause(); els.scenePlayer.removeAttribute("src"); els.scenePlayer.load(); });
+els.scenePlayer.addEventListener("error", () => { if (els.playerDialog.open && els.scenePlayer.getAttribute("src")) els.playerCaption.textContent = "This video format cannot be played by your browser."; });
 
 window.addEventListener("hashchange", () => setView(location.hash.slice(1), false));
 window.addEventListener("beforeinstallprompt", (event) => {
@@ -445,10 +475,23 @@ state.explorer = new window.SceneExplorer(async (mediaId, options) => {
   });
   return { title: item.title, quality: item.quality, total: filtered.length, has_more: options.offset + options.limit < filtered.length, scenes: filtered.slice(options.offset, options.offset + options.limit) };
 });
-els.sceneTimeline.addEventListener("click", (event) => {
-  const button = event.target.closest("[data-open-media]");
-  if (button) state.explorer.open(button.dataset.openMedia);
-});
+function isSaved(movie) { return state.favorites.some((item) => ui.key(item) === ui.key(movie)); }
+function toggleFavorite(movie) {
+  if (!movie) return;
+  const saved = isSaved(movie);
+  const previous = state.favorites;
+  state.favorites = saved ? state.favorites.filter((item) => ui.key(item) !== ui.key(movie)) : [movie, ...state.favorites].slice(0, 36);
+  try { saveMemory(); } catch (error) { state.favorites = previous; throw error; }
+  document.querySelectorAll("[data-favorite]").forEach((button) => { const active = state.favorites.some((item) => ui.key(item) === button.dataset.favorite); button.setAttribute("aria-pressed", String(active)); button.title = button.ariaLabel = active ? "Remove from saved" : "Save title"; });
+  renderMemory();
+  toast(saved ? `${movie.title} removed from saved.` : `${movie.title} saved.`);
+}
+function asMovie(item, scene) {
+  const match = scene || item.scene_timeline?.[0];
+  return { ...item, first_keyframe_url: item.poster ? `./${item.poster}` : null,
+    matched_scene: match ? { ...match, keyframe_url: match.keyframe ? `./${match.keyframe}` : null } : null };
+}
+state.details = new ui.TitleDetails({ saved: isSaved, save: toggleFavorite, timeline: (movie) => state.explorer.open(String(movie.id)) });
 refreshIcons();
 setView(location.hash.slice(1) || "discover", false);
 loadCatalog();

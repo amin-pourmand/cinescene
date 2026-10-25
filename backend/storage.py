@@ -47,7 +47,7 @@ class AppMemory:
                     title TEXT NOT NULL,
                     payload_json TEXT NOT NULL,
                     created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
-                    UNIQUE(session_id, title)
+                    UNIQUE(session_id, movie_id)
                 );
 
                 CREATE TABLE IF NOT EXISTS feedback (
@@ -77,6 +77,23 @@ class AppMemory:
                 );
                 """
             )
+            unique_keys = []
+            for index in conn.execute("SELECT name FROM pragma_index_list('favorites') WHERE [unique] = 1"):
+                columns = conn.execute("SELECT name FROM pragma_index_info(?) ORDER BY seqno", (index["name"],)).fetchall()
+                unique_keys.append(tuple(column["name"] for column in columns))
+            if ("session_id", "title") in unique_keys:
+                # Preserve saved items while allowing remakes and episodes with the same title.
+                conn.execute("BEGIN IMMEDIATE")
+                conn.execute("ALTER TABLE favorites RENAME TO favorites_title_key")
+                conn.execute("""CREATE TABLE favorites (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT, session_id TEXT NOT NULL,
+                    movie_id TEXT, title TEXT NOT NULL, payload_json TEXT NOT NULL,
+                    created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                    UNIQUE(session_id, movie_id))""")
+                conn.execute("""INSERT OR REPLACE INTO favorites
+                    SELECT id, session_id, COALESCE(NULLIF(movie_id, ''), title), title, payload_json, created_at
+                    FROM favorites_title_key ORDER BY id""")
+                conn.execute("DROP TABLE favorites_title_key")
 
     def save_job(self, job: Dict):
         with self.connect() as conn:
@@ -135,6 +152,15 @@ class AppMemory:
                 """,
                 (session_id, movie_id, title, json.dumps(movie, ensure_ascii=False)),
             )
+
+    def remove_favorite(self, session_id: str, movie: Dict):
+        movie_id = str(movie.get("id") or movie.get("title") or "")
+        with self.connect() as conn:
+            conn.execute("DELETE FROM favorites WHERE session_id = ? AND movie_id = ?", (session_id, movie_id))
+
+    def clear_searches(self, session_id: str):
+        with self.connect() as conn:
+            conn.execute("DELETE FROM searches WHERE session_id = ?", (session_id,))
 
     def favorites(self, session_id: str) -> List[Dict]:
         with self.connect() as conn:

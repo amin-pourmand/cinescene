@@ -31,7 +31,7 @@ async function verifyPage(page, viewportName) {
     await page.click(`[data-view-link="${STATIC_MODE ? "scenes" : "ingest"}"]`);
     await page.waitForSelector(STATIC_MODE ? "#scenesView.active" : "#ingestView.active");
     await page.screenshot({ path: path.join(ROOT, "artifacts", `${ARTIFACT_PREFIX}-desktop-scene-lab.png`), fullPage: true });
-    const exploreButton = page.locator("button[data-open-media]").first();
+    const exploreButton = page.locator(".video-library-item button[data-open-media]").first();
     if (await exploreButton.count()) {
       await exploreButton.click();
       await page.waitForSelector(".explorer-row", { timeout: 15_000 });
@@ -55,7 +55,7 @@ async function verifyPage(page, viewportName) {
     await page.click(`.nav-item[data-view-link="${STATIC_MODE ? "scenes" : "ingest"}"]`);
     await page.waitForSelector(STATIC_MODE ? "#scenesView.active" : "#ingestView.active");
     await page.screenshot({ path: path.join(ROOT, "artifacts", `${ARTIFACT_PREFIX}-mobile-scene-lab.png`), fullPage: true });
-    const exploreButton = page.locator("button[data-open-media]").first();
+    const exploreButton = page.locator(".video-library-item button[data-open-media]").first();
     if (await exploreButton.count()) {
       await exploreButton.click();
       await page.waitForSelector(".explorer-row", { timeout: 15_000 });

@@ -635,6 +635,18 @@ def favorites(sid: str = Header(default="anonymous", alias="X-CineScene-Session"
     return {"items": memory.favorites(sid)}
 
 
+@app.delete("/api/favorites")
+def remove_favorite(payload: FavoriteRequest, sid: str = Header(default="anonymous", alias="X-CineScene-Session")):
+    memory.remove_favorite(sid, payload.movie)
+    return {"ok": True}
+
+
+@app.delete("/api/history")
+def clear_history(sid: str = Header(default="anonymous", alias="X-CineScene-Session")):
+    memory.clear_searches(sid)
+    return {"ok": True}
+
+
 @app.post("/api/feedback")
 def feedback(payload: FeedbackRequest, sid: str = Header(default="anonymous", alias="X-CineScene-Session")):
     memory.add_feedback(sid, payload.query, payload.movie_title, payload.signal, payload.note)

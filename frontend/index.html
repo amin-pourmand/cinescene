@@ -9,6 +9,7 @@
     <link rel="icon" href="/assets/favicon-32.png?v=20261025-reel-v11" sizes="32x32" type="image/png" />
     <link rel="apple-touch-icon" href="/assets/apple-touch-icon.png?v=20261025-reel-v11" sizes="180x180" />
     <link rel="stylesheet" href="/assets/styles.css?v=20261025-reel-v11" />
+    <link rel="stylesheet" href="/assets/workspace.css?v=20261025-workspace-v12" />
   </head>
   <body>
     <div class="app-shell">
@@ -20,16 +21,16 @@
 
         <nav class="primary-nav" aria-label="Workspace">
           <button class="nav-item active" type="button" data-view-link="discover">
-            <i data-lucide="search"></i><span>Discover</span>
+            <i data-lucide="search"></i><span>Search</span>
           </button>
           <button class="nav-item" type="button" data-view-link="ingest">
-            <i data-lucide="scan-line"></i><span>Scene Lab</span><b id="activeJobBadge" hidden>1</b>
+            <i data-lucide="film"></i><span>Your videos</span><b id="activeJobBadge" hidden>1</b>
           </button>
           <button class="nav-item" type="button" data-view-link="library">
-            <i data-lucide="library"></i><span>Library</span>
+            <i data-lucide="bookmark"></i><span>Saved &amp; history</span>
           </button>
           <button class="nav-item" type="button" data-view-link="system">
-            <i data-lucide="activity"></i><span>System</span>
+            <i data-lucide="settings-2"></i><span>Settings</span>
           </button>
         </nav>
 
@@ -47,10 +48,9 @@
           <button class="icon-button mobile-menu" id="mobileMenuButton" type="button" aria-label="Open navigation">
             <i data-lucide="menu"></i>
           </button>
-          <div><span class="eyebrow">Workspace</span><h1 id="viewTitle">Discover</h1></div>
+          <div><h1 id="viewTitle">Search</h1></div>
           <div class="topbar-actions">
-            <div class="engine-chip"><span></span><b id="engineVectorCount">-</b> vectors</div>
-            <button class="button secondary compact" type="button" data-view-link="ingest">
+            <button class="button secondary compact" type="button" data-view-link="ingest" data-open-import aria-label="Add video" title="Add video">
               <i data-lucide="upload"></i><span>Add video</span>
             </button>
           </div>
@@ -60,16 +60,16 @@
           <section class="view active" id="discoverView" data-view="discover">
             <div class="search-stage">
               <div class="search-heading">
-                <div><span class="section-kicker">Scene-to-title search</span><h2>Describe what you remember.</h2></div>
-                <button class="icon-button ghost" id="clearButton" type="button" title="Clear search" aria-label="Clear search">
+                <div><h2>Find a movie from a scene</h2></div>
+                <div class="search-heading-actions"><button class="icon-button ghost" id="shareSearchButton" type="button" title="Copy search link" aria-label="Copy search link" disabled><i data-lucide="link"></i></button><button class="icon-button ghost" id="clearButton" type="button" title="Clear search" aria-label="Clear search">
                   <i data-lucide="x"></i>
-                </button>
+                </button></div>
               </div>
               <div class="query-composer">
                 <i data-lucide="sparkles"></i>
-                <textarea id="queryInput" rows="3" dir="auto" placeholder="A detective walks into a dark room while the city lights flicker outside..."></textarea>
+                <textarea id="queryInput" rows="2" maxlength="1000" dir="auto" aria-label="Scene description" placeholder="A scene, a line of dialogue, or a moment you remember..."></textarea>
                 <button class="button primary search-button" id="searchButton" type="button">
-                  <i data-lucide="search"></i><span>Find scene</span>
+                  <i data-lucide="search"></i><span>Search</span>
                 </button>
               </div>
               <div class="search-tools">
@@ -80,18 +80,11 @@
                 </div>
                 <div class="search-settings">
                   <select id="mediaTypeInput" aria-label="Media type"><option value="all">Movies &amp; series</option><option value="movie">Movies</option><option value="series">Series</option></select>
-                  <label>Results <input id="topKInput" type="number" min="1" max="20" value="8" /></label>
-                  <label class="switch"><input id="rerankInput" type="checkbox" /><span></span>Rerank</label>
                 </div>
               </div>
             </div>
 
-            <div class="stat-strip" aria-label="Index summary">
-              <div><i data-lucide="clapperboard"></i><span><strong id="metricIndexed">-</strong><small>catalog titles</small></span></div>
-              <div><i data-lucide="scan-line"></i><span><strong id="metricScenes">-</strong><small>scene vectors</small></span></div>
-              <div><i data-lucide="hard-drive"></i><span><strong id="metricOffline">-</strong><small>offline media</small></span></div>
-              <div><i data-lucide="cpu"></i><span><strong id="metricCuda">-</strong><small>compute</small></span></div>
-            </div>
+            <section class="recent-section" hidden><span>Recent searches</span><div id="recentSearches" class="recent-searches"></div></section>
 
             <section class="results-section">
               <div class="section-header">
@@ -100,23 +93,23 @@
               </div>
               <div id="results" class="results-grid empty-results">
                 <div class="empty-visual"><i data-lucide="scan-search"></i></div>
-                <strong>Search by dialogue, action, mood, or a visual memory.</strong>
-                <span>Scene-level matches include a frame, timestamp, and transcript when available.</span>
+                <strong>No search yet</strong>
               </div>
             </section>
           </section>
 
           <section class="view" id="ingestView" data-view="ingest">
             <div class="page-heading">
-              <div><span class="section-kicker">Offline intelligence</span><h2>Scene Lab</h2></div>
-              <div class="health-badge" id="crawlerHealth"><span></span>Checking pipeline</div>
+              <div><h2>Your videos</h2></div>
+              <div class="health-badge" id="crawlerHealth"><span></span>Checking availability</div>
             </div>
 
+            <details id="addMediaPanel" class="add-media-panel"><summary>Add a video</summary>
             <div class="lab-layout">
               <section class="tool-panel upload-panel">
                 <div class="panel-heading"><span>01</span><div><h3>Media source</h3><small>Video and subtitle tracks</small></div></div>
                 <form id="ingestForm">
-                  <div class="drop-zone" id="videoDropZone" tabindex="0" role="button">
+                  <div class="drop-zone" id="videoDropZone" role="region" aria-label="Video upload">
                     <input id="videoInput" type="file" accept="video/mp4,video/x-matroska,video/webm,video/quicktime,video/*" hidden />
                     <div class="drop-icon"><i data-lucide="file-video-2"></i></div>
                     <strong id="videoDropTitle">Drop a video here</strong>
@@ -140,7 +133,7 @@
                   </div>
                   <div class="file-stack" id="subtitleList"></div>
 
-                  <div class="analysis-mode">
+                  <details class="analysis-options"><summary>Processing settings</summary><div class="analysis-mode">
                     <span>Analysis profile</span>
                     <div class="segmented-control" role="group">
                       <button class="active" type="button" data-analysis-mode="balanced">Balanced</button>
@@ -163,15 +156,16 @@
                       <label>Sample rate <span><input id="uploadFpsInput" type="range" min="0.5" max="5" step="0.5" value="2" /><output id="uploadFpsValue">2 fps</output></span></label>
                     </div>
                   </details>
+                  </details>
 
                   <button class="button primary full-width" id="startAnalysisButton" type="submit" disabled>
-                    <i data-lucide="scan-line"></i><span>Analyze and index video</span>
+                    <i data-lucide="scan-line"></i><span>Process video</span>
                   </button>
                 </form>
               </section>
 
               <section class="tool-panel pipeline-panel">
-                <div class="panel-heading"><span>02</span><div><h3>Live pipeline</h3><small id="pipelineSummary">Waiting for media</small></div></div>
+                <div class="panel-heading"><span>02</span><div><h3>Processing</h3><small id="pipelineSummary">Waiting for media</small></div></div>
                 <div class="job-progress" id="jobPanel" hidden>
                   <div class="progress-header"><strong id="jobTitle">Preparing media</strong><b id="jobPercent">0%</b></div>
                   <div class="progress-track"><span id="jobBar"></span></div>
@@ -182,7 +176,7 @@
                   <li data-stage="scene_detection"><span><i data-lucide="scissors"></i></span><div><strong>Scene boundaries</strong><small>Adaptive content detection</small></div></li>
                   <li data-stage="scene_records_ready"><span><i data-lucide="captions"></i></span><div><strong>Scene intelligence</strong><small>Dialogue, keyframes, mood, vision</small></div></li>
                   <li data-stage="scene_index"><span><i data-lucide="binary"></i></span><div><strong>Vector index</strong><small>One embedding per scene</small></div></li>
-                  <li data-stage="ready"><span><i data-lucide="circle-check"></i></span><div><strong>Search ready</strong><small>Available in Discover</small></div></li>
+                  <li data-stage="ready"><span><i data-lucide="circle-check"></i></span><div><strong>Search ready</strong><small>Available in Search</small></div></li>
                 </ol>
 
                 <div class="pipeline-metrics">
@@ -191,47 +185,63 @@
                   <div><strong id="crawlerFrames">-</strong><span>frames</span></div>
                 </div>
                 <div class="notice" id="crawlerNotice">Pipeline is ready.</div>
+                <button class="button secondary compact" id="retryJobButton" type="button" hidden><i data-lucide="refresh-cw"></i>Reconnect to processing</button>
               </section>
-            </div>
+            </div></details>
 
             <section class="timeline-section">
               <div class="section-header">
-                <div><span class="section-kicker">Processed media</span><h3>Scene timeline</h3></div>
+                <div><h3>Processed videos</h3></div>
                 <button class="icon-button ghost" id="refreshCrawlerButton" type="button" title="Refresh timeline" aria-label="Refresh timeline"><i data-lucide="refresh-cw"></i></button>
               </div>
               <div id="crawlerPreview" class="media-timeline empty-inline">No processed scenes yet.</div>
             </section>
 
-            <section class="folder-section">
-              <div class="section-header"><div><span class="section-kicker">Batch workspace</span><h3>Folder crawler</h3></div></div>
+            <details class="folder-section"><summary>Import a folder</summary>
               <form id="crawlForm" class="folder-form">
-                <label class="field-label">Folder path<input id="crawlPathInput" type="text" placeholder="C:\Movies or D:\Series" /></label>
-                <label class="field-label">Title override<input id="crawlTitleInput" type="text" placeholder="Optional" /></label>
-                <button class="button secondary" id="probeCrawlerPathButton" type="button"><i data-lucide="folder-search"></i>Probe</button>
-                <button class="button primary" type="submit"><i data-lucide="scan-line"></i>Crawl folder</button>
-                <input id="crawlMinSceneInput" type="hidden" value="4" />
-                <input id="crawlMaxSceneInput" type="hidden" value="45" />
-                <input id="crawlThresholdInput" type="hidden" value="0.35" />
-                <input id="crawlFpsInput" type="hidden" value="2" />
-                <input id="crawlCatalogInput" type="checkbox" checked hidden />
+                <label class="field-label">Folder on this computer<input id="crawlPathInput" type="text" placeholder="E:\Movies or E:\Series" /></label>
+                <label class="field-label">Title prefix<input id="crawlTitleInput" type="text" placeholder="Optional" /></label>
+                <button class="button secondary" id="probeCrawlerPathButton" type="button"><i data-lucide="folder-search"></i>Check folder</button>
+                <button class="button primary" type="submit"><i data-lucide="scan-line"></i>Import videos</button>
+                <details class="analysis-options folder-options"><summary>Processing settings</summary>
+                  <div class="option-list">
+                    <label class="option-row"><span><i data-lucide="captions"></i><b>Embedded subtitles</b></span><input id="crawlEmbeddedInput" type="checkbox" checked /></label>
+                    <label class="option-row"><span><i data-lucide="audio-lines"></i><b>Speech transcription</b></span><input id="crawlTranscribeInput" type="checkbox" /></label>
+                    <label class="option-row"><span><i data-lucide="image"></i><b>Visual captioning</b></span><input id="crawlVisionInput" type="checkbox" /></label>
+                  </div>
+                  <div class="control-grid">
+                    <label class="field-label">Minimum scene (seconds)<input id="crawlMinSceneInput" type="number" min="1" max="20" value="4" required /></label>
+                    <label class="field-label">Maximum scene (seconds)<input id="crawlMaxSceneInput" type="number" min="15" max="120" step="5" value="45" required /></label>
+                    <label class="field-label">Cut sensitivity<input id="crawlThresholdInput" type="number" min="0.1" max="0.8" step="0.05" value="0.35" required /></label>
+                    <label class="field-label">Sample rate (fps)<input id="crawlFpsInput" type="number" min="0.5" max="5" step="0.5" value="2" required /></label>
+                  </div>
+                </details>
               </form>
               <div class="probe-grid" id="probeList"></div>
-            </section>
+            </details>
           </section>
 
           <section class="view" id="libraryView" data-view="library">
-            <div class="page-heading"><div><span class="section-kicker">Personal workspace</span><h2>Library</h2></div></div>
-            <div class="library-grid">
-              <section><div class="section-header"><div><span class="section-kicker">Recent</span><h3>Search history</h3></div></div><div class="library-list" id="historyList"></div></section>
-              <section><div class="section-header"><div><span class="section-kicker">Saved</span><h3>Favorites</h3></div></div><div class="library-list" id="favoriteList"></div></section>
-              <section><div class="section-header"><div><span class="section-kicker">Local media</span><h3>Ingestions</h3></div></div><div class="library-list" id="ingestionList"></div></section>
-            </div>
+            <div class="page-heading"><div><h2>Saved &amp; history</h2></div></div>
+            <div class="memory-tabs" role="tablist" aria-label="Saved items and history"><button class="active" role="tab" aria-selected="true" data-memory-tab="saved" type="button">Saved titles</button><button role="tab" aria-selected="false" data-memory-tab="history" type="button">Search history</button></div>
+            <section data-memory-panel="saved"><div id="favoriteList" class="memory-list"></div></section>
+            <section data-memory-panel="history" hidden><div class="memory-panel-header"><h3>Search history</h3><button class="icon-button ghost" id="clearHistoryButton" type="button" title="Clear search history" aria-label="Clear search history"><i data-lucide="trash-2"></i></button></div><div id="historyList" class="memory-list"></div></section>
           </section>
 
           <section class="view" id="systemView" data-view="system">
             <div class="page-heading">
-              <div><span class="section-kicker">Runtime</span><h2>System</h2></div>
-              <button class="button secondary compact" id="rebuildIndexButton" type="button"><i data-lucide="database-backup"></i>Rebuild indexes</button>
+              <div><h2>Settings</h2></div>
+            </div>
+            <div class="preference-row"><label for="topKInput">Results per search</label><input id="topKInput" type="number" min="1" max="20" value="8" /></div>
+            <div class="preference-row"><label for="rerankInput">Re-rank English results</label><input id="rerankInput" type="checkbox" /></div>
+            <details class="technical-details"><summary>Runtime diagnostics</summary>
+            <button class="button secondary compact" id="rebuildIndexButton" type="button"><i data-lucide="database-backup"></i>Rebuild indexes</button>
+            <p class="count-label"><span id="engineVectorCount">-</span> total vectors</p>
+            <div class="stat-strip" aria-label="Index summary">
+              <div><i data-lucide="clapperboard"></i><span><strong id="metricIndexed">-</strong><small>catalog titles</small></span></div>
+              <div><i data-lucide="scan-line"></i><span><strong id="metricScenes">-</strong><small>scene vectors</small></span></div>
+              <div><i data-lucide="hard-drive"></i><span><strong id="metricOffline">-</strong><small>offline media</small></span></div>
+              <div><i data-lucide="cpu"></i><span><strong id="metricCuda">-</strong><small>compute</small></span></div>
             </div>
             <div class="system-grid" id="systemGrid">
               <div class="system-card"><span>Search engine</span><strong id="systemSearchState">Checking</strong><small id="systemSearchDetail">-</small></div>
@@ -249,6 +259,8 @@
               </div>
             </section>
             <section class="diagnostic-panel"><div class="section-header"><div><span class="section-kicker">Index diagnostics</span><h3>Runtime report</h3></div></div><pre id="runtimeReport">Loading...</pre></section>
+            <section class="timeline-section"><h3>Import history</h3><div class="library-list" id="ingestionList"></div></section>
+            </details>
           </section>
         </main>
       </div>
@@ -263,6 +275,7 @@
     <div class="toast-region" id="toastRegion" aria-live="polite"></div>
     <script src="/assets/lucide.min.js?v=0.468.0"></script>
     <script src="/assets/scene-explorer.js?v=20261025-reel-v11"></script>
-    <script src="/assets/app.js?v=20261025-reel-v11"></script>
+    <script src="/assets/workspace-ui.js?v=20261025-workspace-v12"></script>
+    <script src="/assets/app.js?v=20261025-workspace-v12"></script>
   </body>
 </html>
