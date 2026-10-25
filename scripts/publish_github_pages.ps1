@@ -1,5 +1,5 @@
 param(
-    [string]$Owner = "AminHatesProgramming",
+    [string]$Owner = "amin-pourmand",
     [string]$Repo = "cinescene",
     [string]$Branch = "main",
     [string]$PagesBranch = "gh-pages"

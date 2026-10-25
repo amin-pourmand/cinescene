@@ -2,7 +2,7 @@
 
 **Scene-to-title retrieval for movies and series.** Describe a scene, line of dialogue, visual detail, or mood and CineScene returns the most likely title together with the matching scene, timestamp, transcript, and keyframe.
 
-[Open the installable PWA](https://aminhatesprogramming.github.io/cinescene) | [Architecture](ARCHITECTURE.md) | [Demo guide](FINAL_DEMO_GUIDE.md)
+[Open the installable PWA](https://amin-pourmand.github.io/cinescene) | [Architecture](ARCHITECTURE.md) | [Demo guide](FINAL_DEMO_GUIDE.md)
 
 ## Why CineScene
 
@@ -190,7 +190,7 @@ The current index combines the enriched TMDB movie corpus with a normalized publ
 The `docs/` build is published at:
 
 ```text
-https://aminhatesprogramming.github.io/cinescene
+https://amin-pourmand.github.io/cinescene
 ```
 
 It contains an installable app shell, browser memory, responsive scene search, local-file preview, 3,412 showcase titles, and five scene records from two synthetic fixtures. GitHub Pages is static hosting, so Python, FAISS, GPU inference, and server-side video ingestion run only in the FastAPI Studio or on a separately deployed Python backend. Browser showcase scores are lexical, not GPU-model scores.

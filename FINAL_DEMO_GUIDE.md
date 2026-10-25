@@ -7,7 +7,7 @@ This walkthrough demonstrates the complete user story in a short, defensible ord
 Open:
 
 ```text
-https://aminhatesprogramming.github.io/cinescene
+https://amin-pourmand.github.io/cinescene
 ```
 
 Show the responsive Retrieval Studio, installable PWA, scene cards, browser memory, and processed scene timeline. Mention that this public build is static by design; the same interface connects to Python, FAISS, and GPU models in the full runtime.
