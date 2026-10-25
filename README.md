@@ -1,5 +1,7 @@
 # CineScene
 
+<p align="center"><img src="docs/assets/brand-lockup.jpg" alt="CineScene: Discover movies by their scenes" width="320" height="320" /></p>
+
 **Scene-to-title retrieval for movies and series.** Describe a scene, line of dialogue, visual detail, or mood and CineScene returns the most likely title together with the matching scene, timestamp, transcript, and keyframe.
 
 [Open the installable PWA](https://amin-pourmand.github.io/cinescene) | [Architecture](ARCHITECTURE.md) | [Demo guide](FINAL_DEMO_GUIDE.md)

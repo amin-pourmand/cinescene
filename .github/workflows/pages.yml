@@ -31,6 +31,11 @@ jobs:
           test -f docs/assets/vazirmatn-arabic.woff2
           test -f docs/assets/scene-explorer.js
           test -f docs/assets/scene-explorer.css
+          test -f docs/assets/brand-mark.svg
+          test -f docs/assets/icon-192.png
+          test -f docs/assets/icon-512.png
+          test -f docs/assets/icon-maskable-512.png
+          test -f docs/assets/apple-touch-icon.png
           test -f docs/data/catalog.sample.json
           python -m json.tool docs/manifest.webmanifest > /dev/null
           python -m json.tool docs/data/catalog.sample.json > /dev/null
