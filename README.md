@@ -173,7 +173,7 @@ The final local validation on the bundled GTX 1650 Ti runtime produced:
 | Retrieval metrics | Current results in `benchmarks/latest.json` |
 | Corrected-suite Hit@5 | 85.19%, compared with 55.56% for the original engine |
 | Corrected-suite Hit@1 | 48.15%; first-result accuracy still needs improvement |
-| Unit/regression tests | 33 passing locally; model-dependent ranking tests skip in lightweight CI |
+| Unit/regression tests | 35 passing locally; model-dependent ranking tests skip in lightweight CI |
 | Browser QA | Desktop and mobile, zero JS errors and zero horizontal overflow |
 | Upload E2E | Video + SRT -> 3 scenes -> 3 keyframes -> rank-1 scene result |
 

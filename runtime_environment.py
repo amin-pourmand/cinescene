@@ -17,8 +17,19 @@ def configure_runtime():
         return
     storage = Path(storage_root)
     cache = storage / "cache"
-    defaults = {"HF_HOME": cache / "huggingface", "HF_HUB_CACHE": cache / "huggingface" / "hub",
-                "PIP_CACHE_DIR": cache / "pip", "TEMP": cache / "tmp", "TMP": cache / "tmp"}
+    defaults = {
+        "HF_HOME": cache / "huggingface",
+        "HF_HUB_CACHE": cache / "huggingface" / "hub",
+        "PIP_CACHE_DIR": cache / "pip",
+        "TORCH_HOME": cache / "torch",
+        "TORCH_EXTENSIONS_DIR": cache / "torch-extensions",
+        "TORCHINDUCTOR_CACHE_DIR": cache / "torch-inductor",
+        "CUDA_CACHE_PATH": cache / "cuda",
+        "TRITON_CACHE_DIR": cache / "triton",
+        "XDG_CACHE_HOME": cache,
+        "TEMP": cache / "tmp",
+        "TMP": cache / "tmp",
+    }
     for name, path in defaults.items():
         path.mkdir(parents=True, exist_ok=True)
         if name in {"TEMP", "TMP"}:
