@@ -63,7 +63,7 @@ python -m venv .venv
 
 Open `http://127.0.0.1:8000`.
 
-The full runtime also requires local catalog files, model weights, and indexes; these large generated assets are excluded from Git. The public PWA runs independently. On this development machine, `models/` and `data/` are directory junctions into `E:\CineSceneCache\cinescene`; `.env` routes model caches and multipart temporary files there too, keeping new large files off C. See `.env.example` to configure another machine.
+The full runtime also requires local catalog files, model weights, and indexes; these large generated assets are excluded from Git. The public PWA runs independently. On this development machine, `.venv/`, `models/`, and `data/` are directory junctions into `E:\CineSceneCache\cinescene`; `.env` routes model caches and multipart temporary files there too. Existing Python commands continue to use the same project path. See `.env.example` to configure another machine.
 
 The first screen is **Search**. **Your videos** contains uploads, processed timelines, and folder imports; **Saved & history** manages saved titles and past queries; **Settings** holds preferences and expandable runtime diagnostics. English is the interface language, with automatic text direction for Persian searches.
 
@@ -155,6 +155,8 @@ node .\scripts\pwa_offline_smoke.js http://127.0.0.1:4178
 ```
 
 The retrieval benchmark reports Hit@1, Hit@5, MRR@10, per-query rank, and latency. Add `--api-url http://127.0.0.1:8000` to reuse a running engine without loading a second copy of the models. The visual test checks desktop/mobile layouts, browser errors, overflow, and decoded local video playback. Workspace tests cover title details, saving/removal, history confirmation, shared links, connection recovery, Persian input, folder probing/settings, and preferences. `--upload` additionally submits the tiny synthetic episode through the actual browser UI. Static/PWA tests expect `docs/` served on port 4178.
+
+Run model and browser tests sequentially on memory-constrained Windows machines. Windows can expand its system-managed pagefile on C under memory pressure even when project files and caches are stored on E; relocating project caches does not relocate that operating-system file.
 
 ### Verified snapshot
 
