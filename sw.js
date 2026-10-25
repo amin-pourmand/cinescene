@@ -1,10 +1,12 @@
-const CACHE_NAME = "cinescene-pwa-v20261025-reel-v11";
+const CACHE_NAME = "cinescene-pwa-v20261025-workspace-v12";
 const ASSETS = [
   "./",
   "./index.html",
   "./manifest.webmanifest",
   "./assets/styles.css?v=20261025-reel-v11",
-  "./assets/app.js?v=20261025-reel-v11",
+  "./assets/app.js?v=20261025-workspace-v12",
+  "./assets/workspace-ui.js?v=20261025-workspace-v12",
+  "./assets/workspace.css?v=20261025-workspace-v12",
   "./assets/scene-explorer.js?v=20261025-reel-v11",
   "./assets/scene-explorer.css?v=20261025-reel-v11",
   "./assets/brand-mark-512.png?v=20261025-reel-v11",
