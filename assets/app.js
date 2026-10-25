@@ -227,15 +227,15 @@ function renderResults(entries, query, elapsedMs) {
   els.results.innerHTML = entries.map(({ item, score, scene }, index) => {
     const image = scene?.keyframe || item.poster;
     const media = image
-      ? `<div class="result-media"><img src="./${escapeHtml(image)}" alt="Keyframe from ${escapeHtml(item.title)}" loading="lazy" />`
-      : `<div class="result-media no-image"><span class="placeholder-number">${String(index + 1).padStart(2, "0")}</span>`;
+      ? `<div class="result-media"><img src="./${escapeHtml(image)}" alt="Keyframe from ${escapeHtml(item.title)}" loading="lazy" /><span class="result-rank">Rank ${index + 1}</span><span class="result-source">${escapeHtml(sourceLabel(item))}</span></div>`
+      : `<div class="catalog-result-header"><i data-lucide="${item.media_type === "series" ? "tv" : "film"}"></i><b>Rank ${index + 1}</b><span class="catalog-source">${escapeHtml(sourceLabel(item))}</span></div>`;
     const sceneCopy = scene?.transcript || scene?.visual_caption || (item.scenes || [])[0] || "No scene transcript is available in the public sample.";
     const tags = [...(scene?.mood_tags || []), ...(scene?.visual_tags || []), ...(item.genres || []), ...(item.mood || [])];
-    return `<article class="result-card">
-      ${media}<span class="result-rank">Rank ${index + 1}</span><span class="result-source">${escapeHtml(sourceLabel(item))}</span></div>
+    return `<article class="result-card ${image ? "has-frame" : "catalog-only"}">
+      ${media}
       <div class="result-body">
         <div class="result-title-row"><div><h4>${escapeHtml(item.title)}</h4><small>${escapeHtml(mediaLabel(item))} &middot; ${escapeHtml(item.year || "N/A")}${item.director && item.director !== "Unknown" ? ` &middot; ${escapeHtml(item.director)}` : ""}</small></div><span class="score-ring" title="Showcase retrieval score">${score.toFixed(1)}</span></div>
-        <p class="result-overview">${escapeHtml(item.overview || "Scene-level offline media document.")}</p>
+        ${item.source === "offline_video_ingestion" ? "" : `<p class="result-overview">${escapeHtml(item.overview || "")}</p>`}
         ${scene ? `<div class="matched-scene"><div class="scene-label"><span>Best matching scene</span><time>${timecode(scene.start_sec)} - ${timecode(scene.end_sec)}</time></div><p dir="auto">${escapeHtml(sceneCopy)}</p></div>` : ""}
         <div class="chip-row">${chips(tags)}</div>
         <div class="result-actions">
@@ -285,11 +285,11 @@ function renderTimeline() {
   }
   els.sceneTimeline.className = "media-timeline";
   els.sceneTimeline.innerHTML = offline.map((item) => {
-    const scenes = (item.scene_timeline || []).slice(0, 12).map((scene) => `<article class="scene-tile">
+    const scenes = (item.scene_timeline || []).slice(0, 4).map((scene) => `<article class="scene-tile">
       ${scene.keyframe ? `<img src="./${escapeHtml(scene.keyframe)}" alt="${escapeHtml(item.title)} scene" loading="lazy" />` : `<div class="frame-placeholder"><i data-lucide="image-off"></i></div>`}
       <div><strong>${timecode(scene.start_sec)} - ${timecode(scene.end_sec)}</strong><p dir="auto">${escapeHtml(scene.transcript || scene.visual_caption || "Visual scene record")}</p></div>
     </article>`).join("");
-    return `<section class="timeline-media"><div class="timeline-media-header"><h4>${escapeHtml(item.title)}</h4><span>${Number(item.scene_count || 0).toLocaleString()} detected scenes</span></div><div class="scene-strip">${scenes}</div></section>`;
+    return `<section class="timeline-media"><div class="timeline-media-header"><h4>${escapeHtml(item.title)}</h4><div class="timeline-actions"><span>${Number(item.scene_count || 0).toLocaleString()} detected scenes</span><button class="button secondary compact" data-open-media="${escapeHtml(item.id)}" type="button"><i data-lucide="list-video"></i>Explore all scenes</button></div></div><div class="scene-strip">${scenes}</div></section>`;
   }).join("");
   refreshIcons(els.sceneTimeline);
 }
@@ -432,6 +432,23 @@ if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => navigator.serviceWorker.register("./sw.js").catch(console.warn));
 }
 
+state.explorer = new window.SceneExplorer(async (mediaId, options) => {
+  const item = state.catalog.find((entry) => String(entry.id) === mediaId);
+  if (!item) throw new Error("The selected media is not in this showcase.");
+  const terms = normalizeText(options.q).split(/\s+/).filter(Boolean);
+  const scenes = (item.scene_timeline || []).map((scene, i) => ({ ...scene, scene_number: scene.scene_number || i + 1, keyframe_url: scene.keyframe ? `./${scene.keyframe}` : null }));
+  const filtered = scenes.filter((scene) => {
+    if (options.signal === "dialogue" && !scene.transcript) return false;
+    if (options.signal === "vision" && !scene.caption_source?.includes("blip")) return false;
+    const content = normalizeText(`${scene.transcript || ""} ${scene.visual_caption || ""} ${(scene.keywords || []).join(" ")}`);
+    return terms.every((term) => content.includes(term));
+  });
+  return { title: item.title, quality: item.quality, total: filtered.length, has_more: options.offset + options.limit < filtered.length, scenes: filtered.slice(options.offset, options.offset + options.limit) };
+});
+els.sceneTimeline.addEventListener("click", (event) => {
+  const button = event.target.closest("[data-open-media]");
+  if (button) state.explorer.open(button.dataset.openMedia);
+});
 refreshIcons();
 setView(location.hash.slice(1) || "discover", false);
 loadCatalog();
