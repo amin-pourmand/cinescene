@@ -6,7 +6,7 @@
     <meta name="theme-color" content="#101214" />
     <title>CineScene Studio</title>
     <link rel="icon" href="/assets/icon.svg" type="image/svg+xml" />
-    <link rel="stylesheet" href="/assets/styles.css?v=20260714-studio-v4" />
+    <link rel="stylesheet" href="/assets/styles.css?v=20261024-studio-v9" />
   </head>
   <body>
     <div class="app-shell">
@@ -77,6 +77,7 @@
                   <button type="button" data-query="کارآگاهی تنها وارد اتاقی تاریک می‌شود و دنبال سرنخ می‌گردد">جست‌وجوی فارسی</button>
                 </div>
                 <div class="search-settings">
+                  <select id="mediaTypeInput" aria-label="Media type"><option value="all">Movies &amp; series</option><option value="movie">Movies</option><option value="series">Series</option></select>
                   <label>Results <input id="topKInput" type="number" min="1" max="20" value="8" /></label>
                   <label class="switch"><input id="rerankInput" type="checkbox" /><span></span>Rerank</label>
                 </div>
@@ -131,7 +132,7 @@
                   </label>
 
                   <div class="subtitle-picker">
-                    <input id="subtitleInput" type="file" accept=".srt,.vtt" multiple hidden />
+                    <input id="subtitleInput" type="file" accept=".srt,.vtt,.ass,.ssa" multiple hidden />
                     <div><strong>Subtitle tracks</strong><span id="subtitleSummary">No sidecar selected</span></div>
                     <button class="button secondary compact" id="chooseSubtitleButton" type="button"><i data-lucide="captions"></i>Add</button>
                   </div>
@@ -236,6 +237,15 @@
               <div class="system-card"><span>Subtitle engine</span><strong id="systemSubtitleState">Checking</strong><small id="systemSubtitleDetail">-</small></div>
               <div class="system-card"><span>Vision engine</span><strong id="systemVisionState">Checking</strong><small id="systemVisionDetail">-</small></div>
             </div>
+            <section class="timeline-section">
+              <div class="section-header"><div><span class="section-kicker">Evidence</span><h3>Data coverage</h3></div></div>
+              <div class="stat-strip">
+                <div><i data-lucide="book-open"></i><span><strong id="coverageCatalog">-</strong><small>catalog titles</small></span></div>
+                <div><i data-lucide="list-video"></i><span><strong id="coverageScenes">-</strong><small>titles with timelines</small></span></div>
+                <div><i data-lucide="captions"></i><span><strong id="coverageDialogue">-</strong><small>scenes with dialogue</small></span></div>
+                <div><i data-lucide="image"></i><span><strong id="coverageVision">-</strong><small>scenes with vision captions</small></span></div>
+              </div>
+            </section>
             <section class="diagnostic-panel"><div class="section-header"><div><span class="section-kicker">Index diagnostics</span><h3>Runtime report</h3></div></div><pre id="runtimeReport">Loading...</pre></section>
           </section>
         </main>
@@ -250,6 +260,7 @@
 
     <div class="toast-region" id="toastRegion" aria-live="polite"></div>
     <script src="/assets/lucide.min.js?v=0.468.0"></script>
-    <script src="/assets/app.js?v=20260714-studio-v4"></script>
+    <script src="/assets/scene-explorer.js?v=20261024-studio-v9"></script>
+    <script src="/assets/app.js?v=20261024-studio-v9"></script>
   </body>
 </html>

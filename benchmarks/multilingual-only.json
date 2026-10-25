@@ -1,0 +1,436 @@
+{
+  "generated_at": "2026-10-19T16:52:23.569970+00:00",
+  "model": "models\\bge-large-en-v1.5",
+  "device": "cuda",
+  "precision": "float32",
+  "embedding_dimension": 1024,
+  "reranker": false,
+  "multilingual": true,
+  "cases": 27,
+  "hit_at_1": 0.3704,
+  "hit_at_5": 0.5926,
+  "mrr_at_10": 0.466,
+  "evaluation_version": 2,
+  "matching": "exact normalized title or explicit id/alias; sequels are distinct",
+  "suite_sha256": "b7fc19e19b2ae5a57899940f8db097146bdf0ca7739e1d5a484548451e9b2551",
+  "suite_description": "Manually authored regression queries. Not a held-out academic test set. Exact title or explicit alias matching; sequels are separate titles.",
+  "retrieval_mode": "multilingual",
+  "by_category": {
+    "movie_plot": {
+      "cases": 12,
+      "hit_at_1": 0.5833,
+      "hit_at_5": 0.5833,
+      "mrr_at_10": 0.5972
+    },
+    "persian_plot": {
+      "cases": 4,
+      "hit_at_1": 0.25,
+      "hit_at_5": 0.25,
+      "mrr_at_10": 0.25
+    },
+    "persian_synthetic_scene": {
+      "cases": 1,
+      "hit_at_1": 0.0,
+      "hit_at_5": 0.0,
+      "mrr_at_10": 0.0
+    },
+    "series_plot": {
+      "cases": 8,
+      "hit_at_1": 0.125,
+      "hit_at_5": 0.75,
+      "mrr_at_10": 0.3854
+    },
+    "synthetic_scene": {
+      "cases": 2,
+      "hit_at_1": 0.5,
+      "hit_at_5": 1.0,
+      "mrr_at_10": 0.6667
+    }
+  },
+  "mean_latency_sec": 0.0326,
+  "movie_vectors": 7615,
+  "scene_vectors": 158,
+  "index_vectors": 7773,
+  "rows": [
+    {
+      "query": "a thief enters layered dreams to plant an idea",
+      "expected": [
+        "Inception"
+      ],
+      "category": "movie_plot",
+      "rank": 1,
+      "top_3": [
+        "Inception",
+        "Twixt",
+        "A Simple Plan"
+      ],
+      "latency_sec": 0.03
+    },
+    {
+      "query": "a marine meets blue aliens on the moon Pandora",
+      "expected": [
+        "Avatar"
+      ],
+      "category": "movie_plot",
+      "rank": 1,
+      "top_3": [
+        "Avatar",
+        "The Black Hole",
+        "2001: A Space Odyssey"
+      ],
+      "latency_sec": 0.029
+    },
+    {
+      "query": "an amnesiac man uses tattoos and notes to find a killer",
+      "expected": [
+        "Memento"
+      ],
+      "category": "movie_plot",
+      "rank": 1,
+      "top_3": [
+        "Memento",
+        "Maniac",
+        "Saw IV"
+      ],
+      "latency_sec": 0.031
+    },
+    {
+      "query": "toys come alive when their owner leaves the room",
+      "expected": [
+        "Toy Story"
+      ],
+      "category": "movie_plot",
+      "rank": 1,
+      "top_3": [
+        "Toy Story",
+        "Toy Story 3",
+        "Toy Story 2"
+      ],
+      "latency_sec": 0.03
+    },
+    {
+      "query": "a giant shark terrorizes a seaside town",
+      "expected": [
+        "Jaws"
+      ],
+      "category": "movie_plot",
+      "rank": 1,
+      "top_3": [
+        "Jaws",
+        "Creature",
+        "Jaws 2"
+      ],
+      "latency_sec": 0.032
+    },
+    {
+      "query": "a computer hacker discovers reality is a simulation",
+      "expected": [
+        "The Matrix"
+      ],
+      "category": "movie_plot",
+      "rank": null,
+      "top_3": [
+        "The Thirteenth Floor",
+        "A.I. Artificial Intelligence",
+        "Gamer"
+      ],
+      "latency_sec": 0.033
+    },
+    {
+      "query": "a romance aboard a ship that hits an iceberg",
+      "expected": [
+        "Titanic"
+      ],
+      "category": "movie_plot",
+      "rank": null,
+      "top_3": [
+        "Message in a Bottle",
+        "By the Sea",
+        "Her"
+      ],
+      "latency_sec": 0.036
+    },
+    {
+      "query": "a hobbit carries a powerful ring toward a volcano",
+      "expected": [
+        "The Lord of the Rings: The Fellowship of the Ring",
+        "The Lord of the Rings: The Return of the King"
+      ],
+      "category": "movie_plot",
+      "rank": 1,
+      "top_3": [
+        "The Lord of the Rings: The Fellowship of the Ring",
+        "The Hobbit: The Battle of the Five Armies",
+        "The Lord of the Rings: The Two Towers"
+      ],
+      "latency_sec": 0.039
+    },
+    {
+      "query": "a prison banker slowly tunnels through a wall to escape",
+      "expected": [
+        "The Shawshank Redemption"
+      ],
+      "category": "movie_plot",
+      "rank": null,
+      "top_3": [
+        "Lucky Break",
+        "Daylight",
+        "Escape from New York"
+      ],
+      "latency_sec": 0.035
+    },
+    {
+      "query": "a clown criminal tests a masked vigilante by threatening a city",
+      "expected": [
+        "The Dark Knight"
+      ],
+      "category": "movie_plot",
+      "rank": null,
+      "top_3": [
+        "Possessed",
+        "Blindness",
+        "Defendor"
+      ],
+      "latency_sec": 0.033
+    },
+    {
+      "query": "a theme park's cloned dinosaurs escape their enclosures",
+      "expected": [
+        "Jurassic Park"
+      ],
+      "category": "movie_plot",
+      "rank": 1,
+      "top_3": [
+        "Jurassic Park",
+        "Dinosaur",
+        "Jurassic Park III"
+      ],
+      "latency_sec": 0.034
+    },
+    {
+      "query": "a young boy discovers that he is a wizard and attends a school of magic",
+      "expected": [
+        "Harry Potter and the Philosopher's Stone",
+        "Harry Potter and the Sorcerer's Stone"
+      ],
+      "category": "movie_plot",
+      "rank": 6,
+      "top_3": [
+        "The History Boys",
+        "The NeverEnding Story",
+        "Trippin'"
+      ],
+      "latency_sec": 0.036
+    },
+    {
+      "query": "a chemistry teacher diagnosed with cancer begins making methamphetamine",
+      "expected": [
+        "Breaking Bad"
+      ],
+      "category": "series_plot",
+      "rank": 2,
+      "top_3": [
+        "Medicine Man",
+        "Breaking Bad",
+        "The 51st State"
+      ],
+      "latency_sec": 0.033
+    },
+    {
+      "query": "children search for a missing friend while a strange girl has supernatural powers",
+      "expected": [
+        "Stranger Things"
+      ],
+      "category": "series_plot",
+      "rank": 2,
+      "top_3": [
+        "Dark",
+        "Stranger Things",
+        "The Lost Boys"
+      ],
+      "latency_sec": 0.033
+    },
+    {
+      "query": "an anthology of disturbing stories about technology and society",
+      "expected": [
+        "Black Mirror"
+      ],
+      "category": "series_plot",
+      "rank": 3,
+      "top_3": [
+        "The Horror Network Vol. 1",
+        "Easy",
+        "Black Mirror"
+      ],
+      "latency_sec": 0.033
+    },
+    {
+      "query": "a modern London detective and his doctor companion solve crimes",
+      "expected": [
+        "Sherlock"
+      ],
+      "category": "series_plot",
+      "rank": null,
+      "top_3": [
+        "Collateral",
+        "Possessed",
+        "Fallet"
+      ],
+      "latency_sec": 0.029
+    },
+    {
+      "query": "the reign of Queen Elizabeth and the private life of the royal family",
+      "expected": [
+        "The Crown"
+      ],
+      "category": "series_plot",
+      "rank": 4,
+      "top_3": [
+        "Elizabeth",
+        "Elizabeth: The Golden Age",
+        "The Queen"
+      ],
+      "latency_sec": 0.03
+    },
+    {
+      "query": "a Birmingham gangster family rises to power after the first world war",
+      "expected": [
+        "Peaky Blinders"
+      ],
+      "category": "series_plot",
+      "rank": 1,
+      "top_3": [
+        "Peaky Blinders",
+        "V for Vendetta",
+        "The Long Riders"
+      ],
+      "latency_sec": 0.033
+    },
+    {
+      "query": "a monster hunter struggles to find his place in a world of magic",
+      "expected": [
+        "The Witcher"
+      ],
+      "category": "series_plot",
+      "rank": null,
+      "top_3": [
+        "The Book of Life",
+        "Stardust",
+        "The Village"
+      ],
+      "latency_sec": 0.032
+    },
+    {
+      "query": "missing children reveal a time travel mystery in a German town",
+      "expected": [
+        "Dark"
+      ],
+      "category": "series_plot",
+      "rank": 2,
+      "top_3": [
+        "The White Ribbon",
+        "Dark",
+        "The Lost Boys"
+      ],
+      "latency_sec": 0.031
+    },
+    {
+      "query": "دزدی وارد خواب آدم‌ها می‌شود تا یک ایده در ذهنشان بکارد",
+      "expected": [
+        "Inception"
+      ],
+      "category": "persian_plot",
+      "rank": null,
+      "top_3": [
+        "The Secret in Their Eyes",
+        "Feast",
+        "Sleep Dealer"
+      ],
+      "latency_sec": 0.034
+    },
+    {
+      "query": "مردی حافظه‌اش را از دست داده و با خالکوبی و یادداشت دنبال قاتل می‌گردد",
+      "expected": [
+        "Memento"
+      ],
+      "category": "persian_plot",
+      "rank": null,
+      "top_3": [
+        "Saw IV",
+        "Hellraiser",
+        "Shooter"
+      ],
+      "latency_sec": 0.033
+    },
+    {
+      "query": "معلم شیمی سرطان می‌گیرد و شروع به ساخت مواد مخدر می‌کند",
+      "expected": [
+        "Breaking Bad"
+      ],
+      "category": "persian_plot",
+      "rank": 1,
+      "top_3": [
+        "Breaking Bad",
+        "46",
+        "Medicine Man"
+      ],
+      "latency_sec": 0.032
+    },
+    {
+      "query": "هکری متوجه می‌شود دنیای واقعی یک شبیه‌سازی کامپیوتری است",
+      "expected": [
+        "The Matrix"
+      ],
+      "category": "persian_plot",
+      "rank": null,
+      "top_3": [
+        "Omniscient",
+        "Tron Uprising",
+        "The Platform"
+      ],
+      "latency_sec": 0.034
+    },
+    {
+      "query": "lonely detective enters a dark room and investigates a mystery",
+      "expected": [
+        "Benchmark Show"
+      ],
+      "category": "synthetic_scene",
+      "rank": 1,
+      "top_3": [
+        "Benchmark Show",
+        "Alone in the Dark",
+        "In the Cut"
+      ],
+      "latency_sec": 0.032
+    },
+    {
+      "query": "the city lights flicker while he investigates the mystery",
+      "expected": [
+        "Benchmark Show"
+      ],
+      "category": "synthetic_scene",
+      "rank": 3,
+      "top_3": [
+        "City of Ember",
+        "The Fog",
+        "Benchmark Show"
+      ],
+      "latency_sec": 0.031
+    },
+    {
+      "query": "کارآگاهی تنها وارد اتاق تاریک می‌شود و دنبال سرنخ می‌گردد",
+      "expected": [
+        "Benchmark Show"
+      ],
+      "category": "persian_synthetic_scene",
+      "rank": null,
+      "top_3": [
+        "Dark Matter",
+        "Holy Motors",
+        "Insidious"
+      ],
+      "latency_sec": 0.033
+    }
+  ]
+}

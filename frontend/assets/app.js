@@ -18,12 +18,13 @@ const state = {
   crawler: null,
   currentJob: null,
   lastProgress: 0,
+  explorer: null,
 };
 
 const els = Object.fromEntries(
   [
     "viewTitle", "mobileMenuButton", "reloadButton", "statusDot", "sidebarStatus", "sidebarModel",
-    "activeJobBadge", "engineVectorCount", "queryInput", "topKInput", "rerankInput", "searchButton",
+    "activeJobBadge", "engineVectorCount", "queryInput", "topKInput", "rerankInput", "searchButton", "mediaTypeInput",
     "clearButton", "metricIndexed", "metricScenes", "metricOffline", "metricCuda", "resultCount", "results",
     "crawlerHealth", "crawlerDocs", "crawlerScenes", "crawlerFrames", "crawlerNotice", "crawlerPreview",
     "videoInput", "videoDropZone", "videoDropTitle", "videoDropMeta", "chooseVideoButton", "selectedVideo",
@@ -38,6 +39,7 @@ const els = Object.fromEntries(
     "systemSearchDetail", "systemDetectorState", "systemDetectorDetail", "systemSubtitleState", "systemSubtitleDetail",
     "systemVisionState", "systemVisionDetail", "runtimeReport", "playerDialog", "scenePlayer", "playerTitle",
     "playerTimecode", "playerCaption", "closePlayerButton", "toastRegion",
+    "coverageCatalog", "coverageScenes", "coverageDialogue", "coverageVision",
   ].map((id) => [id, document.getElementById(id)])
 );
 
@@ -151,17 +153,19 @@ function renderResults(results) {
     const tags = [...(scene?.mood_tags || []), ...(scene?.visual_tags || []), ...(movie.genres || [])];
     const score = Number(movie.score || 0).toFixed(3);
     const media = image
-      ? `<div class="result-media"><img src="${escapeHtml(image)}" alt="Keyframe from ${escapeHtml(movie.title)}" loading="lazy" />`
-      : `<div class="result-media no-image"><span class="placeholder-number">${String(movie.rank || index + 1).padStart(2, "0")}</span>`;
-    return `<article class="result-card">
-      ${media}<span class="result-rank">Rank ${escapeHtml(movie.rank || index + 1)}</span><span class="result-source">${escapeHtml(sourceLabel(movie))}</span></div>
+      ? `<div class="result-media"><img src="${escapeHtml(image)}" alt="Keyframe from ${escapeHtml(movie.title)}" loading="lazy" /><span class="result-rank">Rank ${escapeHtml(movie.rank || index + 1)}</span><span class="result-source">${escapeHtml(sourceLabel(movie))}</span></div>`
+      : `<div class="catalog-result-header"><i data-lucide="${movie.media_type === "series" ? "tv" : "film"}"></i><b>Rank ${escapeHtml(movie.rank || index + 1)}</b><span class="catalog-source">${escapeHtml(sourceLabel(movie))}</span></div>`;
+    return `<article class="result-card ${image ? "has-frame" : "catalog-only"}">
+      ${media}
       <div class="result-body">
         <div class="result-title-row"><div><h4>${escapeHtml(movie.title)}</h4><small>${escapeHtml(mediaLabel(movie))} · ${escapeHtml(movie.year || "N/A")}${movie.director && movie.director !== "Unknown" ? ` · ${escapeHtml(movie.director)}` : ""}</small></div><span class="score-ring" title="Retrieval score">${score}</span></div>
-        <p class="result-overview">${escapeHtml(movie.overview || "Scene-level offline media document.")}</p>
+        ${movie.source === "offline_video_ingestion" ? "" : `<p class="result-overview">${escapeHtml(movie.overview || "")}</p>`}
         ${scene ? `<div class="matched-scene"><div class="scene-label"><span>Best matching scene</span><time>${timecode(scene.start_sec)} - ${timecode(scene.end_sec)}</time></div><p dir="auto">${escapeHtml(text)}</p></div>` : ""}
+        <div class="result-evidence"><i data-lucide="${scene ? "captions" : "book-open"}"></i><span>${scene?.transcript ? "Matched dialogue" : scene ? "Matched scene description" : "Plot and catalog match"}</span></div>
         <div class="chip-row">${chips(tags, 7)}</div>
         <div class="result-actions">
           ${movie.video_url && scene ? `<button class="button secondary" type="button" data-action="play" data-index="${index}"><i data-lucide="play"></i>Play scene</button>` : ""}
+          ${movie.source === "offline_video_ingestion" ? `<button class="icon-button ghost" type="button" data-action="timeline" data-index="${index}" title="Explore all scenes" aria-label="Explore all scenes"><i data-lucide="list-video"></i></button>` : ""}
           <button class="icon-button ghost" type="button" data-action="favorite" data-index="${index}" title="Save" aria-label="Save result"><i data-lucide="bookmark"></i></button>
           <button class="icon-button ghost" type="button" data-action="relevant" data-index="${index}" title="Relevant" aria-label="Mark relevant"><i data-lucide="thumbs-up"></i></button>
         </div>
@@ -193,7 +197,7 @@ async function runSearch(queryOverride) {
   try {
     const payload = await api("/api/search", {
       method: "POST",
-      body: JSON.stringify({ query, top_k: Number(els.topKInput.value || 8), use_reranking: els.rerankInput.checked }),
+      body: JSON.stringify({ query, top_k: Number(els.topKInput.value || 8), use_reranking: els.rerankInput.checked, media_type: els.mediaTypeInput.value }),
     });
     renderResults(payload.results || []);
     loadMemory();
@@ -223,6 +227,7 @@ function updateHealth(payload) {
   els.metricCuda.textContent = cuda.available ? (cuda.device || "CUDA") : "CPU";
   els.systemSearchState.textContent = ok ? "Online" : "Unavailable";
   els.systemSearchDetail.textContent = `${engine.movie_vectors || 0} title vectors + ${engine.scene_vectors || 0} scene vectors`;
+  els.coverageCatalog.textContent = compactNumber(engine.movie_vectors || 0);
   renderRuntimeReport();
 }
 
@@ -259,6 +264,10 @@ function renderRuntimeReport() {
 function updateCrawlerDashboard(payload) {
   state.crawler = payload;
   const caps = payload.capabilities || {};
+  const coverage = payload.analysis_coverage || {};
+  els.coverageScenes.textContent = compactNumber(coverage.analyzed_titles || 0);
+  els.coverageDialogue.textContent = compactNumber(coverage.dialogue_scenes || 0);
+  els.coverageVision.textContent = compactNumber(coverage.vision_scenes || 0);
   const enabled = Boolean(payload.crawler_enabled);
   els.crawlerHealth.className = `health-badge ${enabled ? "ok" : "error"}`;
   els.crawlerHealth.innerHTML = `<span></span>${enabled ? "Pipeline ready" : "Pipeline unavailable"}`;
@@ -279,15 +288,16 @@ function updateCrawlerDashboard(payload) {
     els.crawlerPreview.textContent = "No processed scenes yet.";
   } else {
     els.crawlerPreview.className = "media-timeline";
-    els.crawlerPreview.innerHTML = previews.slice(0, 8).map((item) => {
+    els.crawlerPreview.innerHTML = previews.map((item) => {
       const episode = item.media_type === "series" && item.season && item.episode
         ? `S${String(item.season).padStart(2, "0")}E${String(item.episode).padStart(2, "0")}` : (item.media_type || "movie");
       const scenes = (item.timeline || []).slice(0, 8).map((scene) => {
         const image = scene.keyframe_url ? `<img src="${escapeHtml(scene.keyframe_url)}" alt="Scene ${escapeHtml(scene.scene_number)}" loading="lazy" />` : `<span class="frame-placeholder"></span>`;
         const text = scene.transcript || scene.visual_caption || "Visual scene";
-        return `<article class="scene-tile">${image}<div><strong>Scene ${escapeHtml(scene.scene_number)} · ${timecode(scene.start_sec)}</strong><p dir="auto">${escapeHtml(text)}</p></div></article>`;
+        return `<article class="scene-tile" data-open-media="${escapeHtml(item.media_id)}" tabindex="0" role="button" aria-label="Explore ${escapeHtml(item.title)} scenes">${image}<div><strong>Scene ${escapeHtml(scene.scene_number)} · ${timecode(scene.start_sec)}</strong><p dir="auto">${escapeHtml(text)}</p></div></article>`;
       }).join("");
-      return `<article class="timeline-media"><div class="timeline-media-header"><h4>${escapeHtml(item.title)}</h4><span>${escapeHtml(episode)} · ${escapeHtml(item.scene_count)} scenes</span></div><div class="scene-strip">${scenes}</div></article>`;
+      const quality = item.quality || {};
+      return `<article class="timeline-media"><div class="timeline-media-header"><div><h4>${escapeHtml(item.title)}</h4><div class="timeline-quality"><span>${escapeHtml(episode)} · ${escapeHtml(item.scene_count)} scenes</span><span>${quality.dialogue_scenes || 0} with dialogue</span><span>${quality.vision_scenes || 0} with vision captions</span></div></div><div class="timeline-actions"><button class="button secondary compact" type="button" data-open-media="${escapeHtml(item.media_id)}"><i data-lucide="list-video"></i>Explore all scenes</button></div></div><div class="scene-strip">${scenes}</div></article>`;
     }).join("");
   }
   renderRuntimeReport();
@@ -328,7 +338,7 @@ function clearVideo() {
 }
 
 function setSubtitles(files) {
-  const incoming = Array.from(files || []).filter((file) => /\.(srt|vtt)$/i.test(file.name));
+  const incoming = Array.from(files || []).filter((file) => /\.(srt|vtt|ass|ssa)$/i.test(file.name));
   state.subtitles = [...state.subtitles, ...incoming].filter((file, index, array) => array.findIndex((item) => item.name === file.name && item.size === file.size) === index);
   els.subtitleSummary.textContent = state.subtitles.length ? `${state.subtitles.length} track${state.subtitles.length > 1 ? "s" : ""} selected` : "No sidecar selected";
   els.subtitleList.innerHTML = state.subtitles.map((file) => `<span>${escapeHtml(file.name)} · ${formatBytes(file.size)}</span>`).join("");
@@ -341,10 +351,10 @@ function updateRangeOutputs() {
   els.uploadFpsValue.textContent = `${els.uploadFpsInput.value} fps`;
 }
 
-const stageOrder = ["uploaded", "scene_detection", "scene_records_ready", "scene_index", "ready"];
+const stageOrder = ["uploaded", "scene_detection", "scene_intelligence", "scene_index", "ready"];
 
 function updatePipeline(stage, status = "running") {
-  const normalized = stageOrder.includes(stage) ? stage : stage === "processing_video" ? "scene_detection" : stage === "processed_video" ? "scene_records_ready" : "uploaded";
+  const normalized = stageOrder.includes(stage) ? stage : stage === "processing_video" ? "scene_detection" : ["processed_video", "scene_records_ready"].includes(stage) ? "scene_intelligence" : "uploaded";
   const currentIndex = status === "completed" ? stageOrder.length : stageOrder.indexOf(normalized);
   els.pipelineSteps.querySelectorAll("li").forEach((item, index) => {
     item.classList.toggle("complete", index < currentIndex || status === "completed");
@@ -354,6 +364,8 @@ function updatePipeline(stage, status = "running") {
 
 function showJob(job, overrideMessage = "") {
   state.currentJob = job;
+  if (["completed", "failed"].includes(job.status)) localStorage.removeItem("cinescene-active-job");
+  else if (job.id) localStorage.setItem("cinescene-active-job", job.id);
   els.activeJobBadge.hidden = ["completed", "failed"].includes(job.status);
   els.jobPanel.hidden = false;
   const progress = Math.max(state.lastProgress, Number(job.progress || 0));
@@ -549,9 +561,9 @@ function openPlayer(movie) {
   els.playerTitle.textContent = movie.title;
   els.playerTimecode.textContent = `${timecode(scene.start_sec)} - ${timecode(scene.end_sec)}`;
   els.playerCaption.textContent = scene.transcript || scene.visual_caption || "";
-  els.scenePlayer.src = movie.video_url;
+  els.scenePlayer.src = scene.preview_url || movie.video_url;
   els.scenePlayer.addEventListener("loadedmetadata", () => {
-    els.scenePlayer.currentTime = Number(scene.start_sec || 0);
+    els.scenePlayer.currentTime = scene.preview_url ? 0 : Number(scene.start_sec || 0);
   }, { once: true });
   els.playerDialog.showModal();
 }
@@ -636,6 +648,7 @@ els.results.addEventListener("click", async (event) => {
   if (!movie) return;
   try {
     if (button.dataset.action === "play") openPlayer(movie);
+    if (button.dataset.action === "timeline") state.explorer.open(String(movie.id).replace(/^offline:/, ""));
     if (button.dataset.action === "favorite") await saveFavorite(movie);
     if (button.dataset.action === "relevant") await sendFeedback(movie);
   } catch (error) {
@@ -650,9 +663,36 @@ els.historyList.addEventListener("click", (event) => {
 els.closePlayerButton.addEventListener("click", () => els.playerDialog.close());
 els.playerDialog.addEventListener("close", () => { els.scenePlayer.pause(); els.scenePlayer.removeAttribute("src"); els.scenePlayer.load(); });
 
+state.explorer = new window.SceneExplorer((mediaId, options) => api(`/api/media/${encodeURIComponent(mediaId)}/scenes?${new URLSearchParams(options)}`));
+els.crawlerPreview.addEventListener("click", (event) => {
+  const button = event.target.closest("[data-open-media]");
+  if (button) state.explorer.open(button.dataset.openMedia);
+});
+els.crawlerPreview.addEventListener("keydown", (event) => {
+  if (event.target.matches(".scene-tile") && (event.key === "Enter" || event.key === " ")) {
+    event.preventDefault();
+    state.explorer.open(event.target.dataset.openMedia);
+  }
+});
+
 window.addEventListener("hashchange", () => setView(location.hash.slice(1), false));
+
+async function resumeActiveJob() {
+  const jobId = localStorage.getItem("cinescene-active-job");
+  if (!jobId) return;
+  try {
+    const job = await api(`/api/jobs/${encodeURIComponent(jobId)}`);
+    if (["completed", "failed"].includes(job.status)) { showJob(job, job.error || "Analysis completed"); return; }
+    setView("ingest");
+    await pollJob(job, async () => { await Promise.all([loadHealth(), loadCrawlerStatus(), loadMemory()]); });
+  } catch (error) {
+    localStorage.removeItem("cinescene-active-job");
+    toast(error.message, "error");
+  }
+}
 
 updateRangeOutputs();
 refreshIcons();
 setView(location.hash.slice(1) || "discover", false);
 Promise.all([loadHealth(), loadCrawlerStatus(), loadMemory()]);
+resumeActiveJob();

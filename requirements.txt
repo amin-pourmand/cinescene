@@ -32,6 +32,7 @@ kaggle>=1.5.16
 opencv-python>=4.9.0
 scenedetect[opencv]>=0.6.4
 imageio-ffmpeg>=0.5.1
+pysubs2>=1.8,<2
 
 # Local speech-to-text for videos without subtitle tracks.
 faster-whisper>=1.1.0

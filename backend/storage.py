@@ -69,8 +69,26 @@ class AppMemory:
                     payload_json TEXT NOT NULL,
                     created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
                 );
+
+                CREATE TABLE IF NOT EXISTS jobs (
+                    id TEXT PRIMARY KEY,
+                    payload_json TEXT NOT NULL,
+                    updated_at REAL NOT NULL
+                );
                 """
             )
+
+    def save_job(self, job: Dict):
+        with self.connect() as conn:
+            conn.execute(
+                "INSERT OR REPLACE INTO jobs(id, payload_json, updated_at) VALUES (?, ?, ?)",
+                (job["id"], json.dumps(job, ensure_ascii=False), float(job["updated_at"])),
+            )
+
+    def recent_jobs(self, limit: int = 100) -> List[Dict]:
+        with self.connect() as conn:
+            rows = conn.execute("SELECT payload_json FROM jobs ORDER BY updated_at DESC LIMIT ?", (limit,)).fetchall()
+        return [json.loads(row["payload_json"]) for row in rows]
 
     def add_search(self, session_id: str, query: str, top_k: int, use_reranking: bool, results: List[Dict]):
         with self.connect() as conn:

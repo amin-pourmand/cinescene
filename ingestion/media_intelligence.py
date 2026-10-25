@@ -2,6 +2,10 @@
 
 from __future__ import annotations
 
+from runtime_environment import configure_runtime
+
+configure_runtime()
+
 import gc
 import importlib.util
 import os
@@ -105,21 +109,22 @@ def transcribe_to_srt(video_path: Path, output_dir: Path, model_size: str = "sma
             vad_filter=True,
             condition_on_previous_text=True,
         )
-    except Exception:
-        return None
-    lines = []
-    for index, segment in enumerate(segments, start=1):
-        text = str(segment.text or "").strip()
-        if not text:
-            continue
-        lines.extend(
-            [
-                str(index),
-                f"{_srt_timestamp(float(segment.start))} --> {_srt_timestamp(float(segment.end))}",
-                text,
-                "",
-            ]
-        )
+        lines = []
+        # faster-whisper performs inference while consuming this iterator.
+        for segment in segments:
+            text = str(segment.text or "").strip()
+            if not text:
+                continue
+            lines.extend(
+                [
+                    str(len(lines) // 4 + 1),
+                    f"{_srt_timestamp(float(segment.start))} --> {_srt_timestamp(float(segment.end))}",
+                    text,
+                    "",
+                ]
+            )
+    except Exception as exc:
+        raise RuntimeError(f"Speech transcription failed for {video_path.name}: {exc}") from exc
     if not lines:
         return None
     target.write_text("\n".join(lines), encoding="utf-8")
@@ -131,8 +136,10 @@ def _vision_components(model_name: str):
     import torch
     from transformers import BlipForConditionalGeneration, BlipProcessor
 
-    processor = BlipProcessor.from_pretrained(model_name)
-    model = BlipForConditionalGeneration.from_pretrained(model_name)
+    local_model = Path("models/blip-image-captioning-base")
+    reference = str(local_model) if model_name == "Salesforce/blip-image-captioning-base" and (local_model / "config.json").exists() else model_name
+    processor = BlipProcessor.from_pretrained(reference)
+    model = BlipForConditionalGeneration.from_pretrained(reference)
     device = "cuda" if torch.cuda.is_available() else "cpu"
     model.to(device)
     model.eval()
@@ -181,7 +188,10 @@ def resolve_subtitle_files(
     transcribe: bool = False,
     whisper_model: str = "small",
 ) -> Dict:
+    from ingestion.subtitles import load_subtitle_segments
+
     sources = [path for path in sidecars if path.exists()]
+    warnings = []
     embedded = None
     generated = None
 
@@ -189,6 +199,16 @@ def resolve_subtitle_files(
         embedded = extract_embedded_subtitle(video_path, output_dir)
         if embedded:
             sources.append(embedded)
+    usable_sources = []
+    for source in dict.fromkeys(sources):
+        try:
+            if load_subtitle_segments(source):
+                usable_sources.append(source)
+            else:
+                warnings.append(f"No usable subtitle cues in {source.name}.")
+        except ValueError as exc:
+            warnings.append(str(exc))
+    sources = usable_sources
     if transcribe and not sources:
         generated = transcribe_to_srt(video_path, output_dir, model_size=whisper_model)
         if generated:
@@ -203,6 +223,7 @@ def resolve_subtitle_files(
             deduped.append(path)
     return {
         "paths": deduped,
+        "warnings": warnings,
         "embedded": str(embedded) if embedded else None,
         "generated": str(generated) if generated else None,
         "transcript_mode": "generated" if generated else "embedded" if embedded else "sidecar" if deduped else "none",

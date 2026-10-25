@@ -16,11 +16,11 @@ Title document
 
 ```mermaid
 flowchart TD
-    U[Upload video + SRT/VTT] --> S[Persistent upload storage]
+    U[Upload video + SRT/VTT/ASS/SSA] --> S[Persistent upload storage]
     S --> D[PySceneDetect AdaptiveDetector]
     D --> K[Representative keyframes]
     S --> T{Timed text available?}
-    T -->|Sidecar| P[SRT/VTT parser]
+    T -->|Sidecar| P[pysubs2 timed-text parser]
     T -->|Embedded| F[FFmpeg extraction]
     T -->|No| W[faster-whisper]
     K --> V[BLIP visual captions]
@@ -36,6 +36,8 @@ flowchart TD
     N --> H[Hybrid retrieval]
     SI --> H
     MI --> H
+    R --> ML[Multilingual E5 passage and scene index]
+    ML --> H
     H --> C[Collapse scenes by parent title]
     C --> X[Ranked title + scene + timecode]
 ```
@@ -54,7 +56,7 @@ flowchart TD
 `ingestion/media_intelligence.py` owns optional media models.
 
 - FFmpeg discovers and extracts an embedded subtitle stream.
-- SRT/VTT sidecars are merged into scene time ranges.
+- SRT/VTT/ASS/SSA sidecars are decoded and merged into half-open scene time ranges without truncating dialogue.
 - faster-whisper generates timed dialogue when no subtitle track exists.
 - BLIP generates a natural-language caption from each keyframe.
 - Capability discovery keeps optional models observable from the System screen.
@@ -68,6 +70,7 @@ visual caption, caption source
 mood tags, keywords, visual tags
 brightness, motion, contrast, cut strength
 keyframe path, source video path, analysis version
+analysis warnings when requested evidence could not be recovered
 ```
 
 ## Indexes
@@ -91,15 +94,17 @@ data/index/scene_metadata.pkl
 
 ## Ranking
 
-`hybrid_search.py` loads both indexes into one retrieval engine.
+`hybrid_search.py` loads the title and scene indexes into one retrieval engine. `multilingual_index.py` adds an E5 channel with `query:`/`passage:` prefixes. Long plots are split into overlapping passages so later details are not lost to encoder truncation. Scene-only refreshes reuse title vectors only when the model and title keys match.
 
 1. Normalize and expand the query in `query_processor.py`.
-2. Search movie vectors and scene vectors.
+2. Search movie vectors, scene vectors, and multilingual passages. Persian queries use the multilingual channel instead of the English-only BGE channel when available.
 3. Add lexical evidence from title, plot, scene transcript, captions, tags, and metadata.
 4. Prefer transcript overlap for dialogue-like scene queries.
 5. Collapse multiple scene hits to one movie or episode.
 6. Preserve the best scene and a short list of additional matching scenes.
 7. Return a stable ranked response with title score, scene score, frame, and timecode.
+
+Optional English cross-encoder reranking operates on collapsed title candidates; unscored fusion values are never sorted together with cross-encoder logits. Movie/series filtering is explicit. Scores are ranking signals, not calibrated confidence percentages.
 
 The output is parent-title oriented, so ten matching moments from one movie do not occupy ten result cards.
 
@@ -115,6 +120,8 @@ The output is parent-title oriented, so ten matching moments from one movie do n
 | `POST /api/crawl/offline-async` | Recursive local-folder ingestion |
 | `GET /api/crawl/status` | Documents, scenes, keyframes, and capabilities |
 | `GET /api/jobs/{id}` | Background pipeline progress |
+| `GET /api/media/{id}/scenes` | Full paginated timeline, text search, and dialogue/vision filters |
+| `GET /api/media/{id}/clip/{scene}` | Cached browser-compatible H.264/AAC scene preview |
 | `POST /api/index/rebuild` | Full movie and scene index rebuild |
 | `/media/videos/*` | Local source playback for authorized ingestions |
 | `/media/keyframes/*` | Scene frame delivery |
@@ -123,12 +130,14 @@ Uploads are size-limited, streamed to disk, and analyzed in a background job. A 
 
 Embedding-model creation is protected by a process-wide re-entrant lock. Health checks and searches therefore cannot cold-load two copies of BGE-large concurrently after an index refresh, which is important on a 4 GB GPU.
 
+Media/index writers are serialized with a pipeline lock. Job status is persisted in SQLite; the browser restores the active job after refresh. A server restart explicitly marks interrupted jobs as failed for retry instead of claiming completion or silently losing them. This is not an auto-resuming distributed worker queue.
+
 ## Frontend
 
 The backend-connected app in `frontend/` contains four workspaces:
 
 - **Discover:** scene query, ranked results, keyframes, timestamps, and local scene playback.
-- **Scene Lab:** drag/drop upload, subtitle tracks, analysis profiles, progress, and processed timeline.
+- **Scene Lab:** drag/drop upload, subtitle tracks, analysis profiles, progress, and complete searchable timeline explorer.
 - **Library:** persistent history, favorites, and ingestion records.
 - **System:** runtime capabilities and index diagnostics.
 
@@ -137,7 +146,13 @@ The public `docs/` build shares the visual language and browser memory but is in
 ## Storage And Recovery
 
 - SQLite stores user memory and ingestion history.
+- `CINESCENE_STORAGE_ROOT` routes model caches and temporary uploads to a chosen drive. This workstation's `models/` and `data/` are NTFS junctions to E, so media, indexes, model weights, and preview clips do not accumulate on C.
 - Source media and generated model data are ignored by Git.
 - Scene JSON files are the durable recovery source for offline documents.
 - Movie and scene indexes can be regenerated from catalog and scene records.
 - The crawler never requires access to a protected streaming player or DRM bypass.
+- Public catalog exports include only explicitly allowlisted local demo titles. Private uploaded media, transcripts, captions, and local paths are not published to GitHub Pages.
+
+## Evaluation
+
+`benchmarks/cases.json` contains 27 development regression queries. Exact normalized title/alias matching distinguishes sequels and can check season/episode identity. Reports include failures and per-category metrics. The suite has informed development, so it is not an independent held-out estimate. `baseline-v2.json` preserves the original engine's score under the corrected matcher; current reports use the same suite hash.

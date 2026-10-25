@@ -62,7 +62,7 @@ def can_publish_media(movie: Dict) -> bool:
 
 def normalize_timeline(movie: Dict, publish_media: bool) -> List[Dict]:
     timeline = []
-    for scene in as_list(movie.get("scene_timeline"))[:12]:
+    for scene in as_list(movie.get("scene_timeline")):
         if not isinstance(scene, dict):
             continue
         copied_keyframe = copy_keyframe(clean_text(scene.get("keyframe_path"))) if publish_media else ""
@@ -78,6 +78,8 @@ def normalize_timeline(movie: Dict, publish_media: bool) -> List[Dict]:
                 "keywords": as_list(scene.get("keywords"))[:8],
                 "visual_tags": as_list(scene.get("visual_tags"))[:6],
                 "keyframe": copied_keyframe,
+                "caption_source": scene.get("caption_source", "visual_signals"),
+                "subtitle_sources": as_list(scene.get("subtitle_sources")),
             }
         )
     return timeline
@@ -135,6 +137,12 @@ def to_pwa_item(movie: Dict) -> Dict:
         "source": movie.get("source", "tmdb_enriched"),
         "source_video": "",
         "poster": poster,
+        "quality": {
+            "scenes": len(timeline),
+            "dialogue_scenes": sum(bool(scene.get("transcript")) for scene in timeline),
+            "vision_scenes": sum("blip" in scene.get("caption_source", "") for scene in timeline),
+            "duration_sec": max((float(scene.get("end_sec") or 0) for scene in timeline), default=0),
+        },
     }
     item["score_hint"] = 3000 if item["source"] == "offline_video_ingestion" else 0
     item["search_text"] = search_text_for(item)
@@ -143,7 +151,8 @@ def to_pwa_item(movie: Dict) -> Dict:
 
 def main():
     movies = json.loads(CATALOG_PATH.read_text(encoding="utf-8"))
-    offline = [movie for movie in movies if movie.get("source") == "offline_video_ingestion"]
+    # Local uploads are private by default, including dialogue and generated captions.
+    offline = [movie for movie in movies if movie.get("source") == "offline_video_ingestion" and can_publish_media(movie)]
     series = [
         movie
         for movie in movies

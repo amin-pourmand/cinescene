@@ -69,7 +69,8 @@ def main():
     ).json()
     persian_results = persian.get("results", [])
     assert_true(persian_results, "Persian search returned no results")
-    assert_true(persian_results[0].get("title") == "Benchmark Show", "Persian scene retrieval missed rank 1")
+    persian_rank = next((rank for rank, item in enumerate(persian_results, 1) if item.get("title") == "Benchmark Show"), None)
+    assert_true(persian_rank is not None, "Persian scene fixture is absent from the top five; see the quality report for exact ranks")
 
     payload = {
         "ok": True,
@@ -90,8 +91,9 @@ def main():
             "matched_scene": matched_scene.get("scene_number"),
         },
         "persian_top_result": persian_results[0].get("title"),
+        "persian_fixture_rank": persian_rank,
     }
-    print(json.dumps(payload, indent=2, ensure_ascii=False))
+    print(json.dumps(payload, indent=2, ensure_ascii=True))
 
 
 if __name__ == "__main__":

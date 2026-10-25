@@ -14,11 +14,11 @@ async function verifyPage(page, viewportName) {
     if (message.type() === "error") errors.push(message.text());
   });
 
-  await page.goto(`${BASE_URL}/#discover`, { waitUntil: "networkidle" });
+  await page.goto(`${BASE_URL}/#discover`, { waitUntil: "domcontentloaded" });
   await page.waitForFunction(
     (expected) => document.querySelector("#sidebarStatus")?.textContent === expected,
     STATIC_MODE ? "Showcase ready" : "Engine online",
-    { timeout: 60_000 },
+    { timeout: 120_000 },
   );
   await page.screenshot({ path: path.join(ROOT, "artifacts", `${ARTIFACT_PREFIX}-${viewportName}-discover.png`), fullPage: true });
 
@@ -31,11 +31,36 @@ async function verifyPage(page, viewportName) {
     await page.click(`[data-view-link="${STATIC_MODE ? "scenes" : "ingest"}"]`);
     await page.waitForSelector(STATIC_MODE ? "#scenesView.active" : "#ingestView.active");
     await page.screenshot({ path: path.join(ROOT, "artifacts", `${ARTIFACT_PREFIX}-desktop-scene-lab.png`), fullPage: true });
+    const exploreButton = page.locator("button[data-open-media]").first();
+    if (await exploreButton.count()) {
+      await exploreButton.click();
+      await page.waitForSelector(".explorer-row", { timeout: 15_000 });
+      if (!STATIC_MODE) {
+        await page.waitForFunction(() => {
+          const video = document.querySelector(".explorer-detail video");
+          return video && video.readyState >= 2 && video.videoWidth > 0;
+        }, null, { timeout: 30_000 });
+        await page.locator(".explorer-detail video").evaluate(async (video) => {
+          video.muted = true;
+          await video.play();
+        });
+        await page.waitForFunction(() => document.querySelector(".explorer-detail video")?.currentTime > 0.3);
+        await page.locator(".explorer-detail video").evaluate((video) => video.pause());
+      }
+      await page.screenshot({ path: path.join(ROOT, "artifacts", `${ARTIFACT_PREFIX}-desktop-explorer.png`) });
+      await page.locator('.scene-explorer [data-close]').click();
+    }
   } else {
     await page.click("#mobileMenuButton");
     await page.click(`.nav-item[data-view-link="${STATIC_MODE ? "scenes" : "ingest"}"]`);
     await page.waitForSelector(STATIC_MODE ? "#scenesView.active" : "#ingestView.active");
     await page.screenshot({ path: path.join(ROOT, "artifacts", `${ARTIFACT_PREFIX}-mobile-scene-lab.png`), fullPage: true });
+    const exploreButton = page.locator("button[data-open-media]").first();
+    if (await exploreButton.count()) {
+      await exploreButton.click();
+      await page.waitForSelector(".explorer-row", { timeout: 15_000 });
+      await page.screenshot({ path: path.join(ROOT, "artifacts", `${ARTIFACT_PREFIX}-mobile-explorer.png`) });
+    }
   }
 
   const overflow = await page.evaluate(() => ({

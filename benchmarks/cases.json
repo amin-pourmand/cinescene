@@ -1,0 +1,33 @@
+{
+  "version": 2,
+  "description": "Manually authored regression queries. Not a held-out academic test set. Exact title or explicit alias matching; sequels are separate titles.",
+  "cases": [
+    {"category":"movie_plot","query":"a thief enters layered dreams to plant an idea","expected":["Inception"]},
+    {"category":"movie_plot","query":"a marine meets blue aliens on the moon Pandora","expected":["Avatar"]},
+    {"category":"movie_plot","query":"an amnesiac man uses tattoos and notes to find a killer","expected":["Memento"]},
+    {"category":"movie_plot","query":"toys come alive when their owner leaves the room","expected":["Toy Story"]},
+    {"category":"movie_plot","query":"a giant shark terrorizes a seaside town","expected":["Jaws"]},
+    {"category":"movie_plot","query":"a computer hacker discovers reality is a simulation","expected":["The Matrix"]},
+    {"category":"movie_plot","query":"a romance aboard a ship that hits an iceberg","expected":["Titanic"]},
+    {"category":"movie_plot","query":"a hobbit carries a powerful ring toward a volcano","expected":["The Lord of the Rings: The Fellowship of the Ring","The Lord of the Rings: The Return of the King"]},
+    {"category":"movie_plot","query":"a prison banker slowly tunnels through a wall to escape","expected":["The Shawshank Redemption"]},
+    {"category":"movie_plot","query":"a clown criminal tests a masked vigilante by threatening a city","expected":["The Dark Knight"]},
+    {"category":"movie_plot","query":"a theme park's cloned dinosaurs escape their enclosures","expected":["Jurassic Park"]},
+    {"category":"movie_plot","query":"a young boy discovers that he is a wizard and attends a school of magic","expected":["Harry Potter and the Philosopher's Stone","Harry Potter and the Sorcerer's Stone"]},
+    {"category":"series_plot","query":"a chemistry teacher diagnosed with cancer begins making methamphetamine","expected":["Breaking Bad"]},
+    {"category":"series_plot","query":"children search for a missing friend while a strange girl has supernatural powers","expected":["Stranger Things"]},
+    {"category":"series_plot","query":"an anthology of disturbing stories about technology and society","expected":["Black Mirror"]},
+    {"category":"series_plot","query":"a modern London detective and his doctor companion solve crimes","expected":["Sherlock"]},
+    {"category":"series_plot","query":"the reign of Queen Elizabeth and the private life of the royal family","expected":["The Crown"]},
+    {"category":"series_plot","query":"a Birmingham gangster family rises to power after the first world war","expected":["Peaky Blinders"]},
+    {"category":"series_plot","query":"a monster hunter struggles to find his place in a world of magic","expected":["The Witcher"]},
+    {"category":"series_plot","query":"missing children reveal a time travel mystery in a German town","expected":["Dark"]},
+    {"category":"persian_plot","query":"دزدی وارد خواب آدم‌ها می‌شود تا یک ایده در ذهنشان بکارد","expected":["Inception"]},
+    {"category":"persian_plot","query":"مردی حافظه‌اش را از دست داده و با خالکوبی و یادداشت دنبال قاتل می‌گردد","expected":["Memento"]},
+    {"category":"persian_plot","query":"معلم شیمی سرطان می‌گیرد و شروع به ساخت مواد مخدر می‌کند","expected":["Breaking Bad"]},
+    {"category":"persian_plot","query":"هکری متوجه می‌شود دنیای واقعی یک شبیه‌سازی کامپیوتری است","expected":["The Matrix"]},
+    {"category":"synthetic_scene","query":"lonely detective enters a dark room and investigates a mystery","expected":["Benchmark Show"],"season":1,"episode":1},
+    {"category":"synthetic_scene","query":"the city lights flicker while he investigates the mystery","expected":["Benchmark Show"],"season":1,"episode":1},
+    {"category":"persian_synthetic_scene","query":"کارآگاهی تنها وارد اتاق تاریک می‌شود و دنبال سرنخ می‌گردد","expected":["Benchmark Show"],"season":1,"episode":1}
+  ]
+}

@@ -8,6 +8,10 @@ saves both v2 and legacy index filenames for compatibility.
 
 from __future__ import annotations
 
+from runtime_environment import configure_runtime
+
+configure_runtime()
+
 import argparse
 import gc
 import json

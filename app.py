@@ -12,6 +12,9 @@ from __future__ import annotations
 
 
 def main():
+    from runtime_environment import configure_runtime
+
+    configure_runtime()
     try:
         import uvicorn
     except ImportError as exc:

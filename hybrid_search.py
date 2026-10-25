@@ -7,6 +7,10 @@ rank fusion, optional cross-encoder reranking, and query-time filters.
 
 from __future__ import annotations
 
+from runtime_environment import configure_runtime
+
+configure_runtime()
+
 import os
 import pickle
 import json
@@ -32,6 +36,15 @@ except Exception:  # pragma: no cover - dependency fallback
 
 
 LOCAL_BGE_PATH = Path("models/bge-large-en-v1.5")
+LEXICAL_STOPWORDS = {
+    "the", "and", "for", "with", "that", "this", "from", "into", "while", "then", "they",
+    "their", "there", "about", "after", "before", "are", "was", "were", "who", "his", "her",
+    "she", "him", "its", "has", "have", "had", "but", "when", "where", "what", "which",
+    "them", "can", "will", "how", "does", "did", "through",
+    "این", "اون", "آن", "یک", "یکی", "برای", "های", "هایی", "است", "هست", "بود", "بوده",
+    "شد", "شده", "شود", "شوند", "کند", "کنند", "کرد", "کرده", "دارد", "داره", "باشه",
+    "باید", "همه", "خود", "خودش", "فیلم", "سریال", "سکانس", "صحنه",
+}
 
 
 def clean_text(value) -> str:
@@ -100,7 +113,9 @@ class HybridSearchEngine:
             )
 
         print(f"Loading embedding model: {self.model_path}")
-        self.device = "cuda" if torch.cuda.is_available() else "cpu"
+        self.device = os.getenv("CINESCENE_EMBEDDING_DEVICE") or ("cuda" if torch.cuda.is_available() else "cpu")
+        if self.device not in {"cuda", "cpu"}:
+            raise ValueError("CINESCENE_EMBEDDING_DEVICE must be cpu or cuda")
         use_fp16 = self.device == "cuda" and os.getenv("CINESCENE_EMBEDDING_FP16", "0") == "1"
         self.precision = "float16" if use_fp16 else "float32"
         self.model = SentenceTransformer(self.model_path, device=self.device)
@@ -129,6 +144,17 @@ class HybridSearchEngine:
             if item.get("id") is not None
         }
 
+        self.multilingual = None
+        self.multilingual_error = None
+        if os.getenv("CINESCENE_ENABLE_MULTILINGUAL", "1") == "1":
+            from multilingual_index import INDEX_PATH, METADATA_PATH, MultilingualSearch
+
+            if INDEX_PATH.exists() and METADATA_PATH.exists():
+                try:
+                    self.multilingual = MultilingualSearch(self.metadata)
+                except Exception as exc:
+                    self.multilingual_error = str(exc)
+
         self.query_processor = QueryProcessor()
         self._build_lexical_index()
 
@@ -136,7 +162,9 @@ class HybridSearchEngine:
         if enable_reranker and CrossEncoder is not None:
             try:
                 print(f"Loading cross-encoder: {cross_encoder_name}")
-                self.cross_encoder = CrossEncoder(cross_encoder_name)
+                local_reranker = Path("models/ms-marco-MiniLM-L-6-v2")
+                reference = str(local_reranker) if (local_reranker / "config.json").exists() else cross_encoder_name
+                self.cross_encoder = CrossEncoder(reference, device="cpu", max_length=384)
             except Exception as exc:
                 print(f"Cross-encoder unavailable, continuing without reranking: {exc}")
 
@@ -190,7 +218,8 @@ class HybridSearchEngine:
 
     @staticmethod
     def _lexical_tokens(text: str) -> List[str]:
-        tokens = re.findall(r"[^\W_]+", clean_text(text).lower(), flags=re.UNICODE)
+        normalized_text = QueryProcessor.normalize_unicode(clean_text(text)).lower()
+        tokens = re.findall(r"[^\W_]+", normalized_text, flags=re.UNICODE)
         normalized = []
         for token in tokens:
             if token.isascii():
@@ -200,7 +229,7 @@ class HybridSearchEngine:
                     token = token[:-2]
                 elif len(token) > 3 and token.endswith("s") and not token.endswith("ss"):
                     token = token[:-1]
-            if len(token) > 2:
+            if len(token) > 2 and token not in LEXICAL_STOPWORDS:
                 normalized.append(token)
         return normalized
 
@@ -230,7 +259,7 @@ class HybridSearchEngine:
             token_set = set(query_tokens)
             scores = np.array([len(token_set & set(doc)) / max(1, len(token_set)) for doc in self.lexical_docs])
         top_indices = np.argsort(scores)[::-1][:k]
-        return [(int(idx), float(scores[idx])) for idx in top_indices]
+        return [(int(idx), float(scores[idx])) for idx in top_indices if scores[idx] > 0]
 
     def direct_overlap_search(self, query: str, k: int = 50) -> List[Tuple[int, float]]:
         terms = set(self._lexical_tokens(query))
@@ -257,7 +286,11 @@ class HybridSearchEngine:
         scores: Dict[int, float] = {}
         for rank, (idx, _) in enumerate(vector_results):
             scores[idx] = scores.get(idx, 0.0) + 1 / (k + rank + 1)
+        seen = set()
         for rank, (idx, _) in enumerate(lexical_results):
+            if idx in seen:
+                continue
+            seen.add(idx)
             scores[idx] = scores.get(idx, 0.0) + 1 / (k + rank + 1)
         return sorted(scores.items(), key=lambda item: item[1], reverse=True)
 
@@ -277,8 +310,9 @@ class HybridSearchEngine:
             if meta.get("record_type") == "scene" and overlap >= 2:
                 transcript_terms = self.transcript_token_sets[idx]
                 transcript_overlap = len(query_terms & transcript_terms)
-                source_boost = min(0.12, 0.022 * transcript_overlap) if transcript_overlap >= 2 else min(0.012, 0.002 * overlap)
-            boosted.append((idx, score + overlap * 0.003 + title_overlap * 0.008 + source_boost))
+                source_boost = 0.012 * transcript_overlap / max(1, len(query_terms))
+            title_boost = 0.008 * title_overlap / len(query_terms)
+            boosted.append((idx, score + 0.008 * overlap / len(query_terms) + title_boost + source_boost))
         boosted.sort(key=lambda item: item[1], reverse=True)
         return boosted
 
@@ -287,6 +321,8 @@ class HybridSearchEngine:
         for idx, score in results:
             meta = self.metadata[idx]
 
+            if filters.get("media_type") in {"movie", "series"} and meta.get("media_type", "movie") != filters["media_type"]:
+                continue
             if filters.get("genres"):
                 meta_genres = set(meta.get("genres", []) or [])
                 if not any(genre in meta_genres for genre in filters["genres"]):
@@ -307,30 +343,6 @@ class HybridSearchEngine:
 
             filtered.append((idx, score))
         return filtered
-
-    def cross_encoder_rerank(
-        self,
-        query: str,
-        candidates: List[Tuple[int, float]],
-        top_k: int = 20,
-    ) -> List[Tuple[int, float]]:
-        if not self.cross_encoder or not candidates:
-            return candidates
-
-        pairs = []
-        selected = candidates[:top_k]
-        for idx, _ in selected:
-            meta = self.metadata[idx]
-            doc_text = self._doc_for_meta(meta)[:1800]
-            pairs.append([query, doc_text])
-
-        ce_scores = self.cross_encoder.predict(pairs)
-        reranked = []
-        for (idx, fusion_score), ce_score in zip(selected, ce_scores):
-            reranked.append((idx, float(0.7 * ce_score + 0.3 * fusion_score)))
-
-        reranked.sort(key=lambda item: item[1], reverse=True)
-        return reranked + candidates[top_k:]
 
     def _format_result(self, idx: int, score: float, rank: int, matched_scenes: Optional[List[Dict]] = None) -> Dict:
         candidate = self.metadata[idx]
@@ -386,28 +398,68 @@ class HybridSearchEngine:
         collapsed = []
         for group in grouped.values():
             scenes = sorted(group["scenes"], key=lambda item: item.get("match_score", 0), reverse=True)
-            coverage_bonus = min(0.012, max(0, len(scenes) - 1) * 0.002)
-            collapsed.append((group["idx"], float(group["score"]) + coverage_bonus, scenes[:5]))
+            # Max-pool evidence: a long film must not win merely by having more scenes.
+            collapsed.append((group["idx"], float(group["score"]), scenes[:5]))
         return sorted(collapsed, key=lambda item: item[1], reverse=True)
 
-    def search(self, query: str, top_k: int = 10, use_reranking: bool = True) -> List[Dict]:
+    def rerank_titles(self, query: str, candidates, limit: int = 80):
+        if self.cross_encoder is None or not candidates or re.search(r"[\u0600-\u06ff]", query):
+            return candidates
+        selected = candidates[:limit]
+        pairs = []
+        for idx, _, scenes in selected:
+            meta = self.metadata[idx]
+            scene = scenes[0] if scenes else meta.get("matched_scene") or {}
+            text = f"{meta.get('title', '')}. {meta.get('overview', '')}"
+            if scene:
+                text += f" Scene: {scene.get('transcript', '')} {scene.get('visual_caption', '')}"
+            pairs.append([query, text])
+        scores = self.cross_encoder.predict(pairs, batch_size=16, show_progress_bar=False)
+        reranked = [(idx, float(score), scenes) for (idx, _, scenes), score in zip(selected, scores)]
+        # Keep the reranked shortlist ordered; unscored fusion values use a different scale.
+        return sorted(reranked, key=lambda item: item[1], reverse=True) + candidates[limit:]
+
+    def search(self, query: str, top_k: int = 10, use_reranking: bool = True, mode: str = "hybrid", media_type: str = "all") -> List[Dict]:
+        if mode not in {"hybrid", "semantic", "lexical", "multilingual"}:
+            raise ValueError("Unknown retrieval mode")
         processed = self.query_processor.process(query)
         search_query = processed["expanded"]
         filters = processed["filters"]
+        filters["media_type"] = media_type
 
-        vector_results = self.vector_search(search_query, k=60)
-        lexical_results = self.lexical_search(search_query, k=60)
-        overlap_results = self.direct_overlap_search(search_query, k=80)
-        fused_results = self.reciprocal_rank_fusion(vector_results, lexical_results + overlap_results)
-        fused_results = self.lexical_boost(search_query, fused_results)
+        if mode == "semantic":
+            fused_results = self.vector_search(search_query, k=120)
+        elif mode == "multilingual":
+            if self.multilingual is None:
+                raise RuntimeError("Build the multilingual index before using this mode.")
+            fused_results = self.multilingual.search(processed["cleaned"], k=150)
+        elif mode == "lexical":
+            fused_results = self.lexical_search(search_query, k=120)
+        else:
+            multilingual_results = self.multilingual.search(processed["cleaned"], k=150) if self.multilingual else []
+            is_persian = bool(re.search(r"[\u0600-\u06ff]", processed["cleaned"]))
+            vector_results = [] if is_persian and multilingual_results else self.vector_search(search_query, k=100)
+            lexical_results = self.lexical_search(processed["cleaned"], k=100)
+            if is_persian and multilingual_results:
+                # Most catalog text is English; lexical ranks over a few Persian subtitle
+                # tracks are not comparable to multilingual recall over the whole catalog.
+                lexical_scores = self.reciprocal_rank_fusion([], lexical_results)
+                fused_results = [(idx, score * 0.5) for idx, score in lexical_scores]
+            else:
+                fused_results = self.reciprocal_rank_fusion(vector_results, lexical_results)
+            if multilingual_results:
+                scores = dict(fused_results)
+                for rank, (idx, _) in enumerate(multilingual_results, 1):
+                    scores[idx] = scores.get(idx, 0) + 1 / (60 + rank)
+                fused_results = sorted(scores.items(), key=lambda item: item[1], reverse=True)
+            fused_results = self.lexical_boost(processed["cleaned"], fused_results)
 
-        if filters.get("genres") or filters.get("year_range") or filters.get("director"):
+        if filters.get("genres") or filters.get("year_range") or filters.get("director") or media_type != "all":
             fused_results = self.apply_filters(fused_results, filters)
 
-        if use_reranking:
-            fused_results = self.cross_encoder_rerank(search_query, fused_results, top_k=min(20, len(fused_results)))
-
         collapsed = self._collapse_titles(fused_results)
+        if use_reranking:
+            collapsed = self.rerank_titles(processed["cleaned"], collapsed)
         return [
             self._format_result(idx, score, rank + 1, matched_scenes=scenes)
             for rank, (idx, score, scenes) in enumerate(collapsed[:top_k])
@@ -420,11 +472,17 @@ class HybridSearchEngine:
             "index_vectors": int(self.index.ntotal) + (int(self.scene_index.ntotal) if self.scene_index is not None else 0),
             "movie_vectors": int(self.index.ntotal),
             "model": self.model_path,
+            "embedding_dimension": int(self.index.d),
             "device": self.device,
             "precision": self.precision,
             "index_path": self.index_path,
             "metadata_path": self.metadata_path,
             "reranker": bool(self.cross_encoder),
+            "multilingual": self.multilingual is not None,
+            "multilingual_model": self.multilingual.model_path if self.multilingual else None,
+            "multilingual_vectors": int(self.multilingual.index.ntotal) if self.multilingual else 0,
+            "fusion_version": "rrf-v3-max-evidence",
+            "multilingual_error": self.multilingual_error,
             "lexical": "bm25" if self.bm25 is not None else "token_overlap",
         }
 

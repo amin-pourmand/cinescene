@@ -1,5 +1,9 @@
 from __future__ import annotations
 
+from runtime_environment import configure_runtime
+
+configure_runtime()
+
 import gc
 import os
 import json
@@ -7,17 +11,19 @@ import re
 import threading
 import time
 import traceback
+from functools import wraps
 from pathlib import Path
-from typing import Dict, List, Optional
+from typing import Dict, List, Literal, Optional
 from uuid import uuid4
 
-from fastapi import FastAPI, File, Form, Header, HTTPException, UploadFile
+from fastapi import FastAPI, File, Form, Header, HTTPException, Query, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, model_validator
 
 from backend.storage import AppMemory
+from backend.scene_library import read_timeline, scene_quality
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -44,9 +50,15 @@ app.add_middleware(
 )
 
 memory = AppMemory()
-JOBS: Dict[str, Dict] = {}
+JOBS: Dict[str, Dict] = {job["id"]: job for job in memory.recent_jobs()}
+for interrupted_job in JOBS.values():
+    if interrupted_job.get("status") in {"running", "queued"}:
+        interrupted_job.update(status="failed", error="The server restarted before this analysis finished. Start the analysis again.")
+        memory.save_job(interrupted_job)
 JOBS_LOCK = threading.Lock()
+JOB_SAVED_AT: Dict[str, float] = {}
 ENGINE_LOCK = threading.RLock()
+PIPELINE_LOCK = threading.Lock()
 SEARCH_ENGINE = None
 SEARCH_ENGINE_ERROR: Optional[str] = None
 SEARCH_ENGINE_LOADED = False
@@ -56,6 +68,14 @@ class SearchRequest(BaseModel):
     query: str = Field(..., min_length=1, max_length=1000)
     top_k: int = Field(8, ge=1, le=20)
     use_reranking: bool = False
+    media_type: Literal["all", "movie", "series"] = "all"
+
+    @model_validator(mode="after")
+    def nonempty_query(self):
+        self.query = self.query.strip()
+        if not self.query:
+            raise ValueError("Enter a scene description or a title.")
+        return self
 
 
 class FavoriteRequest(BaseModel):
@@ -82,6 +102,12 @@ class OfflineCrawlRequest(BaseModel):
     enable_vision: bool = False
     whisper_model: str = Field("small", pattern="^(tiny|base|small|medium|large-v2|large-v3)$")
     vision_model: str = "Salesforce/blip-image-captioning-base"
+
+    @model_validator(mode="after")
+    def valid_scene_range(self):
+        if self.min_scene_sec >= self.max_scene_sec:
+            raise ValueError("Maximum scene duration must be greater than minimum duration.")
+        return self
 
 
 class CrawlProbeRequest(BaseModel):
@@ -115,6 +141,7 @@ def create_job(kind: str, label: str) -> Dict:
     }
     with JOBS_LOCK:
         JOBS[job_id] = job
+        memory.save_job(job)
     return job
 
 
@@ -123,9 +150,15 @@ def update_job(job_id: str, **fields):
         job = JOBS.get(job_id)
         if not job:
             return
+        previous_status = job.get("status")
+        previous_stage = job.get("stage")
         job.update(fields)
         job["updated_at"] = _now()
         job["elapsed_sec"] = round(job["updated_at"] - job["created_at"], 3)
+        now = time.monotonic()
+        if previous_status != job.get("status") or previous_stage != job.get("stage") or now - JOB_SAVED_AT.get(job_id, 0) >= 1:
+            memory.save_job(job)
+            JOB_SAVED_AT[job_id] = now
 
 
 def get_job(job_id: str) -> Dict:
@@ -152,7 +185,7 @@ def get_search_engine():
         try:
             from hybrid_search import HybridSearchEngine
 
-            enable_reranker = os.getenv("CINESCENE_ENABLE_RERANKER", "0") == "1"
+            enable_reranker = os.getenv("CINESCENE_ENABLE_RERANKER", "1") == "1"
             SEARCH_ENGINE = HybridSearchEngine(enable_reranker=enable_reranker)
             SEARCH_ENGINE_ERROR = None
         except Exception as exc:
@@ -198,6 +231,10 @@ def rebuild_scene_index_safely(model_path: str, batch_size: int = 16) -> Dict:
     with ENGINE_LOCK:
         release_runtime_models(include_media=True)
         report = build_scene_index(model_path=model_path, batch_size=batch_size)
+        from multilingual_index import INDEX_PATH, build_multilingual_index
+
+        if INDEX_PATH.exists():
+            report["multilingual"] = build_multilingual_index(scene_only=True, batch_size=16)
         clear_search_engine()
         return report
 
@@ -220,6 +257,10 @@ def rebuild_all_indexes_safely(payload: IndexBuildRequest, input_path: str, befo
             model_path=payload.model_path,
             batch_size=min(payload.batch_size, 64),
         )
+        from multilingual_index import INDEX_PATH, build_multilingual_index
+
+        if INDEX_PATH.exists():
+            scene_report["multilingual"] = build_multilingual_index(batch_size=16)
         clear_search_engine()
         engine, error = get_search_engine()
         return scene_report, engine, error
@@ -275,6 +316,8 @@ def decorate_search_media(results: List[Dict]) -> List[Dict]:
             if isinstance(scene, dict):
                 scene = dict(scene)
                 scene["keyframe_url"] = keyframe_url(scene.get("keyframe_path"))
+                if str(item.get("id", "")).startswith("offline:") and scene.get("scene_number"):
+                    scene["preview_url"] = f"/api/media/{str(item['id']).split(':', 1)[1]}/clip/{scene['scene_number']}"
                 item[field] = scene
         for field in ("matched_scenes", "scene_timeline"):
             scenes = []
@@ -332,6 +375,7 @@ def runtime_status():
         "cuda": cuda,
         "index_report": index_report,
         "scene_index_report": scene_index_report,
+        "multilingual_report": read_json(ROOT / "data/index/multilingual_report.json", {}),
         "offline_documents": len(offline_catalog) if isinstance(offline_catalog, list) else 0,
         "combined_documents": len(combined_catalog) if isinstance(combined_catalog, list) else 0,
         "paths": {
@@ -354,20 +398,26 @@ def crawler_status_payload():
     scene_files = sorted(INGESTION_DIR.glob("*_scenes.json"), key=lambda path: path.stat().st_mtime, reverse=True)
     scene_previews = []
     scene_total = 0
+    coverage = {"analyzed_titles": 0, "dialogue_titles": 0, "vision_titles": 0,
+                "dialogue_scenes": 0, "vision_scenes": 0}
     for index, scene_file in enumerate(scene_files):
         scenes = read_json(scene_file, [])
         if not isinstance(scenes, list):
             continue
         scene_total += len(scenes)
-        if index >= 12:
-            continue
+        quality = scene_quality(scenes)
+        coverage["analyzed_titles"] += bool(scenes)
+        coverage["dialogue_titles"] += quality["dialogue_scenes"] > 0
+        coverage["vision_titles"] += quality["vision_scenes"] > 0
+        coverage["dialogue_scenes"] += quality["dialogue_scenes"]
+        coverage["vision_scenes"] += quality["vision_scenes"]
         first = scenes[0] if scenes else {}
         timeline = []
         for scene in scenes[:8]:
             timeline.append(
                 {
                     "scene_id": scene.get("scene_id"),
-                    "scene_number": scene.get("scene_number"),
+                    "scene_number": scene.get("scene_number") or len(timeline) + 1,
                     "start_sec": scene.get("start_sec"),
                     "end_sec": scene.get("end_sec"),
                     "duration_sec": scene.get("duration_sec"),
@@ -378,11 +428,16 @@ def crawler_status_payload():
                     "visual_tags": scene.get("visual_tags", []) or [],
                     "keyframe_url": keyframe_url(scene.get("keyframe_path")),
                     "rich_text": scene.get("rich_text", "")[:900],
+                    "caption_source": scene.get("caption_source", "visual_signals"),
+                    "subtitle_sources": scene.get("subtitle_sources", []),
                 }
             )
         scene_previews.append(
             {
                 "file": str(scene_file),
+                "media_id": scene_file.name.removesuffix("_scenes.json"),
+                "quality": scene_quality(scenes),
+                "video_url": video_url(first.get("source_video", "")),
                 "scene_count": len(scenes),
                 "title": clean_media_title(first.get("movie_title") or first.get("title") or scene_file.stem),
                 "media_type": first.get("media_type"),
@@ -420,6 +475,7 @@ def crawler_status_payload():
         "combined_documents": combined_count,
         "scene_files": len(scene_files),
         "scene_total": scene_total,
+        "analysis_coverage": coverage,
         "keyframes": keyframe_count,
         "latest_report": latest_report,
         "report_history": report_rows[-8:] if isinstance(report_rows, list) else [],
@@ -451,6 +507,57 @@ def health():
 @app.get("/api/crawler/status", include_in_schema=False)
 def crawl_status():
     return crawler_status_payload()
+
+
+@app.get("/api/media/{media_id}/scenes")
+def media_scenes(
+    media_id: str,
+    offset: int = Query(0, ge=0),
+    limit: int = Query(24, ge=1, le=100),
+    q: str = Query("", max_length=500),
+    signal: str = Query("all", pattern="^(all|dialogue|vision)$"),
+):
+    from ingestion.offline_video import INGESTION_DIR, clean_media_title
+
+    try:
+        payload = read_timeline(INGESTION_DIR, media_id, offset, limit, q, signal)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    except FileNotFoundError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    payload["title"] = clean_media_title(payload["title"])
+    payload["video_url"] = video_url(payload.pop("source_video", ""))
+    for scene in payload["scenes"]:
+        scene["keyframe_url"] = keyframe_url(scene.get("keyframe_path"))
+        scene["preview_url"] = f"/api/media/{media_id}/clip/{scene['scene_number']}" if payload["video_url"] else None
+    return payload
+
+
+@app.get("/api/media/{media_id}/clip/{scene_number}")
+def media_scene_clip(media_id: str, scene_number: int):
+    from ingestion.offline_video import INGESTION_DIR
+    from ingestion.preview import browser_scene_clip
+
+    if scene_number < 1:
+        raise HTTPException(status_code=400, detail="Invalid scene number.")
+    try:
+        payload = read_timeline(INGESTION_DIR, media_id, offset=scene_number - 1, limit=1)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    except FileNotFoundError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    if not payload["scenes"]:
+        raise HTTPException(status_code=404, detail="Scene not found.")
+    source = Path(payload["source_video"])
+    source = source if source.is_absolute() else ROOT / source
+    if not video_url(str(source)) or not source.is_file():
+        raise HTTPException(status_code=404, detail="The local source video is unavailable.")
+    scene = payload["scenes"][0]
+    try:
+        path = browser_scene_clip(source, float(scene["start_sec"]), float(scene["end_sec"]), INGESTION_DIR / "clips")
+    except (RuntimeError, ValueError, TimeoutError) as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
+    return FileResponse(path, media_type="video/mp4")
 
 
 @app.post("/api/crawl/probe")
@@ -506,7 +613,7 @@ def search(payload: SearchRequest, sid: str = Header(default="anonymous", alias=
         if error or engine is None:
             raise HTTPException(status_code=503, detail=f"Search engine is not ready: {error}")
         results = decorate_search_media(
-            engine.search(payload.query, top_k=payload.top_k, use_reranking=payload.use_reranking)
+            engine.search(payload.query, top_k=payload.top_k, use_reranking=payload.use_reranking, media_type=payload.media_type)
         )
     memory.add_search(sid, payload.query, payload.top_k, payload.use_reranking, results)
     return {"query": payload.query, "count": len(results), "results": results}
@@ -534,6 +641,21 @@ def feedback(payload: FeedbackRequest, sid: str = Header(default="anonymous", al
     return {"ok": True}
 
 
+def require_crawl_documents(report: Dict):
+    if not report.get("documents_created"):
+        errors = [item.get("error", "No scenes were recovered") for item in report.get("jobs", [])]
+        raise RuntimeError("Video analysis did not produce searchable scenes. " + "; ".join(errors[:3]))
+
+
+def serialized_analysis(operation):
+    @wraps(operation)
+    def run(*args, **kwargs):
+        with PIPELINE_LOCK:
+            return operation(*args, **kwargs)
+    return run
+
+
+@serialized_analysis
 def run_uploaded_video_job(job_id: str, upload_root: Path, options: Dict, sid: str):
     start = time.perf_counter()
     update_job(job_id, status="running", stage="scene_detection", progress=4)
@@ -568,6 +690,7 @@ def run_uploaded_video_job(job_id: str, upload_root: Path, options: Dict, sid: s
             vision_model=options["vision_model"],
             progress_callback=progress,
         )
+        require_crawl_documents(report)
         update_job(job_id, stage="scene_index", progress=82)
         scene_index_report = rebuild_scene_index_safely(active_embedding_model(), batch_size=16)
 
@@ -603,12 +726,12 @@ async def ingest_video(
     movie_title: str = Form(default=""),
     min_scene_sec: float = Form(default=4.0),
     max_scene_sec: float = Form(default=45.0),
-    threshold: float = Form(default=0.35),
-    sample_fps: float = Form(default=2.0),
+    threshold: float = Form(default=0.35, ge=0.05, le=1.0),
+    sample_fps: float = Form(default=2.0, ge=0.1, le=5.0),
     extract_embedded_subtitles: bool = Form(default=True),
     transcribe_audio: bool = Form(default=False),
     enable_vision: bool = Form(default=False),
-    whisper_model: str = Form(default="small"),
+    whisper_model: str = Form(default="small", pattern="^(tiny|base|small|medium|large-v2|large-v3)$"),
     vision_model: str = Form(default="Salesforce/blip-image-captioning-base"),
     sid: str = Header(default="anonymous", alias="X-CineScene-Session"),
 ):
@@ -675,6 +798,7 @@ def ingestions(sid: str = Header(default="anonymous", alias="X-CineScene-Session
 
 
 @app.post("/api/crawl/offline")
+@serialized_analysis
 def crawl_offline(payload: OfflineCrawlRequest, sid: str = Header(default="anonymous", alias="X-CineScene-Session")):
     try:
         from ingestion.offline_video import crawl_offline_videos
@@ -693,6 +817,7 @@ def crawl_offline(payload: OfflineCrawlRequest, sid: str = Header(default="anony
             whisper_model=payload.whisper_model,
             vision_model=payload.vision_model,
         )
+        require_crawl_documents(report)
         scene_index_report = None
         if payload.update_catalog:
             scene_index_report = rebuild_scene_index_safely(active_embedding_model(), batch_size=16)
@@ -714,6 +839,7 @@ def crawl_offline(payload: OfflineCrawlRequest, sid: str = Header(default="anony
         raise HTTPException(status_code=500, detail=str(exc)) from exc
 
 
+@serialized_analysis
 def run_crawl_job(job_id: str, payload: OfflineCrawlRequest, sid: str):
     start = time.perf_counter()
     update_job(job_id, status="running")
@@ -751,6 +877,7 @@ def run_crawl_job(job_id: str, payload: OfflineCrawlRequest, sid: str):
             vision_model=payload.vision_model,
             progress_callback=progress,
         )
+        require_crawl_documents(report)
         scene_index_report = None
         if payload.update_catalog:
             update_job(job_id, stage="scene_index", progress=86)
@@ -794,6 +921,7 @@ def crawl_offline_async(payload: OfflineCrawlRequest, sid: str = Header(default=
 
 
 @app.post("/api/index/rebuild")
+@serialized_analysis
 def rebuild_index(payload: IndexBuildRequest):
     try:
         from build_index_v2 import default_catalog_path
@@ -815,6 +943,7 @@ def rebuild_index(payload: IndexBuildRequest):
         raise HTTPException(status_code=500, detail=str(exc)) from exc
 
 
+@serialized_analysis
 def run_index_rebuild_job(job_id: str, payload: IndexBuildRequest):
     start = time.perf_counter()
     update_job(job_id, status="running")

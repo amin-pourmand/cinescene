@@ -26,6 +26,8 @@ from dataclasses import asdict, dataclass, field, fields
 from pathlib import Path
 from typing import Callable, Dict, Iterable, List, Optional, Union
 
+from ingestion import subtitles as timed_text
+
 
 VIDEO_DIR = Path("data/offline_videos")
 INGESTION_DIR = Path("data/processed/video_ingestion")
@@ -34,8 +36,8 @@ OFFLINE_CATALOG = Path("data/processed/offline_media_enriched.json")
 SERIES_CATALOG = Path("data/processed/tv_series_enriched.json")
 COMBINED_CATALOG = Path("data/processed/cinescene_catalog.json")
 VIDEO_EXTENSIONS = {".mp4", ".mkv", ".avi", ".mov", ".webm", ".m4v", ".wmv"}
-SUBTITLE_EXTENSIONS = {".srt", ".vtt"}
-ANALYSIS_VERSION = "scene-v4"
+SUBTITLE_EXTENSIONS = {".srt", ".vtt", ".ass", ".ssa"}
+ANALYSIS_VERSION = "scene-v5"
 MAX_REPORT_HISTORY = 25
 
 
@@ -63,6 +65,7 @@ class SceneRecord:
     media_type: str = "movie"
     season: Optional[int] = None
     episode: Optional[int] = None
+    analysis_warnings: List[str] = field(default_factory=list)
 
     @property
     def rich_text(self) -> str:
@@ -115,10 +118,11 @@ def _video_hash(path: Path) -> str:
     return h.hexdigest()[:12]
 
 
-def _copy_video(video_path: Path) -> Path:
-    VIDEO_DIR.mkdir(parents=True, exist_ok=True)
-    target = VIDEO_DIR / video_path.name
-    if video_path.resolve() != target.resolve():
+def _copy_video(video_path: Path, video_id: str = "") -> Path:
+    video_id = video_id or _video_hash(video_path)
+    target = VIDEO_DIR / video_id / video_path.name
+    target.parent.mkdir(parents=True, exist_ok=True)
+    if video_path.resolve() != target.resolve() and not target.exists():
         shutil.copy2(video_path, target)
     return target
 
@@ -168,13 +172,11 @@ def parse_media_identity(path: Path, title_override: str = "") -> Dict:
 
 
 def find_sidecar_subtitles(video_path: Path) -> List[Path]:
-    matches: List[Path] = []
-    for ext in SUBTITLE_EXTENSIONS:
-        candidate = video_path.with_suffix(ext)
-        if candidate.exists():
-            matches.append(candidate)
-    for ext in SUBTITLE_EXTENSIONS:
-        matches.extend(sorted(video_path.parent.glob(f"{video_path.stem}*{ext}")))
+    stem = video_path.stem.casefold()
+    matches = [path for path in sorted(video_path.parent.iterdir())
+               if path.is_file() and path.suffix.casefold() in SUBTITLE_EXTENSIONS
+               and (path.stem.casefold() == stem or
+                    any(path.stem.casefold().startswith(stem + separator) for separator in (".", "_", "-", " ")))]
     deduped = []
     seen = set()
     for match in matches:
@@ -203,57 +205,11 @@ def parse_timestamp(value: str) -> float:
 
 
 def load_subtitle_segments(paths: Optional[Union[Iterable[Path], Path]]) -> List[Dict]:
-    if not paths:
-        return []
-    if isinstance(paths, Path):
-        subtitle_paths = [paths]
-    else:
-        subtitle_paths = list(paths)
-
-    segments = []
-    for path in subtitle_paths:
-        if not path.exists():
-            continue
-        text = path.read_text(encoding="utf-8", errors="ignore")
-        text = text.replace("\r\n", "\n").replace("\r", "\n")
-        text = re.sub(r"^WEBVTT.*?\n", "", text, flags=re.IGNORECASE | re.DOTALL)
-        blocks = re.split(r"\n\s*\n", text)
-        for block in blocks:
-            lines = [line.strip() for line in block.split("\n") if line.strip()]
-            if not lines:
-                continue
-            time_line = next((line for line in lines if "-->" in line), "")
-            if not time_line:
-                continue
-            start_raw, end_raw = [part.strip().split(" ")[0] for part in time_line.split("-->", 1)]
-            subtitle_text = " ".join(
-                line
-                for line in lines
-                if line != time_line and not line.isdigit() and not line.upper().startswith("NOTE")
-            )
-            subtitle_text = re.sub(r"<[^>]+>", "", subtitle_text)
-            subtitle_text = re.sub(r"\{[^}]+\}", "", subtitle_text)
-            subtitle_text = re.sub(r"\s+", " ", subtitle_text).strip()
-            if subtitle_text:
-                segments.append(
-                    {
-                        "start": parse_timestamp(start_raw),
-                        "end": parse_timestamp(end_raw),
-                        "text": subtitle_text,
-                        "source": str(path),
-                    }
-                )
-    return sorted(segments, key=lambda item: (item["start"], item["end"]))
+    return timed_text.load_subtitle_segments(paths)
 
 
-def subtitle_text_for_range(segments: List[Dict], start_sec: float, end_sec: float, max_chars: int = 700) -> str:
-    parts = [
-        segment["text"]
-        for segment in segments
-        if segment["end"] >= start_sec and segment["start"] <= end_sec
-    ]
-    text = " ".join(parts)
-    return re.sub(r"\s+", " ", text).strip()[:max_chars]
+def subtitle_text_for_range(segments: List[Dict], start_sec: float, end_sec: float, max_chars=None) -> str:
+    return timed_text.subtitle_text_for_range(segments, start_sec, end_sec, max_chars=max_chars)
 
 
 def _infer_mood_and_keywords(text: str) -> Dict[str, List[str]]:
@@ -417,23 +373,14 @@ def detect_scenes(
     if not source.exists():
         raise FileNotFoundError(f"Video file not found: {video_path}")
 
-    stored_video = _copy_video(source)
+    video_id = _video_hash(source)
+    stored_video = _copy_video(source, video_id=video_id)
     identity = parse_media_identity(stored_video, movie_title)
     title = identity["title"]
-    video_id = _video_hash(stored_video)
     from ingestion.media_intelligence import caption_keyframe, resolve_subtitle_files
 
-    sidecars = find_sidecar_subtitles(source) + find_sidecar_subtitles(stored_video)
-    subtitle_resolution = resolve_subtitle_files(
-        stored_video,
-        sidecars,
-        INGESTION_DIR / "transcripts",
-        extract_embedded=extract_embedded_subtitles,
-        transcribe=transcribe_audio,
-        whisper_model=whisper_model,
-    )
-    subtitle_paths = subtitle_resolution["paths"]
-    subtitle_segments = load_subtitle_segments(subtitle_paths)
+    if progress_callback:
+        progress_callback({"stage": "scene_detection", "fraction": 0.0, "current_video": str(stored_video)})
 
     cap = cv2.VideoCapture(str(stored_video))
     if not cap.isOpened():
@@ -521,13 +468,26 @@ def detect_scenes(
 
     records: List[SceneRecord] = []
     KEYFRAME_DIR.mkdir(parents=True, exist_ok=True)
+    if progress_callback:
+        progress_callback({"stage": "scene_intelligence", "fraction": 0.82, "current_video": str(stored_video)})
+    sidecars = find_sidecar_subtitles(source) + find_sidecar_subtitles(stored_video)
+    subtitle_resolution = resolve_subtitle_files(
+        stored_video, sidecars, INGESTION_DIR / "transcripts" / video_id,
+        extract_embedded=extract_embedded_subtitles, transcribe=transcribe_audio,
+        whisper_model=whisper_model,
+    )
+    subtitle_paths = subtitle_resolution["paths"]
+    subtitle_segments = load_subtitle_segments(subtitle_paths)
+    analysis_warnings = list(subtitle_resolution.get("warnings", []))
+    if not subtitle_segments:
+        analysis_warnings.append("No dialogue was recovered. Add subtitles or enable speech transcription.")
 
     for scene_index in range(max(0, len(boundaries) - 1)):
         start_frame = boundaries[scene_index]
         end_frame = boundaries[scene_index + 1]
         start_sec = start_frame / native_fps
         end_sec = end_frame / native_fps
-        if end_sec - start_sec < 1:
+        if end_sec <= start_sec:
             continue
 
         keyframe_path = _extract_keyframe(cv2, stored_video, video_id, scene_index, start_frame, end_frame, native_fps)
@@ -544,11 +504,14 @@ def detect_scenes(
             cut_score = 0.0
         caption_info = _caption_from_visual_features(brightness, motion, contrast, start_sec, end_sec)
         caption_source = "visual_signals"
+        scene_warnings = list(analysis_warnings)
         if enable_vision and keyframe_path:
             semantic_caption = caption_keyframe(Path(keyframe_path), model_name=vision_model)
             if semantic_caption:
                 caption_info["caption"] = f"{semantic_caption}. {caption_info['caption']}"
                 caption_source = "blip+visual_signals"
+            else:
+                scene_warnings.append("Visual captioning did not return a description for this scene.")
         transcript = subtitle_text_for_range(subtitle_segments, start_sec, end_sec)
         inferred = _infer_mood_and_keywords(f"{caption_info['caption']} {' '.join(caption_info['tags'])} {transcript}")
 
@@ -576,8 +539,15 @@ def detect_scenes(
                 media_type=identity["media_type"],
                 season=identity["season"],
                 episode=identity["episode"],
+                analysis_warnings=scene_warnings,
             )
         )
+        if progress_callback:
+            progress_callback({
+                "stage": "scene_intelligence",
+                "fraction": 0.82 + 0.17 * (scene_index + 1) / max(1, len(boundaries) - 1),
+                "current_video": str(stored_video),
+            })
 
     save_scene_records(records, video_id)
     if progress_callback:
@@ -637,6 +607,7 @@ def scene_records_to_movie_document(records: List[SceneRecord]) -> Dict:
             "cut_score": record.cut_score,
             "caption_source": record.caption_source,
             "subtitle_sources": record.subtitle_sources,
+            "analysis_warnings": record.analysis_warnings,
         }
         for record in records
     ]
@@ -670,9 +641,11 @@ def scene_records_to_movie_document(records: List[SceneRecord]) -> Dict:
         "mood_tags": all_moods,
         "rich_text": " | ".join(scene_descriptions),
         "source": "offline_video_ingestion",
+        "source_video": records[0].source_video,
         "analysis_version": ANALYSIS_VERSION,
         "transcript_sources": sorted({source for record in records for source in record.subtitle_sources}),
         "vision_enriched": any(record.caption_source != "visual_signals" for record in records),
+        "analysis_warnings": sorted({warning for record in records for warning in record.analysis_warnings}),
     }
 
 
@@ -793,6 +766,8 @@ def crawl_offline_videos(
 ) -> Dict:
     started = time.perf_counter()
     videos = find_video_files(root)
+    if not videos:
+        raise ValueError("No supported video files were found in the selected folder.")
     documents = []
     jobs = []
 
@@ -837,8 +812,9 @@ def crawl_offline_videos(
                 progress_callback=scene_progress,
             )
             document = scene_records_to_movie_document(scenes) if scenes else None
+            if not document:
+                raise ValueError("No decodable scenes were recovered from the video.")
             if document:
-                document["source_video"] = str(video)
                 documents.append(document)
             jobs.append(
                 {
@@ -855,6 +831,7 @@ def crawl_offline_videos(
                     "vision_enriched": any(scene.caption_source != "visual_signals" for scene in scenes),
                     "duration_sec": round(max((scene.end_sec for scene in scenes), default=0), 2),
                     "document_id": document["id"] if document else None,
+                    "warnings": document.get("analysis_warnings", []),
                 }
             )
         except Exception as exc:
@@ -901,7 +878,7 @@ def crawl_offline_videos(
         "root": str(root),
         "generated_at": time.strftime("%Y-%m-%d %H:%M:%S"),
         "videos_found": len(videos),
-        "videos_processed": len(jobs),
+        "videos_processed": sum(1 for job in jobs if job.get("status") == "completed"),
         "videos_failed": sum(1 for job in jobs if job.get("status") == "failed"),
         "documents_created": len(documents),
         "scenes_created": sum(int(job.get("scene_count") or 0) for job in jobs),

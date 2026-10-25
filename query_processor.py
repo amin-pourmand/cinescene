@@ -7,7 +7,7 @@ from typing import Dict
 
 
 class QueryProcessor:
-    def __init__(self, enable_spellcheck: bool = True):
+    def __init__(self, enable_spellcheck: bool = False):
         self.spell = None
         if enable_spellcheck:
             try:
@@ -115,7 +115,7 @@ class QueryProcessor:
             filters["year_range"] = (min(years), max(years))
 
         for alias, genre in self.genre_aliases.items():
-            if alias in query_lower and genre not in filters["genres"]:
+            if re.search(r"(?<!\w)" + re.escape(alias) + r"(?!\w)", query_lower) and genre not in filters["genres"]:
                 filters["genres"].append(genre)
 
         director_match = re.search(r"(?:by|directed by)\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+)*)", query)

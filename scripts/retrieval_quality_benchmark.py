@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import statistics
 import sys
@@ -12,69 +13,87 @@ ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-from hybrid_search import HybridSearchEngine
-
-
-CASES = [
-    {"query": "a thief enters layered dreams to plant an idea", "expected": ["Inception"]},
-    {"query": "a marine meets blue aliens on the moon Pandora", "expected": ["Avatar"]},
-    {"query": "an amnesiac man uses tattoos and notes to find a killer", "expected": ["Memento"]},
-    {"query": "toys come alive when their owner leaves the room", "expected": ["Toy Story"]},
-    {"query": "a giant shark terrorizes a seaside town", "expected": ["Jaws"]},
-    {"query": "a computer hacker discovers reality is a simulation", "expected": ["The Matrix"]},
-    {"query": "a romance aboard a ship that hits an iceberg", "expected": ["Titanic"]},
-    {"query": "a hobbit carries a powerful ring toward a volcano", "expected": ["The Lord of the Rings", "The Fellowship of the Ring"]},
-    {"query": "lonely detective enters a dark room and investigates a mystery", "expected": ["Benchmark Show"]},
-    {"query": "کارآگاهی تنها وارد اتاق تاریک می‌شود و دنبال سرنخ می‌گردد", "expected": ["Benchmark Show"]},
-]
-
-
-def matches(title: str, expected: list[str]) -> bool:
-    normalized = title.casefold()
-    return any(value.casefold() in normalized or normalized in value.casefold() for value in expected)
+from evaluation_metrics import expected_rank, matches, summarize
 
 
 def parse_args():
     parser = argparse.ArgumentParser(description="Benchmark CineScene scene-to-title retrieval")
     parser.add_argument("--output", default="benchmarks/latest.json")
     parser.add_argument("--reranker", action="store_true", help="Enable the cross-encoder reranker")
+    parser.add_argument("--cases", default="benchmarks/cases.json")
+    parser.add_argument("--mode", choices=["hybrid", "semantic", "lexical", "multilingual"], default="hybrid")
+    parser.add_argument("--api-url", help="Reuse a running backend instead of loading another copy of the models.")
     return parser.parse_args()
 
 
 def main():
     args = parse_args()
-    engine = HybridSearchEngine(enable_reranker=args.reranker)
+    case_file = Path(args.cases)
+    suite = json.loads(case_file.read_text(encoding="utf-8"))
+    cases = suite["cases"]
+    if args.api_url:
+        if args.mode != "hybrid":
+            raise ValueError("API evaluation currently supports hybrid mode only.")
+        import httpx
+
+        client = httpx.Client(base_url=args.api_url, timeout=180, headers={"X-CineScene-Session": "quality-benchmark-v2"})
+        health = client.get("/api/health")
+        health.raise_for_status()
+        status = health.json()["engine"]
+
+        def retrieve(query, count):
+            response = client.post("/api/search", json={"query": query, "top_k": count, "use_reranking": args.reranker})
+            response.raise_for_status()
+            return response.json()["results"]
+    else:
+        from hybrid_search import HybridSearchEngine
+
+        engine = HybridSearchEngine(enable_reranker=args.reranker)
+        status = engine.status()
+
+        def retrieve(query, count):
+            return engine.search(query, top_k=count, use_reranking=args.reranker, mode=args.mode)
+
+    retrieve("movie scene", 1)
     rows = []
     latencies = []
-    for case in CASES:
+    for case in cases:
         started = time.perf_counter()
-        results = engine.search(case["query"], top_k=10, use_reranking=args.reranker)
+        results = retrieve(case["query"], 10)
         latency = time.perf_counter() - started
         latencies.append(latency)
-        rank = next((index for index, item in enumerate(results, start=1) if matches(item["title"], case["expected"])), None)
+        rank = expected_rank(results, case)
         rows.append(
             {
                 "query": case["query"],
                 "expected": case["expected"],
+                "category": case.get("category", "unclassified"),
                 "rank": rank,
                 "top_3": [item["title"] for item in results[:3]],
                 "latency_sec": round(latency, 3),
             }
         )
 
-    ranked = [row["rank"] for row in rows if row["rank"]]
-    status = engine.status()
     report = {
         "generated_at": datetime.now(timezone.utc).isoformat(),
-        "model": engine.model_path,
+        "model": status.get("model"),
         "device": status.get("device"),
         "precision": status.get("precision"),
-        "embedding_dimension": int(engine.index.d),
-        "reranker": status.get("reranker", False),
-        "cases": len(rows),
-        "hit_at_1": round(sum(1 for rank in ranked if rank == 1) / len(rows), 4),
-        "hit_at_5": round(sum(1 for rank in ranked if rank <= 5) / len(rows), 4),
-        "mrr_at_10": round(sum(1 / rank for rank in ranked if rank <= 10) / len(rows), 4),
+        "embedding_dimension": int(status["embedding_dimension"]) if args.api_url else int(engine.index.d),
+        "reranker": args.reranker and status.get("reranker", False),
+        "transport": "http" if args.api_url else "in_process",
+        "multilingual": status.get("multilingual", False),
+        "multilingual_model": status.get("multilingual_model"),
+        "multilingual_vectors": status.get("multilingual_vectors"),
+        "fusion_version": status.get("fusion_version"),
+        **summarize(rows),
+        "evaluation_version": 2,
+        "matching": "exact normalized title or explicit id/alias; sequels are distinct",
+        "suite_sha256": hashlib.sha256(case_file.read_bytes()).hexdigest(),
+        "suite_description": suite.get("description"),
+        "retrieval_mode": args.mode,
+        "by_category": {category: summarize([row for row in rows if row["category"] == category])
+                        for category in sorted({row["category"] for row in rows})},
         "mean_latency_sec": round(statistics.mean(latencies), 4),
         "movie_vectors": status.get("movie_vectors"),
         "scene_vectors": status.get("scene_vectors"),
@@ -84,7 +103,7 @@ def main():
     output = Path(args.output)
     output.parent.mkdir(parents=True, exist_ok=True)
     output.write_text(json.dumps(report, indent=2, ensure_ascii=False), encoding="utf-8")
-    print(json.dumps(report, indent=2, ensure_ascii=False))
+    print(json.dumps(report, indent=2, ensure_ascii=True))
     print(f"Saved benchmark report to {output}")
 
 

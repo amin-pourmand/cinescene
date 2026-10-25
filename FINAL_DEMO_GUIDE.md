@@ -41,7 +41,9 @@ a lonely detective enters a dark room and investigates a mystery
 کارآگاهی تنها وارد اتاقی تاریک می شود و دنبال سرنخ می گردد
 ```
 
-For the included synthetic benchmark, `Benchmark Show` should rank first. Point out the matched keyframe, transcript, timestamp, source label, and retrieval score. This proves that the result is coming from a scene vector rather than only from the whole-film plot.
+For the English synthetic benchmark, `Benchmark Show` should rank first. The Persian fixture is currently within the top five, not reliably first. Point out the matched keyframe, transcript, timestamp, source label, and retrieval score. A scene result provides evidence beyond a whole-film plot; do not treat its score as a confidence percentage.
+
+For a real local-film example, search `پاتریشیا پسرها کجان صدای گریه`. The verified result is *The Curse of La Llorona*, scene 11, starting at 348.22 seconds. `در رو ببند لطفاً اون بهمون صدمه میزنه` matches scene 13 at 540.08 seconds. These are inspected acceptance examples from the ingested subtitle, not held-out research queries.
 
 Then try catalog-oriented queries:
 
@@ -58,7 +60,7 @@ a shark terrorizes a seaside town
 Open **Scene Lab**.
 
 1. Drag an MP4/MKV/MOV/AVI/WEBM file into **Media source**.
-2. Add SRT/VTT tracks when available.
+2. Add SRT/VTT/ASS/SSA tracks when available.
 3. Enter a clean movie or episode title.
 4. Keep **Embedded subtitles** enabled.
 5. Enable **Speech transcription** only when subtitles are unavailable.
@@ -75,13 +77,13 @@ Upload
   -> Search ready
 ```
 
-When complete, Scene Lab displays the generated keyframes and timeline. Return to Discover and search for a sentence from the subtitle or a visual action from one scene. No manual full-index rebuild is needed after upload.
+When complete, choose **Explore all scenes** to paginate the full timeline, search recovered text, filter dialogue/vision, and play a selected scene. The local feature film has 153 scenes, all with visual captions, and 115 with recovered timed text. Return to Discover and search for evidence from one scene. No manual full-index rebuild is needed after upload. Progress survives a page refresh; a server restart requires retrying interrupted work.
 
 ## 5. Demonstrate Subtitle Fallbacks
 
 Explain the timed-text priority:
 
-1. attached SRT/VTT files;
+1. attached SRT/VTT/ASS/SSA files;
 2. embedded subtitle stream extracted by FFmpeg;
 3. faster-whisper transcription when no subtitle is available.
 
@@ -130,20 +132,22 @@ node .\scripts\visual_smoke_test.js http://127.0.0.1:8000
 
 The quality report includes Hit@1, Hit@5, MRR@10, latency, and the rank of every expected title. The visual test covers 1440px desktop and 390px mobile, browser errors, and horizontal overflow.
 
-Verified final benchmark:
+Corrected 27-query development regression result:
 
 ```text
-Hit@1       0.90
-Hit@5       1.00
-MRR@10      0.95
-Mean query  0.237 s
+Hit@1       0.4815
+Hit@5       0.8519
+MRR@10      0.5975
+Mean query  0.234 s
 ```
 
-The real upload regression completed in about 36 seconds including a CUDA scene-index rebuild, created three timestamped scenes and three keyframes, attached the supplied SRT, and returned `Benchmark Show` at rank 1 with a playable source URL.
+The latest upload regression completed in about 49 seconds including CUDA index refresh, created three timestamped scenes and keyframes, attached the supplied SRT, and returned the English `Benchmark Show` query at rank 1. Its H.264 preview was verified through an HTTP range response and decoded playback in Chrome. Reproduce with `python scripts/runtime_acceptance.py --upload` while the backend runs.
+
+The original engine scores 0.5556 Hit@5 under the same corrected suite, compared with 0.8519 now. The old ten-query 90% claim used permissive substring matching and is superseded. These development queries are not held-out, and general Persian/series first-result accuracy still needs work. See `benchmarks/README.md` for limitations and the optional reranker comparison.
 
 ## 8. Explain The Engineering Decisions
 
-- **Why two indexes?** Whole-title vectors provide broad plot recall; scene vectors preserve local dialogue, objects, actions, and timecodes.
+- **Why separate retrieval channels?** Whole-title vectors provide broad plot recall, scene vectors preserve local evidence/timecodes, and multilingual passage vectors extend cross-language and long-plot recall.
 - **Why collapse by title?** Multiple matching scenes from one movie should improve that movie's evidence, not flood the result list.
 - **Why subtitles plus vision?** Dialogue alone misses silent visual moments; vision alone misses names and exact lines.
 - **Why a static PWA and local backend?** GitHub Pages is ideal for a shareable installable showcase but cannot execute Python, FAISS, FFmpeg, or CUDA.
@@ -151,4 +155,4 @@ The real upload regression completed in about 36 seconds including a CUDA scene-
 
 ## 9. Current Scope
 
-CineScene is a complete research prototype and presentation-ready local system. Retrieval quality still depends on catalog coverage and the quality of scene text. Adding licensed full-film/episode media and reliable subtitles increases recall without changing the architecture.
+CineScene is a working research prototype, not a universal scene-recognition service. Most catalog titles have no ingested scene timeline yet, and the active models are pretrained. Adding authorized films/episodes and reliable subtitles is necessary to broaden actual scene coverage. Current local media, models, indexes, caches, and temporary uploads are stored on E rather than C. Public exports include only allowlisted synthetic fixtures; private film transcripts are not published.
