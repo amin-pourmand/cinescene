@@ -9,6 +9,8 @@ const state = {
   selectedVideoUrl: "",
   query: "",
   results: [],
+  searching: false,
+  semantic: new window.CineSceneSemanticSearch(),
 };
 
 const ids = [
@@ -25,26 +27,6 @@ const els = Object.fromEntries(ids.map((id) => [id, document.getElementById(id)]
 const ui = window.CineSceneUI;
 const navigation = ui.navigation();
 ui.memoryTabs();
-
-const persianExpansions = {
-  "کارآگاه": "detective investigation mystery",
-  "کارآگاهی": "detective investigation mystery",
-  "تنها": "lonely alone isolated",
-  "تاریک": "dark shadow night",
-  "اتاق": "room interior",
-  "سرنخ": "clue mystery investigation",
-  "فضا": "space science fiction",
-  "فضایی": "space science fiction alien",
-  "رویا": "dream surreal mind bending",
-  "خواب": "dream surreal",
-  "عاشقانه": "romance romantic love",
-  "ترسناک": "horror frightening supernatural",
-  "تعقیب": "chase pursuit action",
-  "باران": "rain rainy",
-  "جنگ": "war battle soldiers",
-  "دریا": "ocean sea water",
-  "کودک": "child children family",
-};
 
 function refreshIcons(root = document) {
   if (window.lucide?.createIcons) window.lucide.createIcons({ root });
@@ -68,19 +50,6 @@ function normalizeText(value) {
     .replace(/[^\p{L}\p{N}\s-]/gu, " ")
     .replace(/\s+/g, " ")
     .trim();
-}
-
-function expandedQuery(query) {
-  const normalized = normalizeText(query);
-  const expansions = [];
-  for (const [term, replacement] of Object.entries(persianExpansions)) {
-    if (normalized.includes(term)) expansions.push(replacement);
-  }
-  return `${normalized} ${expansions.join(" ")}`.trim();
-}
-
-function tokenize(value) {
-  return [...new Set(expandedQuery(value).split(/\s+/).filter((token) => token.length > 2))];
 }
 
 function formatBytes(bytes) {
@@ -153,70 +122,6 @@ function sceneText(scene) {
   ].join(" "));
 }
 
-function scoreText(text, terms, weight = 1) {
-  let score = 0;
-  for (const term of terms) {
-    if (text.includes(term)) score += weight;
-  }
-  return score;
-}
-
-function bestScene(item, terms) {
-  let best = null;
-  let bestScore = 0;
-  for (const scene of item.scene_timeline || []) {
-    const transcript = normalizeText(scene.transcript);
-    const visual = normalizeText(`${scene.visual_caption || ""} ${(scene.visual_tags || []).join(" ")}`);
-    const tags = normalizeText(`${(scene.keywords || []).join(" ")} ${(scene.mood_tags || []).join(" ")}`);
-    const score = scoreText(transcript, terms, 3.1) + scoreText(visual, terms, 2.6) + scoreText(tags, terms, 1.8);
-    if (score > bestScore) {
-      best = scene;
-      bestScore = score;
-    }
-  }
-  return { scene: best, score: bestScore };
-}
-
-function scoreItem(item, query) {
-  const terms = tokenize(query);
-  if (!terms.length) return { score: 0, scene: null };
-  const title = normalizeText(item.title);
-  const overview = normalizeText(item.overview);
-  const genres = normalizeText((item.genres || []).join(" "));
-  const moods = normalizeText((item.mood || []).join(" "));
-  const keywords = normalizeText((item.keywords || []).join(" "));
-  const scenes = normalizeText((item.scenes || []).join(" "));
-  const match = bestScene(item, terms);
-  let score = match.score;
-  score += scoreText(title, terms, 4.2);
-  score += scoreText(scenes, terms, 2.4);
-  score += scoreText(keywords, terms, 2.0);
-  score += scoreText(moods, terms, 1.8);
-  score += scoreText(genres, terms, 1.5);
-  score += scoreText(overview, terms, 1.2);
-  if (score === 0) return { score: 0, scene: null };
-  score += Math.min(1.8, Number(item.rating || 0) / 5);
-  if (item.source === "offline_video_ingestion" && match.score >= 4) score += 5;
-  return { score, scene: match.scene };
-}
-
-function searchCatalog(query) {
-  const source = els.sourceFilter.value;
-  const topK = Number(els.topKInput.value || 8);
-  return state.catalog
-    .filter((item) => {
-      if (source === "all") return true;
-      if (source === "offline") return item.source === "offline_video_ingestion";
-      if (source === "series") return item.media_type === "series";
-      if (source === "movies") return item.media_type !== "series";
-      return true;
-    })
-    .map((item) => ({ item, ...scoreItem(item, query) }))
-    .filter((entry) => entry.score > 0)
-    .sort((a, b) => b.score - a.score)
-    .slice(0, topK);
-}
-
 function chips(items, limit = 7) {
   return (items || []).slice(0, limit).map((item) => `<span class="chip">${escapeHtml(item)}</span>`).join("");
 }
@@ -227,16 +132,16 @@ function renderResults(entries, query, elapsedMs) {
   saveMemory();
   ui.recent(els.recentSearches, state.history.map((item) => item.query));
   els.metricLatency.textContent = `${elapsedMs.toFixed(0)}ms`;
-  els.resultMeta.textContent = entries.length ? `${entries.length} ranked titles` : "No matches";
+  els.resultMeta.textContent = entries.length ? `${entries.length} matches · ${entries[0].method || "semantic"}` : "No matches";
   if (!entries.length) {
     els.results.className = "results-grid empty-results";
-    els.results.innerHTML = `<div class="empty-visual"><i data-lucide="circle-slash-2"></i></div><strong>No close match in the public sample.</strong><span>Try a dialogue fragment, location, action, or mood.</span>`;
+    els.results.innerHTML = `<div class="empty-visual"><i data-lucide="circle-slash-2"></i></div><strong>No indexed titles in this selection.</strong>`;
     refreshIcons(els.results);
     return;
   }
 
   els.results.className = "results-grid";
-  els.results.innerHTML = entries.map(({ item, score, scene }, index) => {
+  els.results.innerHTML = entries.map(({ item, score, scene, episode, evidence }, index) => {
     const image = scene?.keyframe || item.poster;
     const media = image
       ? `<div class="result-media"><img src="./${escapeHtml(image)}" alt="Keyframe from ${escapeHtml(item.title)}" loading="lazy" /><span class="result-rank">Rank ${index + 1}</span><span class="result-source">${escapeHtml(sourceLabel(item))}</span></div>`
@@ -249,6 +154,7 @@ function renderResults(entries, query, elapsedMs) {
         <div class="result-title-row"><div><button class="title-link" data-details="${index}" type="button">${escapeHtml(item.title)}</button><small>${escapeHtml(mediaLabel(item))}${ui.known(item.year) ? ` &middot; ${escapeHtml(item.year)}` : ""}${item.director && item.director !== "Unknown" ? ` &middot; ${escapeHtml(item.director)}` : ""}</small></div></div>
         ${item.source === "offline_video_ingestion" ? "" : `<p class="result-overview">${escapeHtml(item.overview || "")}</p>`}
         ${scene ? `<div class="matched-scene"><div class="scene-label"><span>Best matching scene</span><time>${timecode(scene.start_sec)} - ${timecode(scene.end_sec)}</time></div><p dir="auto">${escapeHtml(sceneCopy)}</p></div>` : ""}
+        ${!scene && evidence ? `<details class="story-evidence"><summary>${episode ? `Episode S${String(episode.season).padStart(2, "0")}E${String(episode.episode).padStart(2, "0")} · ${escapeHtml(episode.name)}` : "Matching story passage"}</summary><p dir="auto">${escapeHtml(evidence)}</p>${episode?.source_url ? `<a href="${escapeHtml(episode.source_url)}" target="_blank" rel="noopener">Episode summary: TVmaze · CC BY-SA</a>` : ""}</details>` : ""}
         <div class="chip-row">${chips(tags)}</div>
         <div class="result-actions">
           <button class="button secondary" type="button" data-details="${index}"><i data-lucide="info"></i>Details</button>
@@ -262,7 +168,8 @@ function renderResults(entries, query, elapsedMs) {
 
 }
 
-function runSearch(queryOverride) {
+async function runSearch(queryOverride) {
+  if (state.searching) { state.semantic.cancel(); return; }
   const query = String(queryOverride || els.queryInput.value).trim();
   if (!query) {
     toast("Describe a scene first.", "error");
@@ -274,10 +181,41 @@ function runSearch(queryOverride) {
   ui.searchState(query, els.sourceFilter.value, els.topKInput.value);
   els.shareSearchButton.disabled = false;
   els.queryInput.value = query;
-  els.resultMeta.textContent = "Searching scene memory";
+  state.searching = true;
+  els.searchButton.innerHTML = '<i data-lucide="square"></i><span>Cancel</span>';
+  els.sourceFilter.disabled = true;
+  els.results.setAttribute("aria-busy", "true");
+  els.resultMeta.textContent = "Preparing semantic search";
+  const status = document.getElementById("searchProgress");
+  status.hidden = false;
+  status.textContent = "Loading semantic search";
+  refreshIcons(els.searchButton);
   const start = performance.now();
-  const entries = searchCatalog(query);
-  renderResults(entries, query, performance.now() - start);
+  try {
+    const entries = await state.semantic.search(query, els.sourceFilter.value, Number(els.topKInput.value || 8), (message) => {
+      status.textContent = message;
+      els.resultMeta.textContent = "Searching";
+    });
+    renderResults(entries, query, performance.now() - start);
+    setStatus("Semantic search ready", true);
+  } catch (error) {
+    if (error.name === "AbortError") {
+      els.resultMeta.textContent = "Cancelled";
+    } else {
+      setStatus("Search unavailable", false);
+      els.resultMeta.textContent = "Search error";
+      els.results.className = "results-grid empty-results";
+      els.results.innerHTML = `<div class="empty-visual"><i data-lucide="triangle-alert"></i></div><strong>Semantic search could not load</strong><span>${escapeHtml(error.message)}</span>`;
+      state.results = [];
+    }
+  } finally {
+    state.searching = false;
+    status.hidden = true;
+    els.results.removeAttribute("aria-busy");
+    els.sourceFilter.disabled = false;
+    els.searchButton.innerHTML = '<i data-lucide="search"></i><span>Search</span>';
+    refreshIcons();
+  }
 }
 
 function renderMemory() {
@@ -352,11 +290,13 @@ async function loadCatalog() {
     const seriesCount = state.catalog.filter((item) => item.media_type === "series").length;
     const sceneCount = offline.reduce((sum, item) => sum + Number(item.scene_count || (item.scene_timeline || []).length), 0);
     els.metricCatalog.textContent = state.catalog.length.toLocaleString();
-    els.metricIndexed.textContent = state.catalog.length.toLocaleString();
+    const manifest = await (await fetch("./data/hybrid-index.json")).json();
+    els.metricIndexed.textContent = manifest.titles.toLocaleString();
+    document.getElementById("metricEpisodes").textContent = manifest.records.filter((record) => record.kind === "episode").length.toLocaleString();
     els.metricOffline.textContent = seriesCount.toLocaleString();
     els.metricScenes.textContent = sceneCount.toLocaleString();
-    els.sidebarModel.textContent = `${sceneCount.toLocaleString()} scene records cached`;
-    setStatus("Showcase ready", true);
+    els.sidebarModel.textContent = "BGE + BM25 · E5 Persian · reranker";
+    setStatus("Catalog ready", true);
     renderTimeline();
     renderMemory();
     const shared = ui.readSearch();
@@ -385,7 +325,7 @@ document.addEventListener("click", (event) => {
     setView(viewLink.dataset.viewLink);
   }
   if (queryLink) runSearch(queryLink.dataset.query);
-  if (details) { const entry = state.results[Number(details.dataset.details)]; if (entry) state.details.open(asMovie(entry.item, entry.scene)); }
+  if (details) { const entry = state.results[Number(details.dataset.details)]; if (entry) state.details.open(asMovie(entry.item, entry.scene, entry.episode)); }
   if (favorite) {
     const item = state.catalog.find((entry) => String(entry.id) === favorite.dataset.favorite);
     if (item) { try { toggleFavorite(item); } catch (error) { toast(error.message, "error"); } }
@@ -399,7 +339,18 @@ document.addEventListener("click", (event) => {
 });
 
 els.searchButton.addEventListener("click", () => runSearch());
+document.getElementById("clearModelsButton").addEventListener("click", async () => {
+  if (!await ui.confirmAction("Remove downloaded search models from this device? Saved titles and history will stay.", "Remove models")) return;
+  state.semantic.cancel();
+  try {
+    await caches.delete("transformers-cache");
+    setStatus("Models not downloaded", true);
+    toast("Downloaded models removed.");
+  } catch (error) { toast(error.message, "error"); }
+});
+document.addEventListener("visibilitychange", () => { if (document.hidden) state.semantic.release(); });
 els.clearButton.addEventListener("click", () => {
+  state.semantic.cancel();
   els.queryInput.value = "";
   state.query = "";
   state.results = [];
@@ -486,9 +437,10 @@ function toggleFavorite(movie) {
   renderMemory();
   toast(saved ? `${movie.title} removed from saved.` : `${movie.title} saved.`);
 }
-function asMovie(item, scene) {
-  const match = scene || item.scene_timeline?.[0];
+function asMovie(item, scene, episode) {
+  const match = scene || item.matched_scene;
   return { ...item, first_keyframe_url: item.poster ? `./${item.poster}` : null,
+    matched_episode: episode || item.matched_episode || null,
     matched_scene: match ? { ...match, keyframe_url: match.keyframe ? `./${match.keyframe}` : null } : null };
 }
 state.details = new ui.TitleDetails({ saved: isSaved, save: toggleFavorite, timeline: (movie) => state.explorer.open(String(movie.id)) });

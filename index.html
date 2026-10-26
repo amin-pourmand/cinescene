@@ -17,7 +17,7 @@
     <link rel="apple-touch-icon" href="./assets/apple-touch-icon.png?v=20261025-reel-v11" sizes="180x180" />
     <link rel="stylesheet" href="./assets/styles.css?v=20261025-reel-v11" />
     <link rel="stylesheet" href="./assets/scene-explorer.css?v=20261025-reel-v11" />
-    <link rel="stylesheet" href="./assets/workspace.css?v=20261025-workspace-v12" />
+    <link rel="stylesheet" href="./assets/workspace.css?v=20261025-semantic-v13" />
   </head>
   <body>
     <div class="app-shell">
@@ -90,6 +90,7 @@
                     </select>
                 </div>
               </div>
+              <div id="searchProgress" class="search-progress" role="status" aria-live="polite" hidden></div>
             </div>
 
             <section class="recent-section" hidden><span>Recent searches</span><div id="recentSearches" class="recent-searches"></div></section>
@@ -147,10 +148,15 @@
           <section class="view" id="systemView" data-view="system">
             <div class="page-heading"><div><h2>Settings</h2></div><span class="status-pill" id="statusPill">Loading catalog</span></div>
             <div class="preference-row"><label for="topKInput">Results per search</label><input id="topKInput" type="number" min="1" max="20" value="8" /></div>
-            <div class="preference-row"><span>Mode</span><span class="mode-badge">Catalog showcase</span></div>
+            <div class="preference-row"><span>Search engine</span><span class="mode-badge">On-device semantic search</span></div>
+            <div class="preference-row"><span>Models</span><span>BGE-large · multilingual E5-base · MiniLM</span></div>
+            <div class="preference-row"><span>Initial model downloads</span><span>About 650 MB, cached on this device</span></div>
+            <div class="preference-row"><span>Episode metadata</span><a href="https://www.tvmaze.com" target="_blank" rel="noopener">TVmaze · CC BY-SA</a></div>
+            <div class="preference-row"><span>Indexed episode summaries</span><strong id="metricEpisodes">-</strong></div>
+            <div class="preference-row"><span>Downloaded models</span><button id="clearModelsButton" class="button secondary compact" type="button"><i data-lucide="trash-2"></i>Remove downloads</button></div>
             <div class="preference-row"><span>Video processing</span><a class="button secondary compact studio-link" href="http://127.0.0.1:8000/#ingest" target="_blank" rel="noopener"><i data-lucide="external-link"></i>Open local Studio</a></div>
             <details class="technical-details"><summary>Catalog information</summary><p class="count-label"><span id="metricCatalog">-</span> catalog titles</p><div class="stat-strip" aria-label="Catalog summary">
-              <div><i data-lucide="clapperboard"></i><span><strong id="metricIndexed">-</strong><small>showcase titles</small></span></div>
+              <div><i data-lucide="clapperboard"></i><span><strong id="metricIndexed">-</strong><small>searchable titles</small></span></div>
               <div><i data-lucide="library"></i><span><strong id="metricOffline">-</strong><small>series titles</small></span></div>
               <div><i data-lucide="binary"></i><span><strong id="metricScenes">-</strong><small>scene records</small></span></div>
               <div><i data-lucide="timer"></i><span><strong id="metricLatency">-</strong><small>last search</small></span></div>
@@ -169,7 +175,8 @@
     <div class="toast-region" id="toastRegion" aria-live="polite"></div>
     <script src="./assets/lucide.min.js?v=0.468.0"></script>
     <script src="./assets/scene-explorer.js?v=20261025-reel-v11"></script>
-    <script src="./assets/workspace-ui.js?v=20261025-workspace-v12"></script>
-    <script src="./assets/app.js?v=20261025-workspace-v12"></script>
+    <script src="./assets/workspace-ui.js?v=20261026-hybrid-v18"></script>
+    <script src="./assets/semantic-client.js?v=20261026-hybrid-v18"></script>
+    <script src="./assets/app.js?v=20261026-hybrid-v18"></script>
   </body>
 </html>
