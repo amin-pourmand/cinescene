@@ -5,7 +5,7 @@
       if (this.pending) return Promise.reject(new Error("A search is already running."));
       clearTimeout(this.idleTimer);
       if (!this.worker) {
-        this.worker = new Worker(new URL("./semantic-worker.mjs", document.currentScript?.src || new URL("./assets/semantic-client.js", location.href)), { type: "module" });
+        this.worker = new Worker(new URL("./semantic-worker.mjs?v=20261026-evidence-v20", document.currentScript?.src || new URL("./assets/semantic-client.js", location.href)), { type: "module" });
         this.worker.onmessage = ({ data }) => {
           if (!this.pending || data.id !== this.pending.id) return;
           if (data.type === "progress") return this.pending.onProgress?.(data.message);

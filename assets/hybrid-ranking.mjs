@@ -26,6 +26,11 @@ export function processQuery(value, processor) {
     for (const match of lower.matchAll(pattern)) {
       const prefix = lower.slice(Math.max(0, match.index - 35), match.index);
       const negated = /(?:\b(?:no|not|without|exclude|excluding|except)\s+(?:any\s+|a\s+)?|(?:بدون|غیر|نه)\s*)$/.test(prefix);
+      const suffix = lower.slice(match.index + match[0].length, match.index + match[0].length + 18);
+      const explicit = lower.trim() === alias || /(?:\bgenre\s*:\s*|ژانر\s*)$/.test(prefix)
+        || /^\s+(?:movies?|films?|series|shows?)\b/.test(suffix) || /(?:فیلم|سریال)\s*$/.test(prefix)
+        || ["sci-fi", "scifi", "science fiction", "علمی تخیلی"].includes(alias);
+      if (!negated && !explicit) continue;
       const target = negated ? filters.excluded : filters.genres;
       if (!target.includes(genre)) target.push(genre);
     }
@@ -37,7 +42,8 @@ export function processQuery(value, processor) {
     .replace(/\bdirected by\s+[A-Z][a-z]+(?:\s+[A-Z][a-z]+)*/g, " ").replace(/\s+/g, " ").trim();
   const additions = [];
   for (const [phrase, synonyms] of Object.entries(processor.expansions)) {
-    if (new RegExp(`(?<![\\p{L}\\p{N}_])${escaped(phrase)}(?![\\p{L}\\p{N}_])`, "u").test(cleaned.toLowerCase())) additions.push(...synonyms.slice(0, 4));
+    const suffix = /[\u0600-\u06ff]/u.test(phrase) ? "(?:هایی|های|ها|شان|شون|ی|یه)?" : "";
+    if (new RegExp(`(?<![\\p{L}\\p{N}_])${escaped(phrase)}${suffix}(?![\\p{L}\\p{N}_])`, "u").test(cleaned.toLowerCase())) additions.push(...synonyms.slice(0, 4));
   }
   const expanded = [...new Set([cleaned, ...additions])].join(" ");
   const persian = /[\u0600-\u06ff]/u.test(cleaned);
@@ -65,9 +71,10 @@ export function multilingualRanks(scores, mapping) {
   const best = new Map();
   for (const [row, score] of ranked(scores, 600)) {
     const record = mapping[row];
-    best.set(record, Math.max(best.get(record) ?? -Infinity, score));
+    if (score > (best.get(record)?.[0] ?? -Infinity)) best.set(record, [score, row]);
   }
-  return [...best.entries()].sort((a, b) => b[1] - a[1] || a[0] - b[0]).slice(0, 150);
+  return [...best.entries()].map(([record, [score, row]]) => [record, score, row])
+    .sort((a, b) => b[1] - a[1] || a[0] - b[0]).slice(0, 150);
 }
 export function lexicalScores(query, manifest, ids, weights) {
   const scores = new Float64Array(manifest.records.length), overlap = new Uint16Array(scores.length);
@@ -117,9 +124,42 @@ export function fuseAndCollapse(query, manifest, catalog, vectors, lexical, mult
   }
   return [...collapsed.values()].sort((a, b) => b.score - a.score || a.index - b.index);
 }
-export function rerankingText(candidate, records, catalog) {
+export function storyWindows(plot) {
+  const chunks = [];
+  let current = "";
+  for (const sentence of String(plot || "").trim().split(/(?<=[.!?])\s+/u)) {
+    const words = sentence.trim().split(/\s+/u).filter(Boolean);
+    for (let offset = 0; offset < words.length; offset += 100) {
+      const part = words.slice(offset, offset + 100).join(" ");
+      if (current.length + part.length > 750 && current) {
+        chunks.push(current);
+        current = current.split(/\s+/u).slice(-20).join(" ");
+      }
+      current = `${current} ${part}`.trim();
+    }
+  }
+  if (current) chunks.push(current);
+  return chunks;
+}
+export function selectStoryEvidence(query, windows, existing, processor, lexical) {
+  const terms = new Set(tokens(query, processor));
+  const score = (text) => {
+    const words = tokens(text, processor), overlap = new Set(words.filter((word) => terms.has(word)));
+    return [...overlap].reduce((sum, word) => sum + Math.max(.1, lexical?.terms[word]?.[2] ?? 1), 0) / Math.sqrt(Math.max(1, words.length));
+  };
+  let best = existing || "", bestScore = score(best);
+  for (const text of windows) {
+    const value = score(text);
+    if (value > bestScore) { best = text; bestScore = value; }
+  }
+  return best;
+}
+export function rerankingText(candidate, records, catalog, query = "", processor = null, lexical = null) {
   const record = records[candidate.index], item = catalog[record.item];
   let text = `${item.title}. ${record.overview ?? item.overview ?? ""}`;
+  if (record.kind === "episode" && item.overview && item.overview !== record.overview) text += ` Series: ${item.overview}`;
+  const passage = processor ? selectStoryEvidence(query, record.kind === "title" ? storyWindows(item.plot) : [], candidate.passage, processor, lexical) : candidate.passage;
+  if (passage && !text.includes(passage)) text += ` Story evidence: ${passage}`;
   const scene = candidate.scene === null ? null : item.scene_timeline?.[candidate.scene];
   if (scene) text += ` Scene: ${scene.transcript || ""} ${scene.visual_caption || ""}`;
   return text;
