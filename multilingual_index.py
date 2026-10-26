@@ -11,12 +11,12 @@ import gc
 import json
 import pickle
 import re
+from collections import Counter
 from pathlib import Path
 
 import faiss
 import numpy as np
-import torch
-from sentence_transformers import SentenceTransformer
+import os
 
 
 MODEL_PATH = Path("models/multilingual-e5-small")
@@ -88,16 +88,31 @@ def build_multilingual_index(scene_only=False, batch_size=16, model_path=None):
     title_documents = [(record_key(item), text) for item in titles for text in title_passages(item)]
     title_keys = [key for key, _ in title_documents]
     same_model = bool(existing_report.get("model")) and Path(existing_report["model"]).resolve() == model_path.resolve()
-    keep_titles = same_model and old_index is not None and old_keys[:len(title_keys)] == title_keys
-    device = "cuda" if torch.cuda.is_available() else "cpu"
-    model = SentenceTransformer(str(model_path), device=device)
+    old_title_rows = [i for i, key in enumerate(old_keys) if not key.startswith("scene:")]
+    keep_titles = same_model and old_index is not None and Counter(old_keys[i] for i in old_title_rows) == Counter(title_keys)
+    if os.getenv("CINESCENE_MODEL_RUNTIME", "onnx") == "onnx":
+        from core.onnx_models import OnnxEncoder
+
+        device = "cpu"
+        model = OnnxEncoder(str(model_path), max_length=384)
+    else:
+        import torch
+        from sentence_transformers import SentenceTransformer
+
+        device = "cuda" if torch.cuda.is_available() else "cpu"
+        model = SentenceTransformer(str(model_path), device=device)
     model.max_seq_length = 384
     scene_documents = [retrieval_text(item) for item in scenes]
     documents = scene_documents if keep_titles else [text for _, text in title_documents] + scene_documents
-    embeddings = model.encode(documents, batch_size=batch_size,
+    embeddings = model.encode(documents, batch_size=min(batch_size, 4) if device == "cpu" else batch_size,
                               normalize_embeddings=True, convert_to_numpy=True, show_progress_bar=True).astype("float32") if documents else np.empty((0, int(model.get_sentence_embedding_dimension())), dtype="float32")
     if keep_titles:
-        embeddings = np.concatenate([old_index.reconstruct_n(0, len(title_keys)), embeddings])
+        from collections import defaultdict, deque
+        positions = defaultdict(deque)
+        for i in old_title_rows:
+            positions[old_keys[i]].append(i)
+        old_vectors = np.stack([old_index.reconstruct(positions[key].popleft()) for key in title_keys])
+        embeddings = np.concatenate([old_vectors, embeddings])
     index = faiss.IndexFlatIP(int(model.get_sentence_embedding_dimension()))
     index.add(embeddings)
     keys = title_keys + [record_key(item) for item in scenes]
@@ -112,7 +127,7 @@ def build_multilingual_index(scene_only=False, batch_size=16, model_path=None):
     REPORT_PATH.write_text(json.dumps(report, indent=2), encoding="utf-8")
     del model
     gc.collect()
-    if torch.cuda.is_available():
+    if device == "cuda":
         torch.cuda.empty_cache()
     return report
 
@@ -128,7 +143,14 @@ class MultilingualSearch:
         # Small single-query inference stays on CPU so the 4 GB GPU is free for BGE/vision.
         report = json.loads(REPORT_PATH.read_text(encoding="utf-8"))
         self.model_path = report["model"]
-        self.model = SentenceTransformer(self.model_path, device="cpu")
+        if os.getenv("CINESCENE_MODEL_RUNTIME", "onnx") == "onnx":
+            from core.onnx_models import LazyOnnxEncoder
+
+            self.model = LazyOnnxEncoder(self.model_path, max_length=384)
+        else:
+            from sentence_transformers import SentenceTransformer
+
+            self.model = SentenceTransformer(self.model_path, device="cpu")
         self.model.max_seq_length = 384
 
     def search(self, query, k=100):

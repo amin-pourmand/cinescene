@@ -87,11 +87,30 @@ class QueryProcessor:
             "فرار": ["escape", "running away", "fugitive"],
             "بوسه": ["kiss", "romance", "couple"],
             "مهمانی": ["party", "crowd", "celebration"],
+            "خواب": ["dream", "subconscious"],
+            "هکر": ["hacker", "computer"],
+            "شبیه سازی": ["simulation", "virtual reality"],
+            "حافظه": ["memory", "amnesia"],
+            "خالکوبی": ["tattoo"],
+            "معلم": ["teacher"],
+            "شیمی": ["chemistry"],
+            "جنگ": ["war", "battle"],
+            "سرباز": ["soldier", "military"],
+            "افسر": ["officer"],
+            "موجودات فضایی": ["alien creatures"],
+            "دوباره": ["again", "repeat"],
+            "همون روز": ["same day"],
+            "زنده": ["alive"],
+            "میمیره": ["dies"],
+            "قرص": ["pill"],
+            "قرمز": ["red"],
+            "اتاق": ["room"],
+            "سرنخ": ["clue"],
         }
 
     @staticmethod
     def normalize_unicode(query: str) -> str:
-        return query.replace("ي", "ی").replace("ك", "ک").replace("‌", " ")
+        return query.replace("ي", "ی").replace("ك", "ک").replace("‌", " ").translate(str.maketrans("۰۱۲۳۴۵۶۷۸۹٠١٢٣٤٥٦٧٨٩", "01234567890123456789"))
 
     def correct_spelling(self, query: str) -> str:
         if not self.spell:
@@ -106,33 +125,42 @@ class QueryProcessor:
         return " ".join(corrected)
 
     def extract_filters(self, query: str) -> Dict:
-        filters = {"genres": [], "year_range": None, "director": None}
+        filters = {"genres": [], "excluded_genres": [], "year_range": None, "director": None}
         query_lower = query.lower()
-        years = [int(year) for year in re.findall(r"\b(19\d{2}|20\d{2})\b", query)]
+        # Dates inside a remembered plot or a title are not release-year filters.
+        years = [int(year) for year in re.findall(r"(?:\b(?:from|released(?:\s+in)?|release\s+year|year)\s+|(?:محصول|ساخته شده در)\s+)(19\d{2}|20\d{2})\b", query_lower)]
+        year_range = re.search(r"\b(?:between\s+)?(19\d{2}|20\d{2})\s*(?:-|to|and)\s*(19\d{2}|20\d{2})\b", query_lower)
+        if year_range:
+            years = [int(value) for value in year_range.groups()]
         if len(years) == 1:
             filters["year_range"] = (years[0], years[0])
         elif len(years) >= 2:
             filters["year_range"] = (min(years), max(years))
 
         for alias, genre in self.genre_aliases.items():
-            if re.search(r"(?<!\w)" + re.escape(alias) + r"(?!\w)", query_lower) and genre not in filters["genres"]:
-                filters["genres"].append(genre)
+            for match in re.finditer(r"(?<!\w)" + re.escape(alias) + r"(?!\w)", query_lower):
+                prefix = query_lower[max(0, match.start() - 35):match.start()]
+                negated = re.search(r"(?:\b(?:no|not|without|exclude|excluding|except)\s+(?:any\s+|a\s+)?|(?:بدون|غیر|نه)\s*)$", prefix)
+                field = "excluded_genres" if negated else "genres"
+                if genre not in filters[field]:
+                    filters[field].append(genre)
+        filters["genres"] = [genre for genre in filters["genres"] if genre not in filters["excluded_genres"]]
 
-        director_match = re.search(r"(?:by|directed by)\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+)*)", query)
+        director_match = re.search(r"\bdirected by\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+)*)", query)
         if director_match:
             filters["director"] = director_match.group(1)
         return filters
 
     def clean_query(self, query: str) -> str:
-        query = re.sub(r"\b(19\d{2}|20\d{2})\b", " ", query)
-        query = re.sub(r"(?:by|directed by)\s+[A-Z][a-z]+(?:\s+[A-Z][a-z]+)*", " ", query)
+        query = re.sub(r"\b(?:from|released(?:\s+in)?|release\s+year|year)\s+(?:19\d{2}|20\d{2})\b", " ", query, flags=re.I)
+        query = re.sub(r"\bdirected by\s+[A-Z][a-z]+(?:\s+[A-Z][a-z]+)*", " ", query)
         return re.sub(r"\s+", " ", query).strip()
 
     def expand_query(self, query: str) -> str:
         expanded_terms = [query]
         query_lower = query.lower()
         for phrase, synonyms in self.expansions.items():
-            if phrase in query_lower:
+            if re.search(r"(?<!\w)" + re.escape(phrase) + r"(?!\w)", query_lower):
                 expanded_terms.extend(synonyms[:4])
         return " ".join(dict.fromkeys(term for term in expanded_terms if term))
 

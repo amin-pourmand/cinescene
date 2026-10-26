@@ -10,7 +10,7 @@ Open:
 https://amin-pourmand.github.io/cinescene
 ```
 
-Show the responsive Retrieval Studio, installable PWA, scene cards, browser memory, and processed scene timeline. Mention that this public build is static by design; the same interface connects to Python, FAISS, and GPU models in the full runtime.
+Show the installable PWA, browser memory, matched story/episode evidence and synthetic scene timelines. Search performs real on-device hybrid inference; the first query downloads pinned models with visible progress and cancellation. It is not the original keyword-only demo. Video ingestion still needs local Studio.
 
 ## 2. Start The Full Runtime
 
@@ -22,10 +22,9 @@ Open `http://127.0.0.1:8000` and hard-refresh once with `Ctrl+F5` if an older ca
 
 The sidebar status should become **Engine online**. Under **Settings > Runtime diagnostics**, the metrics should report:
 
-- 7,615 catalog/movie vectors;
-- 158 scene vectors and 7,773 total vectors;
+- catalog-title, episode-vector and scene-vector counts from the current runtime, not a hard-coded total;
 - 3 currently ingested offline media documents;
-- NVIDIA GeForce GTX 1650 Ti through CUDA.
+- CPU int8 ONNX for search, with sequential encoder loading. Optional vision/transcription can use CUDA separately.
 
 Expand the runtime diagnostics and briefly show that scene detection, FFmpeg subtitles, faster-whisper, BLIP vision, the movie index, and the scene index are independently observable. They are intentionally kept off the main Search screen.
 
@@ -41,14 +40,14 @@ a lonely detective enters a dark room and investigates a mystery
 کارآگاهی تنها وارد اتاقی تاریک می شود و دنبال سرنخ می گردد
 ```
 
-For the English synthetic benchmark, `Benchmark Show` should rank first. The Persian fixture is currently within the top five, not reliably first. Open **Details** to inspect the matched keyframe, full transcript, timestamp, and source label. Raw ranking scores are not presented as confidence percentages. Save the title, open it again from **Saved & history**, then demonstrate removal. Copy the search link and reopen it to reproduce the query and filter.
+Open **Details** to inspect the matched keyframe, transcript, timestamp and source label. Raw ranking scores are not confidence percentages. Save the title, open it from **Saved & history**, then demonstrate removal. Copy the search link to reproduce the query and filter. Report the actual result rather than assuming every Persian query ranks first.
 
 For a real local-film example, search `پاتریشیا پسرها کجان صدای گریه`. The verified result is *The Curse of La Llorona*, scene 11, starting at 348.22 seconds. `در رو ببند لطفاً اون بهمون صدمه میزنه` matches scene 13 at 540.08 seconds. These are inspected acceptance examples from the ingested subtitle, not held-out research queries.
 
 Then try catalog-oriented queries:
 
 ```text
-a dream collapses while people run through a rotating hallway
+an officer that could raise to the life each time after he dies so he can fix the issues and keep soldiers alive and win the battle
 ```
 
 ```text
@@ -132,7 +131,7 @@ node .\scripts\visual_smoke_test.js http://127.0.0.1:8000
 
 The quality report includes Hit@1, Hit@5, MRR@10, latency, and the rank of every expected title. The visual test covers 1440px desktop and 390px mobile, browser errors, and horizontal overflow.
 
-Corrected 27-query development regression result:
+Historical GPU baseline (not current ONNX/browser performance):
 
 ```text
 Hit@1       0.4815
@@ -143,7 +142,7 @@ Mean query  0.234 s
 
 The latest upload regression completed in about 49 seconds including CUDA index refresh, created three timestamped scenes and keyframes, attached the supplied SRT, and returned the English `Benchmark Show` query at rank 1. Its H.264 preview was verified through an HTTP range response and decoded playback in Chrome. Reproduce with `python scripts/runtime_acceptance.py --upload` while the backend runs.
 
-The original engine scores 0.5556 Hit@5 under the same corrected suite, compared with 0.8519 now. The old ten-query 90% claim used permissive substring matching and is superseded. These development queries are not held-out, and general Persian/series first-result accuracy still needs work. See `benchmarks/README.md` for limitations and the optional reranker comparison.
+Use `benchmarks/hybrid-quality-latest.json` for the current 27-query result and `benchmarks/scene-identity-latest.json` for the 12 targeted acceptance queries, including the exact Edge of Tomorrow failure and independent paraphrases. These are development queries, not held-out accuracy estimates. Failed queries remain in the reports. The old ten-query 90% claim used permissive substring matching and is superseded.
 
 ## 8. Explain The Engineering Decisions
 

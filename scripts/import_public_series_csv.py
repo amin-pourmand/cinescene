@@ -152,14 +152,15 @@ def main():
     frame = pd.read_csv(input_path)
     series_rows = frame[frame["type"].fillna("").str.casefold() == "tv show"]
     imported = [to_document(row) for _, row in series_rows.iterrows()]
-    by_id = {str(item["id"]): item for item in imported if item.get("title") != "Unknown"}
+    by_id = {str(item["id"]): item for item in load_list(SERIES_CATALOG)}
+    by_id.update({str(item["id"]): item for item in imported if item.get("title") != "Unknown"})
     series = list(by_id.values())
     series.sort(key=lambda item: (str(item.get("title") or "").casefold(), str(item.get("release_year") or "")))
     save_list(SERIES_CATALOG, series)
 
     movies = load_list(MOVIE_CATALOG)
     offline = load_list(OFFLINE_CATALOG)
-    save_list(COMBINED_CATALOG, movies + series + offline)
+    save_list(COMBINED_CATALOG, movies + series + offline + load_list(SERIES_CATALOG.with_name("tv_episodes_enriched.json")))
     print(
         json.dumps(
             {

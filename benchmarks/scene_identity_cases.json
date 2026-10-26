@@ -1,0 +1,17 @@
+{
+  "description": "Development acceptance cases, not a held-out accuracy estimate. Includes the user's exact failure, English paraphrases, Persian, and distinct time-loop distractors. Frozen before evaluating the new passage index.",
+  "cases": [
+    {"query": "an officer that could raise to the life each time after he dies so he can fix the issues and keep soldiers alive and win the battle", "expected": ["Edge of Tomorrow"], "category": "user_report"},
+    {"query": "Every time this reluctant soldier is killed fighting aliens, he wakes up before the invasion and learns how to survive a little longer", "expected": ["Edge of Tomorrow"], "category": "paraphrase"},
+    {"query": "A military officer keeps returning to the morning after dying on a battlefield and trains with a female warrior", "expected": ["Edge of Tomorrow"], "category": "paraphrase"},
+    {"query": "یه افسر تو جنگ با موجودات فضایی هر بار میمیره دوباره همون روز بیدار میشه و سعی میکنه سربازها رو زنده نگه داره", "expected": ["Edge of Tomorrow"], "category": "persian"},
+    {"query": "A weatherman wakes up to the same day in a small town over and over", "expected": ["Groundhog Day"], "category": "time_loop_distractor"},
+    {"query": "A man repeatedly relives the final eight minutes of another man's life aboard a train to find a bomber", "expected": ["Source Code"], "category": "time_loop_distractor"},
+    {"query": "A thief steals secrets through dreams and a fight takes place in a rotating hotel corridor", "expected": ["Inception"], "category": "movie_scene"},
+    {"query": "A hacker takes a red pill and discovers his entire world is a computer simulation", "expected": ["The Matrix"], "category": "movie_scene"},
+    {"query": "A man with short term memory loss uses tattoos and photographs to investigate his wife's murder", "expected": ["Memento"], "category": "movie_scene"},
+    {"query": "A child wins a golden ticket to visit a strange candy maker's chocolate factory", "expected": ["Charlie and the Chocolate Factory"], "category": "contrast"},
+    {"query": "A chemistry teacher diagnosed with cancer starts cooking methamphetamine with a former student", "expected": ["Breaking Bad"], "category": "series"},
+    {"query": "یه هکر با خوردن قرص قرمز میفهمه دنیایی که توش زندگی میکنه یه شبیه سازی کامپیوتریه", "expected": ["The Matrix"], "category": "persian"}
+  ]
+}

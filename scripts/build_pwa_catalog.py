@@ -27,6 +27,8 @@ def as_list(values: Optional[Iterable]) -> List:
 
 
 def year_for(movie: Dict) -> str:
+    if re.match(r"^\d{4}-\d{2}-\d{2}$", str(movie.get("premiered") or "")):
+        return str(movie["premiered"])[:4]
     return clean_text(movie.get("release_year")) or clean_text(movie.get("year")) or "N/A"
 
 
@@ -125,7 +127,8 @@ def to_pwa_item(movie: Dict) -> Dict:
         "genres": as_list(movie.get("genres"))[:8],
         "director": clean_text(movie.get("director")) or "Unknown",
         "cast": as_list(movie.get("cast"))[:8],
-        "overview": clean_text(movie.get("overview"))[:900],
+        "overview": clean_text(movie.get("overview")),
+        "plot": clean_text(movie.get("wiki_plot")) or clean_text(movie.get("cmu_plot")) or clean_text(movie.get("plot")),
         "rating": rating_for(movie),
         "popularity": float(movie.get("popularity") or 0),
         "scenes": scenes,
@@ -135,6 +138,8 @@ def to_pwa_item(movie: Dict) -> Dict:
         "keywords": as_list(movie.get("keywords"))[:18],
         "visual_tags": as_list(movie.get("visual_tags"))[:12],
         "source": movie.get("source", "tmdb_enriched"),
+        "source_url": movie.get("source_url", ""),
+        "license": movie.get("license", ""),
         "source_video": "",
         "poster": poster,
         "quality": {
@@ -153,10 +158,11 @@ def main():
     movies = json.loads(CATALOG_PATH.read_text(encoding="utf-8"))
     # Local uploads are private by default, including dialogue and generated captions.
     offline = [movie for movie in movies if movie.get("source") == "offline_video_ingestion" and can_publish_media(movie)]
+    episodes = [movie for movie in movies if movie.get("record_type") == "episode"]
     series = [
         movie
         for movie in movies
-        if movie.get("source") != "offline_video_ingestion" and movie.get("media_type") == "series"
+        if movie.get("source") != "offline_video_ingestion" and movie.get("media_type") == "series" and movie.get("record_type") != "episode"
     ]
     tmdb = [
         movie
@@ -165,8 +171,14 @@ def main():
     ]
     tmdb.sort(key=lambda movie: float(movie.get("popularity") or 0), reverse=True)
     series.sort(key=lambda movie: clean_text(movie.get("title")).casefold())
-    selected = offline + series + tmdb[:600]
+    selected = [movie for movie in offline + series + tmdb
+                if (clean_text(movie.get("title")) or clean_text(movie.get("original_title"))).casefold() not in {"", "unknown"}]
     items = [to_pwa_item(movie) for movie in selected]
+    by_id = {str(item["id"]): item for item in items}
+    for episode in episodes:
+        parent = by_id.get(str(episode.get("parent_id")))
+        if parent is not None and episode.get("matched_episode"):
+            parent.setdefault("episodes", []).append(episode["matched_episode"])
     referenced_keyframes = {
         Path(scene["keyframe"]).name
         for item in items
@@ -185,7 +197,7 @@ def main():
         "items": items,
     }
     OUTPUT_PATH.parent.mkdir(parents=True, exist_ok=True)
-    OUTPUT_PATH.write_text(json.dumps(payload, indent=2, ensure_ascii=False), encoding="utf-8")
+    OUTPUT_PATH.write_text(json.dumps(payload, separators=(",", ":"), ensure_ascii=False, allow_nan=False), encoding="utf-8")
     print(json.dumps({"output": str(OUTPUT_PATH), "count": len(items), "offline": payload["offline_count"]}, indent=2))
 
 

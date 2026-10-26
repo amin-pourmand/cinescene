@@ -1,12 +1,18 @@
-const CACHE_NAME = "cinescene-pwa-v20261025-workspace-v12";
+const CACHE_NAME = "cinescene-pwa-v20261026-hybrid-v19";
 const ASSETS = [
   "./",
   "./index.html",
   "./manifest.webmanifest",
   "./assets/styles.css?v=20261025-reel-v11",
-  "./assets/app.js?v=20261025-workspace-v12",
-  "./assets/workspace-ui.js?v=20261025-workspace-v12",
-  "./assets/workspace.css?v=20261025-workspace-v12",
+  "./assets/app.js?v=20261026-hybrid-v18",
+  "./assets/semantic-client.js?v=20261026-hybrid-v18",
+  "./assets/semantic-worker.mjs",
+  "./assets/hybrid-ranking.mjs",
+  "./assets/vendor/transformers.min.js",
+  "./assets/vendor/ort-wasm-simd-threaded.jsep.mjs",
+  "./assets/vendor/ort-wasm-simd-threaded.jsep.wasm",
+  "./assets/workspace-ui.js?v=20261026-hybrid-v18",
+  "./assets/workspace.css?v=20261025-semantic-v13",
   "./assets/scene-explorer.js?v=20261025-reel-v11",
   "./assets/scene-explorer.css?v=20261025-reel-v11",
   "./assets/brand-mark-512.png?v=20261025-reel-v11",
@@ -21,7 +27,11 @@ const ASSETS = [
   "./assets/manrope-latin.woff2",
   "./assets/vazirmatn-arabic.woff2",
   "./assets/vazirmatn-latin.woff2",
-  "./data/catalog.sample.json"
+  "./data/catalog.sample.json",
+  "./data/hybrid-index.json",
+  "./data/hybrid-en.f32",
+  "./data/hybrid-multilingual.f32",
+  "./data/hybrid-lexical.bin"
 ];
 
 self.addEventListener("install", (event) => {

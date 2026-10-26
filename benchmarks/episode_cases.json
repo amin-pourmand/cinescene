@@ -1,0 +1,8 @@
+{
+  "description": "Small source-informed episode acceptance checks, not a held-out benchmark. Exact parent title and episode identity are required.",
+  "cases": [
+    {"query": "a chemist refuses to make meth because a fly is contaminating his laboratory", "expected": ["Breaking Bad"], "season": 3, "episode": 10, "category": "episode_identity"},
+    {"query": "a jealous husband replays recorded memories through an implant to investigate his wife's affair", "expected": ["Black Mirror"], "season": 1, "episode": 3, "category": "episode_identity"},
+    {"query": "Moriarty sets a final problem while a tabloid journalist publishes allegations about a London detective", "expected": ["Sherlock"], "season": 2, "episode": 3, "category": "episode_identity"}
+  ]
+}

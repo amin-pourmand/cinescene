@@ -24,7 +24,8 @@ def expected_rank(results: List[Dict], case: Dict):
         else:
             relevant = matches(str(result.get("title", "")), case["expected"])
         if relevant and case.get("episode") is not None:
-            relevant = result.get("episode") == case["episode"] and result.get("season") == case.get("season")
+            identity = result.get("matched_episode") or result
+            relevant = identity.get("episode") == case["episode"] and identity.get("season") == case.get("season")
         if relevant:
             return rank
     return None

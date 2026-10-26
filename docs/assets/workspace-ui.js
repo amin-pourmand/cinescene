@@ -116,6 +116,8 @@
     open(movie) {
       if (!movie) return;
       const scene = movie.matched_scene;
+      const episode = movie.matched_episode;
+      const sourceUrl = /^https?:\/\//i.test(episode?.source_url || "") ? episode.source_url : "";
       const image = scene?.keyframe_url || movie.first_keyframe_url;
       const fields = [
         ["Type", movie.media_type === "series" ? "Series" : "Movie"], ["Year", movie.year], ["Director", movie.director],
@@ -127,6 +129,8 @@
       this.dialog.innerHTML = `<header class="title-dialog-heading"><div><span class="evidence-label">${scene ? "Scene evidence" : "Story match"}</span><h2 id="titleDetailsHeading">${html(movie.title)}</h2></div><button class="icon-button ghost" data-close type="button" aria-label="Close details" title="Close details"><i data-lucide="x"></i></button></header>
         <div class="title-dialog-body">${image ? `<img class="title-detail-frame" src="${html(image)}" alt="Scene from ${html(movie.title)}" />` : ""}<dl class="title-metadata">${fields.map(([label, value]) => `<div><dt>${label}</dt><dd>${html(value)}</dd></div>`).join("")}</dl>
         ${movie.overview && movie.source !== "offline_video_ingestion" ? `<section><h3>Story</h3><p dir="auto">${html(movie.overview)}</p></section>` : ""}
+        ${movie.plot && movie.plot !== movie.overview ? `<details class="story-evidence"><summary>Full plot</summary><p dir="auto">${html(movie.plot)}</p></details>` : ""}
+        ${episode ? `<section><h3>Matched episode · S${String(episode.season).padStart(2, "0")}E${String(episode.episode).padStart(2, "0")}</h3><strong>${html(episode.name)}</strong><p dir="auto">${html(episode.summary)}</p>${sourceUrl ? `<a href="${html(sourceUrl)}" target="_blank" rel="noopener">TVmaze · CC BY-SA</a>` : ""}</section>` : ""}
         ${scene ? `<section><h3>Matched scene <time>${time(scene.start_sec)} - ${time(scene.end_sec)}</time></h3>${scene.transcript ? `<span class="evidence-label">Dialogue</span><p dir="auto">${html(scene.transcript)}</p>` : ""}${scene.visual_caption ? `<span class="evidence-label">${String(scene.caption_source || "").includes("blip") ? "Visual description" : "Visual signals"}</span><p dir="auto">${html(scene.visual_caption)}</p>` : ""}</section>` : ""}
         <p class="dialog-error" role="alert" hidden></p></div><footer class="title-dialog-actions"><button class="button secondary" data-save type="button"></button>${movie.video_url && scene && this.options.play ? `<button class="button primary" data-play type="button"><i data-lucide="play"></i>Play scene</button>` : ""}${movie.source === "offline_video_ingestion" && this.options.timeline ? `<button class="button secondary" data-timeline type="button"><i data-lucide="list-video"></i>All scenes</button>` : ""}</footer>`;
       this.dialog.querySelector("[data-close]").onclick = () => this.dialog.close();

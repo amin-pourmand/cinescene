@@ -23,7 +23,21 @@ Results on 2026-10-24, using the same suite hash:
 
 The baseline was captured on 2026-10-19 before the new multilingual channel and local-film enrichment. This measures the combined system change, not an isolated model ablation. Current retrieval uses BGE-large (1,024 dimensions), multilingual E5-base (768 dimensions), and BM25. There are 7,615 core title vectors, 158 scene vectors, and 22,791 multilingual passage/scene vectors. All active encoders are pretrained, not demonstrated fine-tuned checkpoints.
 
-The default hybrid run averaged 0.234 seconds per warm HTTP query. Reranking increases latency substantially and remains opt-in. First-result accuracy, especially on general Persian descriptions and series, is still limited. Most titles have only plot metadata; only three local titles have complete timelines.
+That historical GPU hybrid run averaged 0.234 seconds per warm HTTP query. The current CPU-ONNX release enables reranking by default and trades latency for first-result relevance. Current results are in `hybrid-quality-latest.json`, not the historical table. First-result accuracy, especially on general Persian descriptions and series, is still limited. Most titles have only plot metadata; only three local titles have complete timelines.
+
+## Current Release Checks
+
+- `hybrid-quality-latest.json`: the unchanged 27-query development suite on the release engine.
+- `scene-identity-latest.json`: 12 targeted identity/contrast queries, including the exact reported Edge of Tomorrow failure, independent paraphrases and Persian queries.
+- `episode-latest.json`: three source-informed checks requiring the correct parent series AND season/episode, not just a matching show title.
+- `dataset-expansion.json`: episode-source coverage and attribution for the imported snapshot.
+- `passage-quality-latest.json`: the failed E5-small full-plot experiment, retained as an ablation rather than shipped as the default.
+- `onnx-crossencoder-only.json`: the no-consensus reranker ablation before rank fusion and the final multilingual recall configuration.
+- `onnx-consensus.json`: the rank-consensus ablation; not the selected release policy because targeted scene identity regressed.
+
+These suites have different purposes and must not be pooled into a headline accuracy score. The episode examples are informed by source descriptions and are functional acceptance checks, not unseen human-authored evaluation. Dataset expansion does not automatically improve ranking; compare per-query failures as well as aggregate metrics.
+
+On the current 27-query CPU-ONNX snapshot: Hit@1 **59.26%**, Hit@5 **77.78%**, MRR@10 **0.6821**, observed mean HTTP latency **4.33 s**. Relative to the historical GPU snapshot, first-result rank improves but top-five coverage is lower. The runtime, quantization, fusion and dataset all changed, so this is a system comparison, not evidence that one isolated model choice caused the difference. Timing on the development host is not a controlled throughput benchmark.
 
 This suite has informed development and contains synthetic fixtures. It is **not held-out**, is too small for a reliable general accuracy estimate, and must not be presented as an independent academic test. A defensible final study requires unseen descriptions, human relevance judgments, larger authorized scene/episode coverage, per-language metrics, and separately labeled timestamp relevance.
 

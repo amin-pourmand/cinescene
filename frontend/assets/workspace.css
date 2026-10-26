@@ -113,3 +113,8 @@
   .title-metadata > div { grid-template-columns: 65px minmax(0,1fr); gap: 10px; }
 }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; } }
+/* Search progress is independent of the results, including during model setup. */
+.search-progress { margin-top: 16px; padding: 12px 0; color: #a9dcd5; font-size: 13px; line-height: 1.6; overflow-wrap: anywhere; }
+.story-evidence { margin: 10px 0 16px; font-size: 13px; line-height: 1.75; color: #aeb9bc; }
+.story-evidence summary { cursor: pointer; color: #7ed6ca; }
+.story-evidence p { padding-top: 8px; }

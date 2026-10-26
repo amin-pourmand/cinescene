@@ -1,0 +1,440 @@
+{
+  "generated_at": "2026-10-26T06:51:21.823145+00:00",
+  "model": "models\\bge-large-en-v1.5",
+  "device": "cpu",
+  "precision": "int8",
+  "embedding_dimension": 1024,
+  "reranker": true,
+  "transport": "http",
+  "multilingual": true,
+  "multilingual_model": "models\\multilingual-e5-base",
+  "multilingual_vectors": 23339,
+  "fusion_version": "rrf-v6-multilingual-relevance",
+  "cases": 27,
+  "hit_at_1": 0.5926,
+  "hit_at_5": 0.7778,
+  "mrr_at_10": 0.6821,
+  "evaluation_version": 2,
+  "matching": "exact normalized title or explicit id/alias; sequels are distinct",
+  "suite_sha256": "b7fc19e19b2ae5a57899940f8db097146bdf0ca7739e1d5a484548451e9b2551",
+  "suite_description": "Manually authored regression queries. Not a held-out academic test set. Exact title or explicit alias matching; sequels are separate titles.",
+  "retrieval_mode": "hybrid",
+  "by_category": {
+    "movie_plot": {
+      "cases": 12,
+      "hit_at_1": 0.6667,
+      "hit_at_5": 0.8333,
+      "mrr_at_10": 0.7639
+    },
+    "persian_plot": {
+      "cases": 4,
+      "hit_at_1": 0.25,
+      "hit_at_5": 0.5,
+      "mrr_at_10": 0.375
+    },
+    "persian_synthetic_scene": {
+      "cases": 1,
+      "hit_at_1": 1.0,
+      "hit_at_5": 1.0,
+      "mrr_at_10": 1.0
+    },
+    "series_plot": {
+      "cases": 8,
+      "hit_at_1": 0.5,
+      "hit_at_5": 0.75,
+      "mrr_at_10": 0.5938
+    },
+    "synthetic_scene": {
+      "cases": 2,
+      "hit_at_1": 1.0,
+      "hit_at_5": 1.0,
+      "mrr_at_10": 1.0
+    }
+  },
+  "mean_latency_sec": 4.3267,
+  "movie_vectors": 8163,
+  "scene_vectors": 158,
+  "index_vectors": 8321,
+  "rows": [
+    {
+      "query": "a thief enters layered dreams to plant an idea",
+      "expected": [
+        "Inception"
+      ],
+      "category": "movie_plot",
+      "rank": 1,
+      "top_3": [
+        "Inception",
+        "The Thief and the Cobbler",
+        "Parker"
+      ],
+      "latency_sec": 7.689
+    },
+    {
+      "query": "a marine meets blue aliens on the moon Pandora",
+      "expected": [
+        "Avatar"
+      ],
+      "category": "movie_plot",
+      "rank": 1,
+      "top_3": [
+        "Avatar",
+        "Meet Dave",
+        "Aliens"
+      ],
+      "latency_sec": 11.234
+    },
+    {
+      "query": "an amnesiac man uses tattoos and notes to find a killer",
+      "expected": [
+        "Memento"
+      ],
+      "category": "movie_plot",
+      "rank": 1,
+      "top_3": [
+        "Memento",
+        "Amnesiac",
+        "DEATH NOTE"
+      ],
+      "latency_sec": 7.525
+    },
+    {
+      "query": "toys come alive when their owner leaves the room",
+      "expected": [
+        "Toy Story"
+      ],
+      "category": "movie_plot",
+      "rank": 1,
+      "top_3": [
+        "Toy Story",
+        "Toy Story 2",
+        "Toy Story 3"
+      ],
+      "latency_sec": 4.248
+    },
+    {
+      "query": "a giant shark terrorizes a seaside town",
+      "expected": [
+        "Jaws"
+      ],
+      "category": "movie_plot",
+      "rank": 1,
+      "top_3": [
+        "Jaws",
+        "Creature",
+        "Jaws 2"
+      ],
+      "latency_sec": 3.891
+    },
+    {
+      "query": "a computer hacker discovers reality is a simulation",
+      "expected": [
+        "The Matrix"
+      ],
+      "category": "movie_plot",
+      "rank": 2,
+      "top_3": [
+        "Hackers",
+        "The Matrix",
+        "Pulse"
+      ],
+      "latency_sec": 3.235
+    },
+    {
+      "query": "a romance aboard a ship that hits an iceberg",
+      "expected": [
+        "Titanic"
+      ],
+      "category": "movie_plot",
+      "rank": 1,
+      "top_3": [
+        "Titanic",
+        "Oscar and Lucinda",
+        "Swept Away"
+      ],
+      "latency_sec": 3.829
+    },
+    {
+      "query": "a hobbit carries a powerful ring toward a volcano",
+      "expected": [
+        "The Lord of the Rings: The Fellowship of the Ring",
+        "The Lord of the Rings: The Return of the King"
+      ],
+      "category": "movie_plot",
+      "rank": 2,
+      "top_3": [
+        "The Hobbit: The Desolation of Smaug",
+        "The Lord of the Rings: The Fellowship of the Ring",
+        "The Hobbit: The Battle of the Five Armies"
+      ],
+      "latency_sec": 4.29
+    },
+    {
+      "query": "a prison banker slowly tunnels through a wall to escape",
+      "expected": [
+        "The Shawshank Redemption"
+      ],
+      "category": "movie_plot",
+      "rank": 6,
+      "top_3": [
+        "Lucky Break",
+        "Escape Plan",
+        "The Great Escape"
+      ],
+      "latency_sec": 4.044
+    },
+    {
+      "query": "a clown criminal tests a masked vigilante by threatening a city",
+      "expected": [
+        "The Dark Knight"
+      ],
+      "category": "movie_plot",
+      "rank": null,
+      "top_3": [
+        "Hobo with a Shotgun",
+        "V for Vendetta",
+        "Defendor"
+      ],
+      "latency_sec": 4.304
+    },
+    {
+      "query": "a theme park's cloned dinosaurs escape their enclosures",
+      "expected": [
+        "Jurassic Park"
+      ],
+      "category": "movie_plot",
+      "rank": 1,
+      "top_3": [
+        "Jurassic Park",
+        "Jurassic World",
+        "The Lost World: Jurassic Park"
+      ],
+      "latency_sec": 3.197
+    },
+    {
+      "query": "a young boy discovers that he is a wizard and attends a school of magic",
+      "expected": [
+        "Harry Potter and the Philosopher's Stone",
+        "Harry Potter and the Sorcerer's Stone"
+      ],
+      "category": "movie_plot",
+      "rank": 1,
+      "top_3": [
+        "Harry Potter and the Philosopher's Stone",
+        "The NeverEnding Story",
+        "The Magicians"
+      ],
+      "latency_sec": 3.847
+    },
+    {
+      "query": "a chemistry teacher diagnosed with cancer begins making methamphetamine",
+      "expected": [
+        "Breaking Bad"
+      ],
+      "category": "series_plot",
+      "rank": 1,
+      "top_3": [
+        "Breaking Bad",
+        "Medicine Man",
+        "Life as a House"
+      ],
+      "latency_sec": 3.608
+    },
+    {
+      "query": "children search for a missing friend while a strange girl has supernatural powers",
+      "expected": [
+        "Stranger Things"
+      ],
+      "category": "series_plot",
+      "rank": 1,
+      "top_3": [
+        "Stranger Things",
+        "Diablero",
+        "Dark"
+      ],
+      "latency_sec": 3.323
+    },
+    {
+      "query": "an anthology of disturbing stories about technology and society",
+      "expected": [
+        "Black Mirror"
+      ],
+      "category": "series_plot",
+      "rank": null,
+      "top_3": [
+        "Creeped Out",
+        "Easy",
+        "The Horror Network Vol. 1"
+      ],
+      "latency_sec": 3.417
+    },
+    {
+      "query": "a modern London detective and his doctor companion solve crimes",
+      "expected": [
+        "Sherlock"
+      ],
+      "category": "series_plot",
+      "rank": null,
+      "top_3": [
+        "Fallet",
+        "Collateral",
+        "The Irregulars"
+      ],
+      "latency_sec": 4.464
+    },
+    {
+      "query": "the reign of Queen Elizabeth and the private life of the royal family",
+      "expected": [
+        "The Crown"
+      ],
+      "category": "series_plot",
+      "rank": 4,
+      "top_3": [
+        "The Queen",
+        "Elizabeth",
+        "Elizabeth: The Golden Age"
+      ],
+      "latency_sec": 3.614
+    },
+    {
+      "query": "a Birmingham gangster family rises to power after the first world war",
+      "expected": [
+        "Peaky Blinders"
+      ],
+      "category": "series_plot",
+      "rank": 1,
+      "top_3": [
+        "Peaky Blinders",
+        "Rebellion",
+        "Legend"
+      ],
+      "latency_sec": 3.833
+    },
+    {
+      "query": "a monster hunter struggles to find his place in a world of magic",
+      "expected": [
+        "The Witcher"
+      ],
+      "category": "series_plot",
+      "rank": 1,
+      "top_3": [
+        "The Witcher",
+        "Legend Quest: Masters of Myth",
+        "Jack Brooks: Monster Slayer"
+      ],
+      "latency_sec": 4.726
+    },
+    {
+      "query": "missing children reveal a time travel mystery in a German town",
+      "expected": [
+        "Dark"
+      ],
+      "category": "series_plot",
+      "rank": 2,
+      "top_3": [
+        "The White Ribbon",
+        "Dark",
+        "The Golden Child"
+      ],
+      "latency_sec": 3.521
+    },
+    {
+      "query": "دزدی وارد خواب آدم‌ها می‌شود تا یک ایده در ذهنشان بکارد",
+      "expected": [
+        "Inception"
+      ],
+      "category": "persian_plot",
+      "rank": 6,
+      "top_3": [
+        "The Curse of La Llorona",
+        "MUPPET BABIES",
+        "Amnesiac"
+      ],
+      "latency_sec": 1.48
+    },
+    {
+      "query": "مردی حافظه‌اش را از دست داده و با خالکوبی و یادداشت دنبال قاتل می‌گردد",
+      "expected": [
+        "Memento"
+      ],
+      "category": "persian_plot",
+      "rank": 3,
+      "top_3": [
+        "Amnesiac",
+        "Tabula Rasa",
+        "Memento"
+      ],
+      "latency_sec": 3.924
+    },
+    {
+      "query": "معلم شیمی سرطان می‌گیرد و شروع به ساخت مواد مخدر می‌کند",
+      "expected": [
+        "Breaking Bad"
+      ],
+      "category": "persian_plot",
+      "rank": 1,
+      "top_3": [
+        "Breaking Bad",
+        "Dandy",
+        "The Curse of La Llorona"
+      ],
+      "latency_sec": 1.584
+    },
+    {
+      "query": "هکری متوجه می‌شود دنیای واقعی یک شبیه‌سازی کامپیوتری است",
+      "expected": [
+        "The Matrix"
+      ],
+      "category": "persian_plot",
+      "rank": null,
+      "top_3": [
+        "eXistenZ",
+        "Sparta",
+        "Spy Kids 3-D: Game Over"
+      ],
+      "latency_sec": 4.089
+    },
+    {
+      "query": "lonely detective enters a dark room and investigates a mystery",
+      "expected": [
+        "Benchmark Show"
+      ],
+      "category": "synthetic_scene",
+      "rank": 1,
+      "top_3": [
+        "Benchmark Show",
+        "Alone in the Dark",
+        "Edge of Darkness"
+      ],
+      "latency_sec": 5.24
+    },
+    {
+      "query": "the city lights flicker while he investigates the mystery",
+      "expected": [
+        "Benchmark Show"
+      ],
+      "category": "synthetic_scene",
+      "rank": 1,
+      "top_3": [
+        "Benchmark Show",
+        "City of Ember",
+        "Geronimo Stilton"
+      ],
+      "latency_sec": 4.134
+    },
+    {
+      "query": "کارآگاهی تنها وارد اتاق تاریک می‌شود و دنبال سرنخ می‌گردد",
+      "expected": [
+        "Benchmark Show"
+      ],
+      "category": "persian_synthetic_scene",
+      "rank": 1,
+      "top_3": [
+        "Benchmark Show",
+        "Sherlock",
+        "American Beast"
+      ],
+      "latency_sec": 4.535
+    }
+  ]
+}

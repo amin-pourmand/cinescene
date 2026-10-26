@@ -23,6 +23,7 @@ def parse_args():
     parser.add_argument("--cases", default="benchmarks/cases.json")
     parser.add_argument("--mode", choices=["hybrid", "semantic", "lexical", "multilingual"], default="hybrid")
     parser.add_argument("--api-url", help="Reuse a running backend instead of loading another copy of the models.")
+    parser.add_argument("--engine", choices=("hybrid", "passages", "legacy"), default="hybrid")
     return parser.parse_args()
 
 
@@ -46,9 +47,12 @@ def main():
             response.raise_for_status()
             return response.json()["results"]
     else:
-        from hybrid_search import HybridSearchEngine
-
-        engine = HybridSearchEngine(enable_reranker=args.reranker)
+        if args.engine == "passages":
+            from core.passage_search import PassageSearchEngine
+            engine = PassageSearchEngine(enable_reranker=args.reranker)
+        else:
+            from hybrid_search import HybridSearchEngine
+            engine = HybridSearchEngine(enable_reranker=args.reranker)
         status = engine.status()
 
         def retrieve(query, count):
@@ -79,7 +83,7 @@ def main():
         "model": status.get("model"),
         "device": status.get("device"),
         "precision": status.get("precision"),
-        "embedding_dimension": int(status["embedding_dimension"]) if args.api_url else int(engine.index.d),
+        "embedding_dimension": int(status["embedding_dimension"]),
         "reranker": args.reranker and status.get("reranker", False),
         "transport": "http" if args.api_url else "in_process",
         "multilingual": status.get("multilingual", False),

@@ -1,0 +1,17 @@
+{
+  "generated_on": "2026-10-26",
+  "transport": "real local HTTP API",
+  "fixture": "six-second synthetic video with supplied SRT",
+  "upload_completed": true,
+  "full_scene_refresh_seconds": 224.95,
+  "cached_scene_refresh_seconds": 36.61,
+  "reused_scene_vectors": 158,
+  "newly_encoded_scene_vectors": 0,
+  "reused_title_passages": true,
+  "synthetic_english_rank": 1,
+  "synthetic_persian_rank": 1,
+  "preview_http_status": 206,
+  "media_filters_passed": true,
+  "real_film_timeline_scenes": 153,
+  "limitations": "Local acceptance check, not a throughput study. Initial and cached runs occurred sequentially on the development machine; optional fresh speech/vision inference was disabled for the synthetic upload. Private paths and subtitle contents are omitted."
+}

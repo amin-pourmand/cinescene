@@ -1,0 +1,240 @@
+{
+  "generated_at": "2026-10-26T06:48:09.666563+00:00",
+  "model": "models\\bge-large-en-v1.5",
+  "device": "cpu",
+  "precision": "int8",
+  "embedding_dimension": 1024,
+  "reranker": true,
+  "transport": "http",
+  "multilingual": true,
+  "multilingual_model": "models\\multilingual-e5-base",
+  "multilingual_vectors": 23339,
+  "fusion_version": "rrf-v6-multilingual-relevance",
+  "cases": 12,
+  "hit_at_1": 0.75,
+  "hit_at_5": 0.9167,
+  "mrr_at_10": 0.8299,
+  "evaluation_version": 2,
+  "matching": "exact normalized title or explicit id/alias; sequels are distinct",
+  "suite_sha256": "6f1daf83f0d74e0c267a3d4f68248b68eeddbe9da561bb56aa2eb9628497860c",
+  "suite_description": "Development acceptance cases, not a held-out accuracy estimate. Includes the user's exact failure, English paraphrases, Persian, and distinct time-loop distractors. Frozen before evaluating the new passage index.",
+  "retrieval_mode": "hybrid",
+  "by_category": {
+    "contrast": {
+      "cases": 1,
+      "hit_at_1": 1.0,
+      "hit_at_5": 1.0,
+      "mrr_at_10": 1.0
+    },
+    "movie_scene": {
+      "cases": 3,
+      "hit_at_1": 0.3333,
+      "hit_at_5": 0.6667,
+      "mrr_at_10": 0.4861
+    },
+    "paraphrase": {
+      "cases": 2,
+      "hit_at_1": 1.0,
+      "hit_at_5": 1.0,
+      "mrr_at_10": 1.0
+    },
+    "persian": {
+      "cases": 2,
+      "hit_at_1": 0.5,
+      "hit_at_5": 1.0,
+      "mrr_at_10": 0.75
+    },
+    "series": {
+      "cases": 1,
+      "hit_at_1": 1.0,
+      "hit_at_5": 1.0,
+      "mrr_at_10": 1.0
+    },
+    "time_loop_distractor": {
+      "cases": 2,
+      "hit_at_1": 1.0,
+      "hit_at_5": 1.0,
+      "mrr_at_10": 1.0
+    },
+    "user_report": {
+      "cases": 1,
+      "hit_at_1": 1.0,
+      "hit_at_5": 1.0,
+      "mrr_at_10": 1.0
+    }
+  },
+  "mean_latency_sec": 4.1987,
+  "movie_vectors": 8163,
+  "scene_vectors": 158,
+  "index_vectors": 8321,
+  "rows": [
+    {
+      "query": "an officer that could raise to the life each time after he dies so he can fix the issues and keep soldiers alive and win the battle",
+      "expected": [
+        "Edge of Tomorrow"
+      ],
+      "category": "user_report",
+      "rank": 1,
+      "top_3": [
+        "Edge of Tomorrow",
+        "Black or White",
+        "Soldier"
+      ],
+      "latency_sec": 3.798
+    },
+    {
+      "query": "Every time this reluctant soldier is killed fighting aliens, he wakes up before the invasion and learns how to survive a little longer",
+      "expected": [
+        "Edge of Tomorrow"
+      ],
+      "category": "paraphrase",
+      "rank": 1,
+      "top_3": [
+        "Edge of Tomorrow",
+        "Source Code",
+        "U.F.O."
+      ],
+      "latency_sec": 3.815
+    },
+    {
+      "query": "A military officer keeps returning to the morning after dying on a battlefield and trains with a female warrior",
+      "expected": [
+        "Edge of Tomorrow"
+      ],
+      "category": "paraphrase",
+      "rank": 1,
+      "top_3": [
+        "Edge of Tomorrow",
+        "Courage Under Fire",
+        "Ong Bak 2"
+      ],
+      "latency_sec": 4.294
+    },
+    {
+      "query": "یه افسر تو جنگ با موجودات فضایی هر بار میمیره دوباره همون روز بیدار میشه و سعی میکنه سربازها رو زنده نگه داره",
+      "expected": [
+        "Edge of Tomorrow"
+      ],
+      "category": "persian",
+      "rank": 1,
+      "top_3": [
+        "Edge of Tomorrow",
+        "Aliens vs Predator: Requiem",
+        "Predator 2"
+      ],
+      "latency_sec": 4.442
+    },
+    {
+      "query": "A weatherman wakes up to the same day in a small town over and over",
+      "expected": [
+        "Groundhog Day"
+      ],
+      "category": "time_loop_distractor",
+      "rank": 1,
+      "top_3": [
+        "Groundhog Day",
+        "30 Days of Night",
+        "After"
+      ],
+      "latency_sec": 3.854
+    },
+    {
+      "query": "A man repeatedly relives the final eight minutes of another man's life aboard a train to find a bomber",
+      "expected": [
+        "Source Code"
+      ],
+      "category": "time_loop_distractor",
+      "rank": 1,
+      "top_3": [
+        "Source Code",
+        "Unbreakable",
+        "The Missing Person"
+      ],
+      "latency_sec": 4.515
+    },
+    {
+      "query": "A thief steals secrets through dreams and a fight takes place in a rotating hotel corridor",
+      "expected": [
+        "Inception"
+      ],
+      "category": "movie_scene",
+      "rank": 8,
+      "top_3": [
+        "The Thief and the Cobbler",
+        "Parker",
+        "Kiss Kiss Bang Bang"
+      ],
+      "latency_sec": 4.004
+    },
+    {
+      "query": "A hacker takes a red pill and discovers his entire world is a computer simulation",
+      "expected": [
+        "The Matrix"
+      ],
+      "category": "movie_scene",
+      "rank": 3,
+      "top_3": [
+        "Hackers",
+        "Pulse",
+        "The Matrix"
+      ],
+      "latency_sec": 4.774
+    },
+    {
+      "query": "A man with short term memory loss uses tattoos and photographs to investigate his wife's murder",
+      "expected": [
+        "Memento"
+      ],
+      "category": "movie_scene",
+      "rank": 1,
+      "top_3": [
+        "Memento",
+        "Amnesiac",
+        "20 Minutes"
+      ],
+      "latency_sec": 4.147
+    },
+    {
+      "query": "A child wins a golden ticket to visit a strange candy maker's chocolate factory",
+      "expected": [
+        "Charlie and the Chocolate Factory"
+      ],
+      "category": "contrast",
+      "rank": 1,
+      "top_3": [
+        "Charlie and the Chocolate Factory",
+        "Willy Wonka & the Chocolate Factory",
+        "Epic Movie"
+      ],
+      "latency_sec": 4.004
+    },
+    {
+      "query": "A chemistry teacher diagnosed with cancer starts cooking methamphetamine with a former student",
+      "expected": [
+        "Breaking Bad"
+      ],
+      "category": "series",
+      "rank": 1,
+      "top_3": [
+        "Breaking Bad",
+        "Cooking on High",
+        "50/50"
+      ],
+      "latency_sec": 3.868
+    },
+    {
+      "query": "یه هکر با خوردن قرص قرمز میفهمه دنیایی که توش زندگی میکنه یه شبیه سازی کامپیوتریه",
+      "expected": [
+        "The Matrix"
+      ],
+      "category": "persian",
+      "rank": 2,
+      "top_3": [
+        "eXistenZ",
+        "The Matrix",
+        "Pulse"
+      ],
+      "latency_sec": 4.868
+    }
+  ]
+}

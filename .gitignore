@@ -42,3 +42,5 @@ Thumbs.db
 # Keep GitHub Pages PWA artifacts
 !docs/
 !docs/**
+docs/data/*.partial
+docs/data/semantic-build-checkpoint.json

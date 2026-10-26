@@ -73,7 +73,7 @@ def mood_tags(genres: List[str]) -> List[str]:
 
 def to_document(show: Dict) -> Dict:
     title = str(show.get("name") or "Unknown").strip()
-    genres = [str(value) for value in show.get("genres") or [] if value]
+    genres = [str(value).replace("Science-Fiction", "Science Fiction") for value in show.get("genres") or [] if value]
     network = show.get("network") or show.get("webChannel") or {}
     network_name = str(network.get("name") or "").strip()
     overview = strip_html(str(show.get("summary") or ""))
@@ -177,7 +177,7 @@ def main():
 
     movies = load_list(MOVIE_CATALOG)
     offline = load_list(OFFLINE_CATALOG)
-    save_list(COMBINED_CATALOG, movies + series + offline)
+    save_list(COMBINED_CATALOG, movies + series + offline + load_list(SERIES_CATALOG.with_name("tv_episodes_enriched.json")))
     print(
         json.dumps(
             {

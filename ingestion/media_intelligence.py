@@ -172,8 +172,10 @@ def release_media_models():
     _vision_components.cache_clear()
     gc.collect()
     try:
-        import torch
-
+        import sys
+        torch = sys.modules.get("torch")
+        if torch is None:
+            return
         if torch.cuda.is_available():
             torch.cuda.empty_cache()
     except Exception:

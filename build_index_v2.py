@@ -21,8 +21,6 @@ from typing import Dict, Iterable, List
 
 import faiss
 import numpy as np
-import torch
-from sentence_transformers import SentenceTransformer
 from tqdm import tqdm
 
 
@@ -77,6 +75,9 @@ class IndexBuilderV2:
         max_seq_length: int = 256,
         fp16: bool = False,
     ):
+        import torch
+        from sentence_transformers import SentenceTransformer
+
         self.model_path = resolve_model_path(model_path, use_base_model)
         self.batch_size = batch_size
         self.device = "cuda" if torch.cuda.is_available() else "cpu"
@@ -165,6 +166,11 @@ class IndexBuilderV2:
             metadata.append(
                 {
                     "id": movie.get("id"),
+                    "parent_id": movie.get("parent_id"),
+                    "record_type": movie.get("record_type", "title"),
+                    "matched_episode": movie.get("matched_episode"),
+                    "source_url": movie.get("source_url", ""),
+                    "license": movie.get("license", ""),
                     "title": movie_title(movie),
                     "media_type": clean_text(movie.get("media_type")) or "movie",
                     "season": movie.get("season"),
@@ -173,7 +179,7 @@ class IndexBuilderV2:
                     "genres": as_text_list(movie.get("genres", [])),
                     "director": clean_text(movie.get("director")) or "Unknown",
                     "cast": as_text_list(movie.get("cast", []))[:8],
-                    "overview": clean_text(movie.get("overview"))[:600],
+                    "overview": clean_text(movie.get("overview")),
                     "rating": float(movie.get("vote_average") or 0.0),
                     "popularity": float(movie.get("popularity") or 0.0),
                     "scene_descriptions": as_text_list(movie.get("scene_descriptions", []))[:30],
@@ -243,6 +249,7 @@ class IndexBuilderV2:
         self.save_index(index, metadata, index_path=index_path, metadata_path=metadata_path)
         del self.model
         gc.collect()
+        import torch
         if torch.cuda.is_available():
             torch.cuda.empty_cache()
         print("Index building complete")

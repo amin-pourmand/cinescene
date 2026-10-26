@@ -10,7 +10,6 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 import faiss
-import torch
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -39,6 +38,7 @@ def main():
     parser = argparse.ArgumentParser(description="Append new catalog documents to the active CineScene movie index")
     parser.add_argument("--input", required=True)
     parser.add_argument("--batch-size", type=int, default=16)
+    parser.add_argument("--runtime", choices=["onnx", "torch"], default="onnx")
     args = parser.parse_args()
 
     report_path = ROOT / "data" / "index" / "index_report.json"
@@ -63,12 +63,15 @@ def main():
         print(json.dumps({"appended": 0, "index_vectors": len(metadata)}, indent=2))
         return
 
-    builder = IndexBuilderV2(
-        model_path=str(report.get("model") or "models/bge-large-en-v1.5"),
-        batch_size=args.batch_size,
-        max_seq_length=int(report.get("max_seq_length") or 256),
-        fp16=str(report.get("precision")) == "float16",
-    )
+    if args.runtime == "onnx":
+        from core.onnx_models import OnnxEncoder
+        builder = IndexBuilderV2.__new__(IndexBuilderV2)
+        builder.model = OnnxEncoder("Xenova/bge-large-en-v1.5", int(report.get("max_seq_length") or 256))
+        builder.batch_size = args.batch_size
+    else:
+        builder = IndexBuilderV2(model_path=str(report.get("model") or "models/bge-large-en-v1.5"),
+                                 batch_size=args.batch_size, max_seq_length=int(report.get("max_seq_length") or 256),
+                                 fp16=str(report.get("precision")) == "float16")
     started = time.perf_counter()
     embeddings = builder.build_embeddings(additions)
     index = faiss.read_index(str(index_path))
@@ -92,8 +95,10 @@ def main():
     if hasattr(builder, "model"):
         del builder.model
     gc.collect()
-    if torch.cuda.is_available():
-        torch.cuda.empty_cache()
+    if args.runtime == "torch":
+        import torch
+        if torch.cuda.is_available():
+            torch.cuda.empty_cache()
     print(
         json.dumps(
             {

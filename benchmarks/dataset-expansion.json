@@ -1,0 +1,28 @@
+{
+  "generated_at": "2026-10-26T06:20:55.099265+00:00",
+  "new_shows": 11,
+  "episode_documents": 537,
+  "show_coverage": {
+    "Breaking Bad": 61,
+    "Better Call Saul": 61,
+    "Dark": 26,
+    "Black Mirror": 32,
+    "Stranger Things": 42,
+    "Severance": 16,
+    "Silo": 30,
+    "Andor": 23,
+    "The Last of Us": 16,
+    "The Bear": 16,
+    "Fallout": 3,
+    "Shogun": 10,
+    "The Queen's Gambit": 7,
+    "Chernobyl": 5,
+    "Westworld": 32,
+    "Mr. Robot": 45,
+    "Sherlock": 12,
+    "Lost": 100
+  },
+  "source": "https://www.tvmaze.com/api",
+  "license": "CC-BY-SA-4.0",
+  "limitations": "Episode summaries are not exhaustive scene annotations or recovered dialogue."
+}

@@ -8,16 +8,16 @@
 
 ## Why CineScene
 
-Traditional movie search depends on titles, actors, or exact keywords. CineScene builds a searchable memory of each film at two levels:
+Traditional movie search depends on titles, actors, or exact keywords. CineScene indexes two distinct kinds of evidence:
 
-- one embedding for the complete movie or episode;
-- one embedding for every detected scene.
+- overlapping story passages from available plots;
+- individual timestamped scenes from authorized video/subtitle ingestion.
 
-The runtime combines both FAISS indexes with lexical evidence, Persian query expansion, metadata signals, and result collapsing. A user can therefore search for a remembered moment instead of knowing the movie name.
+The runtime combines BGE-large semantic retrieval, BM25, a multilingual E5-base channel for Persian, and MiniLM cross-encoder reranking. Studio and the public PWA use the same ranking design, with private media excluded from the public export. Evidence is max-pooled by parent title. Plot and episode summaries are never labeled as extracted video scenes. Scores are ranking signals, not confidence percentages.
 
 ## Feature Set
 
-- Semantic retrieval across 7,615 indexed titles, including 2,810 public series records.
+- Movie and series retrieval, with separately indexed, attributed episode summaries.
 - Separate scene index with timestamp-level matches.
 - In-app drag-and-drop upload for video and multiple SRT/VTT/ASS/SSA files.
 - Recursive movie and series folder crawler.
@@ -43,9 +43,9 @@ flowchart LR
     B[Local video + subtitles] --> D[Adaptive scene detection]
     D --> E[Keyframes + dialogue + visual captions]
     E --> F[Scene documents]
-    C --> G[Movie FAISS index]
-    F --> H[Scene FAISS index]
-    Q[English or Persian scene query] --> I[Hybrid retrieval]
+    C --> G[BGE + BM25 + multilingual passages]
+    F --> H[Scene vectors + timed text]
+    Q[English or Persian scene query] --> I[Rank fusion + relevance reranking]
     G --> I
     H --> I
     I --> J[Title + matched scene + timestamp]
@@ -58,12 +58,13 @@ See [ARCHITECTURE.md](ARCHITECTURE.md) for component and data-contract details.
 ```powershell
 python -m venv .venv
 .\.venv\Scripts\python.exe -m pip install -r requirements.txt
+.\.venv\Scripts\python.exe scripts/prepare_onnx_models.py bge multilingual reranker
 .\.venv\Scripts\python.exe app.py
 ```
 
 Open `http://127.0.0.1:8000`.
 
-The full runtime also requires local catalog files, model weights, and indexes; these large generated assets are excluded from Git. The public PWA runs independently. On this development machine, `.venv/`, `models/`, and `data/` are directory junctions into `E:\CineSceneCache\cinescene`; `.env` routes model caches and multipart temporary files there too. Existing Python commands continue to use the same project path. See `.env.example` to configure another machine.
+The default `hybrid` engine reads local FAISS indexes and metadata. Prepare the pinned quantized ONNX weights first; the optional `passages` engine is an experimental E5-small ablation, not the release default. On this development machine, `.venv/`, `models/`, and `data/` are directory junctions into `E:\CineSceneCache\cinescene`; `.env` routes model caches and multipart temporary files there too. Existing Python commands continue to use the same project path. See `.env.example` to configure another machine. The indexes and licensed source data are not model weights; a fresh checkout must import/build them before Studio search is available.
 
 The first screen is **Search**. **Your videos** contains uploads, processed timelines, and folder imports; **Saved & history** manages saved titles and past queries; **Settings** holds preferences and expandable runtime diagnostics. English is the interface language, with automatic text direction for Persian searches.
 
@@ -80,6 +81,8 @@ The first screen is **Search**. **Your videos** contains uploads, processed time
 Ingestion is a background job. The UI reports upload progress, scene detection, media intelligence, vector indexing, and the final scene timeline. A full movie-index rebuild is not required after an upload because the independent scene index refreshes automatically.
 
 Use **Explore scenes** to browse the complete timeline, search a dialogue fragment, filter recovered dialogue or vision captions, and play a selected scene. Scene previews are generated and cached as H.264/AAC clips, including when the source container or codec is unsupported by the browser. **Settings > Runtime diagnostics** reports actual dialogue and vision coverage separately from catalog size.
+
+Scene-index refresh reuses vectors only when scene identity, retrieval text, model, precision and context length match. A changed caption/dialogue/context is re-encoded. The repeated synthetic upload reused all 158 scene vectors and existing title passages: preparation fell from 224.95 s to 36.61 s on this CPU development machine. This is a local acceptance observation, not a general processing-speed guarantee.
 
 ## Offline Pipeline
 
@@ -127,7 +130,7 @@ Show.Name.S01E01.en.srt
 
 ## Retrieval Model
 
-The title and scene indexes use `BAAI/bge-large-en-v1.5` (1024 dimensions). An additional `intfloat/multilingual-e5-base` channel indexes compact plot passages and scenes for cross-language recall. Its query/passage prefixes are applied explicitly. Current running models are pretrained; the presence of a training script is not evidence of a successful fine-tuning run.
+The English encoder is BGE-large (1,024 dimensions, CLS pooling, L2 normalization and its retrieval-query instruction). Multilingual E5-base (768 dimensions, masked mean pooling and `query:`/`passage:` prefixes) adds passage recall across languages. Generic bilingual concept expansion can add English recall and reranking for Persian queries; it is not a full translation system. Reciprocal rank fusion combines retrieval channels; MiniLM reranks 40 candidates using summary and matching scene/episode evidence. Unscored retrieval values are never treated as comparable to relevance logits. Encoders load sequentially; CPU ONNX arenas are disabled to bound retained memory. Existing document vectors and new quantized document vectors have separate build provenance. Current models are pretrained; a training script is not evidence of successful fine-tuning.
 
 The optional training pipeline generates positive relations and hard negatives, then trains with `MultipleNegativesRankingLoss` and curriculum stages:
 
@@ -158,9 +161,13 @@ The retrieval benchmark reports Hit@1, Hit@5, MRR@10, per-query rank, and latenc
 
 Run model and browser tests sequentially on memory-constrained Windows machines. Windows can expand its system-managed pagefile on C under memory pressure even when project files and caches are stored on E; relocating project caches does not relocate that operating-system file.
 
-### Verified snapshot
+### Current CPU-ONNX Snapshot
 
-The final local validation on the bundled GTX 1650 Ti runtime produced:
+See `benchmarks/hybrid-quality-latest.json` for the unchanged 27-query development suite and every failure. The targeted 12-case identity suite retrieves the exact reported Edge of Tomorrow query, two English paraphrases and a Persian paraphrase at rank 1. It measures 75% Hit@1 and 91.67% Hit@5; the complex Inception description remains outside the top five. The small E5-only experiment and reranker-consensus experiment were not selected for release. These are development measurements, not held-out accuracy claims.
+
+### Historical Baseline
+
+The earlier GTX 1650 Ti runtime produced the following development snapshot. These are historical measurements, not the current CPU-ONNX release results:
 
 | Check | Result |
 | --- | --- |
@@ -192,6 +199,16 @@ The current index combines the enriched TMDB movie corpus with a normalized publ
 
 `scripts/import_tvmaze_series.py` is also available for environments with TVMaze API access. Provider metadata is treated as title-level recall; true scene retrieval still requires authorized video/subtitle ingestion through **Your videos**.
 
+For deeper series evidence, the idempotent episode importer caches API responses on the data drive, rejects ambiguous show identities and empty summaries, and stores source URLs and CC BY-SA attribution. It does not create fake transcripts or timestamps:
+
+```powershell
+.\.venv\Scripts\python.exe scripts/expand_episode_dataset.py
+.\.venv\Scripts\python.exe scripts/append_catalog_to_index.py --input data/processed/episode_expansion_documents.json --batch-size 4
+.\.venv\Scripts\python.exe scripts/append_multilingual_documents.py
+```
+
+See [Data sources](DATA_SOURCES.md) and `data/processed/episode_expansion_report.json` for exact coverage and licensing. Rebuild the public catalog/index only after the local indexes finish updating.
+
 ## Public PWA
 
 The `docs/` build is published at:
@@ -200,12 +217,16 @@ The `docs/` build is published at:
 https://amin-pourmand.github.io/cinescene
 ```
 
-It contains an installable app shell, browser memory, responsive scene search, local-file preview, 3,412 showcase titles, and five scene records from two synthetic fixtures. GitHub Pages is static hosting, so Python, FAISS, GPU inference, and server-side video ingestion run only in the FastAPI Studio or on a separately deployed Python backend. Browser showcase scores are lexical, not GPU-model scores.
+It contains an installable shell, browser memory, local-file preview, the full public catalog, episode evidence, and five extracted scene records from two synthetic fixtures. Search runs real hybrid inference in a Web Worker through Transformers.js/ONNX WASM, rather than substring keyword scoring. Queries stay on the device. Initial model downloads are about 650 MB, in addition to runtime/catalog/index assets. Model files are fetched from pinned Hugging Face revisions and cached by the browser. Loading, cancellation, cache removal and errors are explicit; there is no silent lexical fallback. Browser caches use the browser's configured profile storage, which may be on C; project storage settings cannot move that profile.
+
+GitHub Pages cannot run Python or analyze uploaded feature films. Real video/subtitle ingestion still runs in the local FastAPI Studio. Optional speech/vision models run in a short-lived subprocess so their memory is released after analysis.
 
 Refresh and publish it with:
 
 ```powershell
 .\.venv\Scripts\python.exe .\scripts\build_pwa_catalog.py
+.\.venv\Scripts\python.exe .\scripts\build_browser_index.py
+.\.venv\Scripts\python.exe .\scripts\validate_public_index.py
 .\scripts\publish_github_pages.ps1
 ```
 
@@ -223,8 +244,11 @@ The public-catalog builder strips local source paths and excludes local uploads 
 | `frontend/` | Full backend-connected Retrieval Studio |
 | `ingestion/offline_video.py` | Scene detection and catalog document creation |
 | `ingestion/media_intelligence.py` | FFmpeg, faster-whisper, and BLIP adapters |
-| `hybrid_search.py` | Dual-index retrieval, ranking, and title collapsing |
+| `core/passage_search.py` | Experimental E5-small ablation, not the release engine |
+| `core/onnx_models.py` | Bounded-memory encoder and reranker inference |
+| `hybrid_search.py` | Default hybrid retrieval and evidence ranking |
+| `backend/media_worker.py` | Isolated speech/vision analysis subprocess |
 | `scene_index.py` | Independent per-scene FAISS index builder |
 | `query_processor.py` | English/Persian normalization and query expansion |
-| `docs/` | Public installable PWA showcase |
+| `docs/` | Public installable PWA with on-device semantic inference |
 | `scripts/` | Crawling, benchmarks, visual tests, and publishing |

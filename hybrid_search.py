@@ -20,20 +20,13 @@ from typing import Dict, List, Optional, Tuple
 
 import faiss
 import numpy as np
-import torch
 from query_processor import QueryProcessor
-from sentence_transformers import SentenceTransformer
+from core.onnx_models import LazyOnnxEncoder, OnnxReranker, available as onnx_available
 
 try:
     from rank_bm25 import BM25Okapi
 except Exception:  # pragma: no cover - dependency fallback
     BM25Okapi = None
-
-try:
-    from sentence_transformers import CrossEncoder
-except Exception:  # pragma: no cover - dependency fallback
-    CrossEncoder = None
-
 
 LOCAL_BGE_PATH = Path("models/bge-large-en-v1.5")
 LEXICAL_STOPWORDS = {
@@ -113,19 +106,26 @@ class HybridSearchEngine:
             )
 
         print(f"Loading embedding model: {self.model_path}")
-        self.device = os.getenv("CINESCENE_EMBEDDING_DEVICE") or ("cuda" if torch.cuda.is_available() else "cpu")
-        if self.device not in {"cuda", "cpu"}:
-            raise ValueError("CINESCENE_EMBEDDING_DEVICE must be cpu or cuda")
-        use_fp16 = self.device == "cuda" and os.getenv("CINESCENE_EMBEDDING_FP16", "0") == "1"
-        self.precision = "float16" if use_fp16 else "float32"
-        self.model = SentenceTransformer(self.model_path, device=self.device)
+        self.runtime = os.getenv("CINESCENE_MODEL_RUNTIME", "onnx")
+        if self.runtime == "onnx":
+            if not onnx_available(self.model_path):
+                raise FileNotFoundError("Quantized models are missing. Run scripts/prepare_onnx_models.py first.")
+            self.device, self.precision = "cpu", "int8"
+            self.model = LazyOnnxEncoder(self.model_path)
+        else:
+            import torch
+            from sentence_transformers import SentenceTransformer
+
+            self.device = os.getenv("CINESCENE_EMBEDDING_DEVICE") or ("cuda" if torch.cuda.is_available() else "cpu")
+            use_fp16 = self.device == "cuda" and os.getenv("CINESCENE_EMBEDDING_FP16", "0") == "1"
+            self.precision = "float16" if use_fp16 else "float32"
+            self.model = SentenceTransformer(self.model_path, device=self.device)
+            if use_fp16:
+                self.model.half()
         self.model.max_seq_length = min(
             int(self.model.max_seq_length),
             max(64, int(os.getenv("CINESCENE_EMBEDDING_MAX_SEQ", "256"))),
         )
-        if use_fp16:
-            self.model.half()
-
         print(f"Loading FAISS index: {self.index_path}")
         self.index = faiss.read_index(self.index_path)
 
@@ -138,6 +138,15 @@ class HybridSearchEngine:
         self.scene_index, self.scene_metadata = load_scene_index(expected_dimension=int(self.index.d))
         self.scene_offset = len(self.movie_metadata)
         self.metadata = self.movie_metadata + self.scene_metadata
+        series_path = Path("data/processed/tv_series_enriched.json")
+        if series_path.exists():
+            series_rows = json.loads(series_path.read_text(encoding="utf-8"))
+            years = {str(row["id"]): str(row["premiered"])[:4] for row in series_rows
+                     if row.get("premiere_source") and re.match(r"^\d{4}-\d{2}-\d{2}$", str(row.get("premiered") or ""))}
+            for row in self.metadata:
+                year = years.get(str(row.get("parent_id") or row.get("id")))
+                if year:
+                    row["year"] = year
         self.parent_metadata = {
             str(item.get("id")): item
             for item in self.movie_metadata
@@ -159,17 +168,22 @@ class HybridSearchEngine:
         self._build_lexical_index()
 
         self.cross_encoder = None
-        if enable_reranker and CrossEncoder is not None:
+        if enable_reranker:
             try:
                 print(f"Loading cross-encoder: {cross_encoder_name}")
                 local_reranker = Path("models/ms-marco-MiniLM-L-6-v2")
                 reference = str(local_reranker) if (local_reranker / "config.json").exists() else cross_encoder_name
-                self.cross_encoder = CrossEncoder(reference, device="cpu", max_length=384)
+                if self.runtime == "onnx":
+                    self.cross_encoder = OnnxReranker(reference, max_length=384)
+                else:
+                    from sentence_transformers import CrossEncoder
+
+                    self.cross_encoder = CrossEncoder(reference, device="cpu", max_length=384)
             except Exception as exc:
                 print(f"Cross-encoder unavailable, continuing without reranking: {exc}")
 
         print(
-            f"Hybrid search ready with {len(self.movie_metadata)} titles and "
+            f"Hybrid search ready with {len({str(row.get('parent_id') or row.get('id')) for row in self.movie_metadata})} titles and "
             f"{len(self.scene_metadata)} scene vectors"
         )
 
@@ -234,7 +248,8 @@ class HybridSearchEngine:
         return normalized
 
     def vector_search(self, query: str, k: int = 50) -> List[Tuple[int, float]]:
-        query_emb = self.model.encode(query, convert_to_numpy=True, normalize_embeddings=True).astype("float32")
+        query_text = "Represent this sentence for searching relevant passages: " + query
+        query_emb = self.model.encode(query_text, convert_to_numpy=True, normalize_embeddings=True).astype("float32")
         query_emb = query_emb.reshape(1, -1)
         movie_k = min(k, len(self.movie_metadata))
         distances, indices = self.index.search(query_emb, movie_k)
@@ -299,6 +314,7 @@ class HybridSearchEngine:
         if not query_terms:
             return results
 
+        is_persian = bool(re.search(r"[\u0600-\u06ff]", query))
         boosted = []
         for idx, score in results:
             meta = self.metadata[idx]
@@ -310,9 +326,14 @@ class HybridSearchEngine:
             if meta.get("record_type") == "scene" and overlap >= 2:
                 transcript_terms = self.transcript_token_sets[idx]
                 transcript_overlap = len(query_terms & transcript_terms)
-                source_boost = 0.012 * transcript_overlap / max(1, len(query_terms))
+                coverage = transcript_overlap / len(query_terms)
+                if transcript_overlap >= 2 and coverage >= 0.65:
+                    source_boost = 0.018 * coverage
             title_boost = 0.008 * title_overlap / len(query_terms)
-            boosted.append((idx, score + 0.008 * overlap / len(query_terms) + title_boost + source_boost))
+            # A few common Persian words in a long local transcript must not beat
+            # cross-language evidence over the entire English-language catalog.
+            overlap_boost = 0.0 if is_persian else 0.008 * overlap / len(query_terms)
+            boosted.append((idx, score + overlap_boost + title_boost + source_boost))
         boosted.sort(key=lambda item: item[1], reverse=True)
         return boosted
 
@@ -324,9 +345,15 @@ class HybridSearchEngine:
             if filters.get("media_type") in {"movie", "series"} and meta.get("media_type", "movie") != filters["media_type"]:
                 continue
             if filters.get("genres"):
-                meta_genres = set(meta.get("genres", []) or [])
+                meta_genres = {genre.replace("Science-Fiction", "Science Fiction") for genre in meta.get("genres", []) or []}
                 if not any(genre in meta_genres for genre in filters["genres"]):
                     continue
+            if {genre.replace("Science-Fiction", "Science Fiction") for genre in meta.get("genres", []) or []} & set(filters.get("excluded_genres", [])):
+                continue
+            if filters.get("scope") == "scenes" and meta.get("record_type") != "scene":
+                continue
+            if filters.get("scope") == "catalog" and meta.get("record_type") == "scene":
+                continue
 
             if filters.get("year_range"):
                 try:
@@ -347,7 +374,7 @@ class HybridSearchEngine:
     def _format_result(self, idx: int, score: float, rank: int, matched_scenes: Optional[List[Dict]] = None) -> Dict:
         candidate = self.metadata[idx]
         parent_id = candidate.get("parent_id") or candidate.get("id")
-        meta = candidate if candidate.get("record_type") == "scene" else self.parent_metadata.get(str(parent_id), candidate)
+        meta = self.parent_metadata.get(str(parent_id), candidate)
         scene_matches = matched_scenes or []
         timeline = meta.get("scene_timeline", []) or []
         if not timeline and scene_matches:
@@ -370,6 +397,9 @@ class HybridSearchEngine:
             "scene_timeline": timeline,
             "matched_scene": scene_matches[0] if scene_matches else None,
             "matched_scenes": scene_matches,
+            "matched_episode": candidate.get("matched_episode"),
+            "evidence": candidate.get("overview", "") if candidate.get("record_type") == "episode" else meta.get("overview", ""),
+            "evidence_kind": "episode" if candidate.get("record_type") == "episode" else "story",
             "scene_count": meta.get("scene_count"),
             "first_keyframe": meta.get("first_keyframe"),
             "visual_tags": meta.get("visual_tags", []) or [],
@@ -402,7 +432,7 @@ class HybridSearchEngine:
             collapsed.append((group["idx"], float(group["score"]), scenes[:5]))
         return sorted(collapsed, key=lambda item: item[1], reverse=True)
 
-    def rerank_titles(self, query: str, candidates, limit: int = 80):
+    def rerank_titles(self, query: str, candidates, limit: int = 40):
         if self.cross_encoder is None or not candidates or re.search(r"[\u0600-\u06ff]", query):
             return candidates
         selected = candidates[:limit]
@@ -416,16 +446,22 @@ class HybridSearchEngine:
             pairs.append([query, text])
         scores = self.cross_encoder.predict(pairs, batch_size=16, show_progress_bar=False)
         reranked = [(idx, float(score), scenes) for (idx, _, scenes), score in zip(selected, scores)]
-        # Keep the reranked shortlist ordered; unscored fusion values use a different scale.
+        # Unscored retrieval scores and relevance logits are different scales.
         return sorted(reranked, key=lambda item: item[1], reverse=True) + candidates[limit:]
 
-    def search(self, query: str, top_k: int = 10, use_reranking: bool = True, mode: str = "hybrid", media_type: str = "all") -> List[Dict]:
+    def search(self, query: str, top_k: int = 10, use_reranking: bool = True, mode: str = "hybrid", media_type: str = "all", scope: str = "all") -> List[Dict]:
         if mode not in {"hybrid", "semantic", "lexical", "multilingual"}:
             raise ValueError("Unknown retrieval mode")
+        if scope not in {"all", "scenes", "catalog"}:
+            raise ValueError("Unknown search scope")
         processed = self.query_processor.process(query)
         search_query = processed["expanded"]
+        is_persian = bool(re.search(r"[\u0600-\u06ff]", processed["cleaned"]))
+        concepts = " ".join(word for word in search_query.split() if word.isascii()) if is_persian else ""
+        translated = is_persian and len(self._lexical_tokens(concepts)) >= 3
         filters = processed["filters"]
         filters["media_type"] = media_type
+        filters["scope"] = scope
 
         if mode == "semantic":
             fused_results = self.vector_search(search_query, k=120)
@@ -437,14 +473,13 @@ class HybridSearchEngine:
             fused_results = self.lexical_search(search_query, k=120)
         else:
             multilingual_results = self.multilingual.search(processed["cleaned"], k=150) if self.multilingual else []
-            is_persian = bool(re.search(r"[\u0600-\u06ff]", processed["cleaned"]))
-            vector_results = [] if is_persian and multilingual_results else self.vector_search(search_query, k=100)
-            lexical_results = self.lexical_search(processed["cleaned"], k=100)
-            if is_persian and multilingual_results:
+            vector_results = self.vector_search(concepts if translated else search_query, k=100) if not is_persian or translated else []
+            lexical_results = self.lexical_search(concepts if translated else processed["cleaned"], k=100)
+            if is_persian and multilingual_results and not translated:
                 # Most catalog text is English; lexical ranks over a few Persian subtitle
                 # tracks are not comparable to multilingual recall over the whole catalog.
                 lexical_scores = self.reciprocal_rank_fusion([], lexical_results)
-                fused_results = [(idx, score * 0.5) for idx, score in lexical_scores]
+                fused_results = [(idx, score * 0.15) for idx, score in lexical_scores]
             else:
                 fused_results = self.reciprocal_rank_fusion(vector_results, lexical_results)
             if multilingual_results:
@@ -454,12 +489,12 @@ class HybridSearchEngine:
                 fused_results = sorted(scores.items(), key=lambda item: item[1], reverse=True)
             fused_results = self.lexical_boost(processed["cleaned"], fused_results)
 
-        if filters.get("genres") or filters.get("year_range") or filters.get("director") or media_type != "all":
+        if filters.get("genres") or filters.get("excluded_genres") or filters.get("year_range") or filters.get("director") or media_type != "all" or scope != "all":
             fused_results = self.apply_filters(fused_results, filters)
 
         collapsed = self._collapse_titles(fused_results)
         if use_reranking:
-            collapsed = self.rerank_titles(processed["cleaned"], collapsed)
+            collapsed = self.rerank_titles(concepts if translated else processed["cleaned"], collapsed)
         return [
             self._format_result(idx, score, rank + 1, matched_scenes=scenes)
             for rank, (idx, score, scenes) in enumerate(collapsed[:top_k])
@@ -467,7 +502,8 @@ class HybridSearchEngine:
 
     def status(self) -> Dict:
         return {
-            "movies": len(self.movie_metadata),
+            "movies": len({str(row.get("parent_id") or row.get("id")) for row in self.movie_metadata}),
+            "episode_vectors": sum(row.get("record_type") == "episode" for row in self.movie_metadata),
             "scene_vectors": len(self.scene_metadata),
             "index_vectors": int(self.index.ntotal) + (int(self.scene_index.ntotal) if self.scene_index is not None else 0),
             "movie_vectors": int(self.index.ntotal),
@@ -475,13 +511,14 @@ class HybridSearchEngine:
             "embedding_dimension": int(self.index.d),
             "device": self.device,
             "precision": self.precision,
+            "runtime": self.runtime,
             "index_path": self.index_path,
             "metadata_path": self.metadata_path,
             "reranker": bool(self.cross_encoder),
             "multilingual": self.multilingual is not None,
             "multilingual_model": self.multilingual.model_path if self.multilingual else None,
             "multilingual_vectors": int(self.multilingual.index.ntotal) if self.multilingual else 0,
-            "fusion_version": "rrf-v3-max-evidence",
+            "fusion_version": "rrf-v6-multilingual-relevance",
             "multilingual_error": self.multilingual_error,
             "lexical": "bm25" if self.bm25 is not None else "token_overlap",
         }

@@ -8,6 +8,7 @@ return the correct movie, episode, and timecode.
 from __future__ import annotations
 
 import gc
+import hashlib
 import json
 import pickle
 from pathlib import Path
@@ -15,8 +16,7 @@ from typing import Dict, Iterable, List, Tuple
 
 import faiss
 import numpy as np
-import torch
-from sentence_transformers import SentenceTransformer
+import os
 
 from build_index_v2 import as_text_list, clean_text, resolve_model_path
 
@@ -123,24 +123,51 @@ def build_scene_index(
         movie_report = json.loads(movie_report_path.read_text(encoding="utf-8")) if movie_report_path.exists() else {}
         model_path = str(movie_report.get("model") or "models/bge-large-en-v1.5")
     resolved_model = resolve_model_path(model_path, use_base_model=False)
-    device = "cuda" if torch.cuda.is_available() else "cpu"
-    precision = "float16" if device == "cuda" and fp16 else "float32"
-    model = SentenceTransformer(resolved_model, device=device)
+    if os.getenv("CINESCENE_MODEL_RUNTIME", "onnx") == "onnx":
+        from core.onnx_models import OnnxEncoder
+
+        device, precision = "cpu", "int8"
+        model = OnnxEncoder(resolved_model, max_length=max_seq_length)
+    else:
+        import torch
+        from sentence_transformers import SentenceTransformer
+
+        device = "cuda" if torch.cuda.is_available() else "cpu"
+        precision = "float16" if device == "cuda" and fp16 else "float32"
+        model = SentenceTransformer(resolved_model, device=device)
     model.max_seq_length = min(int(model.max_seq_length), max(64, int(max_seq_length)))
     if precision == "float16":
         model.half()
     dimension = int(model.get_sentence_embedding_dimension())
 
-    if documents:
-        embeddings = model.encode(
-            documents,
-            batch_size=batch_size,
+    embeddings = np.empty((len(documents), dimension), dtype="float32")
+    cached = {}
+    from core.onnx_models import model_folder
+    artifact = model_folder(resolved_model) / "artifact_manifest.json"
+    signature = hashlib.sha256(artifact.read_bytes()).hexdigest() if precision == "int8" and artifact.exists() else None
+    previous = json.loads(SCENE_REPORT_PATH.read_text(encoding="utf-8")) if SCENE_REPORT_PATH.exists() else {}
+    compatible = (previous.get("model") == resolved_model and previous.get("precision") == precision
+                  and previous.get("max_seq_length") == model.max_seq_length
+                  and previous.get("artifact_sha256") in {None, signature})
+    if compatible:
+        old_index, old_metadata = load_scene_index(expected_dimension=dimension)
+        if old_index is not None:
+            cached = {(str(row.get("id")), row.get("rich_text")): i for i, row in enumerate(old_metadata)}
+    missing = []
+    for i, (document, row) in enumerate(zip(documents, metadata)):
+        old = cached.get((str(row.get("id")), document))
+        if old is None:
+            missing.append(i)
+        else:
+            embeddings[i] = old_index.reconstruct(old)
+    if missing:
+        embeddings[missing] = model.encode(
+            [documents[i] for i in missing],
+            batch_size=min(batch_size, 4) if device == "cpu" else batch_size,
             show_progress_bar=False,
             convert_to_numpy=True,
             normalize_embeddings=True,
         ).astype("float32")
-    else:
-        embeddings = np.empty((0, dimension), dtype="float32")
 
     index = faiss.IndexFlatIP(dimension)
     if len(embeddings):
@@ -153,6 +180,9 @@ def build_scene_index(
 
     report = {
         "scene_vectors": len(metadata),
+        "reused_scene_vectors": len(documents) - len(missing),
+        "encoded_scene_vectors": len(missing),
+        "artifact_sha256": signature,
         "offline_titles": len({str(item.get('parent_id')) for item in metadata}),
         "embedding_dimension": dimension,
         "model": resolved_model,
@@ -167,7 +197,7 @@ def build_scene_index(
     SCENE_REPORT_PATH.write_text(json.dumps(report, indent=2, ensure_ascii=False), encoding="utf-8")
     del model
     gc.collect()
-    if torch.cuda.is_available():
+    if device == "cuda":
         torch.cuda.empty_cache()
     return report
 

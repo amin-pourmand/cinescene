@@ -156,7 +156,7 @@ function matchedScene(movie) {
 
 function renderResults(results) {
   state.results = results || [];
-  els.resultCount.textContent = state.results.length ? `${state.results.length} ranked titles` : "No matches";
+  els.resultCount.textContent = state.results.length ? `${state.results.length} semantic matches` : "No matches";
   if (!state.results.length) {
     els.results.className = "results-grid empty-results";
     els.results.innerHTML = `<div class="empty-visual"><i data-lucide="circle-slash-2"></i></div><strong>No close matches found.</strong><span>Try dialogue fragments, a visible action, a location, or the mood of the scene.</span>`;
@@ -179,6 +179,7 @@ function renderResults(results) {
         <div class="result-title-row"><div><button class="title-link" data-action="details" data-index="${index}" type="button">${escapeHtml(movie.title)}</button><small>${escapeHtml(mediaLabel(movie))}${ui.known(movie.year) ? ` · ${escapeHtml(movie.year)}` : ""}${movie.director && movie.director !== "Unknown" ? ` · ${escapeHtml(movie.director)}` : ""}</small></div></div>
         ${movie.source === "offline_video_ingestion" ? "" : `<p class="result-overview">${escapeHtml(movie.overview || "")}</p>`}
         ${scene ? `<div class="matched-scene"><div class="scene-label"><span>Best matching scene</span><time>${timecode(scene.start_sec)} - ${timecode(scene.end_sec)}</time></div><p dir="auto">${escapeHtml(text)}</p></div>` : ""}
+        ${!scene && movie.evidence ? `<details class="story-evidence"><summary>${movie.matched_episode ? `Episode S${String(movie.matched_episode.season).padStart(2, "0")}E${String(movie.matched_episode.episode).padStart(2, "0")} · ${escapeHtml(movie.matched_episode.name)}` : "Matching story passage"}</summary><p dir="auto">${escapeHtml(movie.evidence)}</p>${movie.matched_episode?.source_url ? `<a href="${escapeHtml(movie.matched_episode.source_url)}" target="_blank" rel="noopener">Episode summary: TVmaze · CC BY-SA</a>` : ""}</details>` : ""}
         <div class="result-evidence"><i data-lucide="${scene ? "captions" : "book-open"}"></i><span>${scene?.transcript ? "Dialogue match" : scene ? "Visual match" : "Story match"}</span></div>
         <div class="chip-row">${chips(tags, 3)}</div>
         <div class="result-actions">
@@ -828,7 +829,7 @@ resumeActiveJob();
 const sharedSearch = ui.readSearch();
 if ([...els.mediaTypeInput.options].some((option) => option.value === sharedSearch.type)) els.mediaTypeInput.value = sharedSearch.type;
 els.topKInput.value = state.view === "discover" && new URL(location.href).searchParams.has("count") ? sharedSearch.count : Math.min(20, Math.max(1, Number(localStorage.getItem("cinescene-results-count")) || 8));
-els.rerankInput.checked = localStorage.getItem("cinescene-rerank") === "1";
+els.rerankInput.checked = localStorage.getItem("cinescene-rerank") !== "0";
 els.topKInput.addEventListener("change", () => { els.topKInput.value = Math.min(20, Math.max(1, Number(els.topKInput.value) || 8)); localStorage.setItem("cinescene-results-count", els.topKInput.value); });
 els.rerankInput.addEventListener("change", () => localStorage.setItem("cinescene-rerank", els.rerankInput.checked ? "1" : "0"));
 if (sharedSearch.query) {

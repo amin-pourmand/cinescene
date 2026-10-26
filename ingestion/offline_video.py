@@ -34,6 +34,7 @@ INGESTION_DIR = Path("data/processed/video_ingestion")
 KEYFRAME_DIR = INGESTION_DIR / "keyframes"
 OFFLINE_CATALOG = Path("data/processed/offline_media_enriched.json")
 SERIES_CATALOG = Path("data/processed/tv_series_enriched.json")
+EPISODE_CATALOG = Path("data/processed/tv_episodes_enriched.json")
 COMBINED_CATALOG = Path("data/processed/cinescene_catalog.json")
 VIDEO_EXTENSIONS = {".mp4", ".mkv", ".avi", ".mov", ".webm", ".m4v", ".wmv"}
 SUBTITLE_EXTENSIONS = {".srt", ".vtt", ".ass", ".ssa"}
@@ -682,7 +683,7 @@ def rebuild_offline_catalog_from_scene_files() -> Dict:
     save_json_list(OFFLINE_CATALOG, offline_catalog)
     tmdb_catalog = load_json_list(Path("data/processed/movies_enriched.json"))
     series_catalog = load_json_list(SERIES_CATALOG)
-    save_json_list(COMBINED_CATALOG, tmdb_catalog + series_catalog + offline_catalog)
+    save_json_list(COMBINED_CATALOG, tmdb_catalog + series_catalog + offline_catalog + load_json_list(EPISODE_CATALOG))
     return {
         "documents": len(offline_catalog),
         "recovered_documents": len(recovered),
@@ -868,7 +869,7 @@ def crawl_offline_videos(
 
         tmdb_catalog = load_json_list(Path("data/processed/movies_enriched.json"))
         series_catalog = load_json_list(SERIES_CATALOG)
-        combined = tmdb_catalog + series_catalog + offline_catalog
+        combined = tmdb_catalog + series_catalog + offline_catalog + load_json_list(EPISODE_CATALOG)
         save_json_list(COMBINED_CATALOG, combined)
     else:
         offline_catalog = load_json_list(OFFLINE_CATALOG)

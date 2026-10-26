@@ -1,0 +1,78 @@
+{
+  "generated_at": "2026-10-26T06:52:16.793856+00:00",
+  "model": "models\\bge-large-en-v1.5",
+  "device": "cpu",
+  "precision": "int8",
+  "embedding_dimension": 1024,
+  "reranker": true,
+  "transport": "http",
+  "multilingual": true,
+  "multilingual_model": "models\\multilingual-e5-base",
+  "multilingual_vectors": 23339,
+  "fusion_version": "rrf-v6-multilingual-relevance",
+  "cases": 3,
+  "hit_at_1": 1.0,
+  "hit_at_5": 1.0,
+  "mrr_at_10": 1.0,
+  "evaluation_version": 2,
+  "matching": "exact normalized title or explicit id/alias; sequels are distinct",
+  "suite_sha256": "0f84949173614e5de79e2f8190975fd8048744eac474be7b76e46589507d64f1",
+  "suite_description": "Small source-informed episode acceptance checks, not a held-out benchmark. Exact parent title and episode identity are required.",
+  "retrieval_mode": "hybrid",
+  "by_category": {
+    "episode_identity": {
+      "cases": 3,
+      "hit_at_1": 1.0,
+      "hit_at_5": 1.0,
+      "mrr_at_10": 1.0
+    }
+  },
+  "mean_latency_sec": 4.0084,
+  "movie_vectors": 8163,
+  "scene_vectors": 158,
+  "index_vectors": 8321,
+  "rows": [
+    {
+      "query": "a chemist refuses to make meth because a fly is contaminating his laboratory",
+      "expected": [
+        "Breaking Bad"
+      ],
+      "category": "episode_identity",
+      "rank": 1,
+      "top_3": [
+        "Breaking Bad",
+        "Spun",
+        "Chill Factor"
+      ],
+      "latency_sec": 3.411
+    },
+    {
+      "query": "a jealous husband replays recorded memories through an implant to investigate his wife's affair",
+      "expected": [
+        "Black Mirror"
+      ],
+      "category": "episode_identity",
+      "rank": 1,
+      "top_3": [
+        "Black Mirror",
+        "The End of the Affair",
+        "Sex, Lies, and Videotape"
+      ],
+      "latency_sec": 4.28
+    },
+    {
+      "query": "Moriarty sets a final problem while a tabloid journalist publishes allegations about a London detective",
+      "expected": [
+        "Sherlock"
+      ],
+      "category": "episode_identity",
+      "rank": 1,
+      "top_3": [
+        "Sherlock",
+        "Collateral",
+        "Criminal: UK"
+      ],
+      "latency_sec": 4.335
+    }
+  ]
+}

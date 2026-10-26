@@ -94,17 +94,27 @@ data/index/scene_metadata.pkl
 
 ## Ranking
 
-`hybrid_search.py` loads the title and scene indexes into one retrieval engine. `multilingual_index.py` adds an E5 channel with `query:`/`passage:` prefixes. Long plots are split into overlapping passages so later details are not lost to encoder truncation. Scene-only refreshes reuse title vectors only when the model and title keys match.
+### Default Hybrid Engine
+
+`hybrid_search.py` is the native engine; `docs/assets/semantic-worker.mjs` and `hybrid-ranking.mjs` implement its portable public counterpart. `scripts/build_browser_index.py` exports public-only normalized vectors, precomputed BM25 posting contributions, processor rules and evidence references. The manifest pins model revisions and hashes catalog/vector/posting files. Private source paths and unallowlisted local scenes are excluded.
 
 1. Normalize and expand the query in `query_processor.py`.
-2. Search movie vectors, scene vectors, and multilingual passages. Persian queries use the multilingual channel instead of the English-only BGE channel when available.
+2. English queries use BGE title/scene vectors, E5-base passages and BM25. Persian queries use E5-base passages; generic bilingual concept expansion may add BGE/BM25 recall when enough English concepts are available.
 3. Add lexical evidence from title, plot, scene transcript, captions, tags, and metadata.
 4. Prefer transcript overlap for dialogue-like scene queries.
-5. Collapse multiple scene hits to one movie or episode.
+5. Collapse title, scene and episode evidence to one parent title using maximum score, not document-count bonuses.
 6. Preserve the best scene and a short list of additional matching scenes.
 7. Return a stable ranked response with title score, scene score, frame, and timecode.
 
-Optional English cross-encoder reranking operates on collapsed title candidates; unscored fusion values are never sorted together with cross-encoder logits. Movie/series filtering is explicit. Scores are ranking signals, not calibrated confidence percentages.
+MiniLM cross-encoder reranking is enabled by default for 40 candidates, in batches of four. It scores English descriptions or expanded English concepts, never raw Persian with an English-only model. Raw logits and fusion values are never mixed as comparable scores. The unscored tail remains after the reranked shortlist. A rank-consensus ablation improved some broad queries but hurt the targeted identity suite and was not selected as the release policy. Scores are ranking signals, not calibrated confidence percentages.
+
+Both runtimes use pinned int8 ONNX query inference. BGE uses CLS pooling and its query instruction; E5 uses masked mean pooling and query/passage prefixes. Encoders load sequentially and release their sessions; ONNX CPU memory arenas/patterns are disabled. The browser reports downloads, supports cancellation and verifies data checksums. Inference stays on-device, while model downloads contact Hugging Face. Optional BLIP/Whisper analysis runs in a child process with structured progress and exits before index refresh.
+
+TVmaze episode records have a unique record ID and a parent show ID. Their summaries and season/episode/source metadata remain distinct from recovered video scenes: no timestamp or transcript is fabricated. A matching episode is returned as `matched_episode`; its synopsis can be inspected independently of the series overview. See [Data sources](DATA_SOURCES.md).
+
+### Experimental Passage Engine
+
+`CINESCENE_SEARCH_ENGINE=passages` selects the E5-small full-plot ablation. Its assets live under `data/index/passage_experiment/`, not the public release. It was not selected as the default because the broader development benchmark regressed. Preserve the failed experiment report rather than presenting one corrected example as general accuracy.
 
 The output is parent-title oriented, so ten matching moments from one movie do not occupy ten result cards.
 
@@ -141,7 +151,7 @@ The backend-connected app in `frontend/` contains four workspaces:
 - **Library:** persistent history, favorites, and ingestion records.
 - **System:** runtime capabilities and index diagnostics.
 
-The public `docs/` build shares the visual language and browser memory but is intentionally static. GitHub Pages cannot execute the Python/GPU pipeline.
+The public `docs/` build shares the visual language and browser memory. GitHub Pages serves its static assets, while semantic inference runs inside the browser. Python/GPU video ingestion still requires Studio; selecting a video in the public PWA previews it but does not claim to analyze it.
 
 ## Storage And Recovery
 

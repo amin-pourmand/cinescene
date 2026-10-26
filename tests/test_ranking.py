@@ -45,6 +45,16 @@ class RankingTests(unittest.TestCase):
         self.engine.metadata = [{"media_type": "movie"}, {"media_type": "series"}]
         self.assertEqual(self.engine.apply_filters([(0, 1), (1, .9)], {"media_type": "series"}), [(1, .9)])
 
+    def test_episode_evidence_collapses_to_parent_without_fake_scene(self):
+        self.engine.metadata = [{"id": "episode:1", "parent_id": "show:1", "record_type": "episode", "title": "A Show",
+                                 "overview": "An episode event", "matched_episode": {"season": 2, "episode": 3}}]
+        self.engine.parent_metadata = {"show:1": {"id": "show:1", "title": "A Show", "overview": "Series synopsis"}}
+        result = self.engine._format_result(0, 1, 1)
+        self.assertEqual(result["id"], "show:1")
+        self.assertEqual(result["evidence"], "An episode event")
+        self.assertEqual(result["matched_episode"]["episode"], 3)
+        self.assertIsNone(result["matched_scene"])
+
     def test_unscored_fusion_values_do_not_jump_above_negative_reranker_logits(self):
         class FakeReranker:
             def predict(self, pairs, **kwargs):

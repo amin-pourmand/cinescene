@@ -11,7 +11,8 @@ import re
 import threading
 import time
 import traceback
-from functools import wraps
+import sys
+from functools import lru_cache, wraps
 from pathlib import Path
 from typing import Dict, List, Literal, Optional
 from uuid import uuid4
@@ -67,8 +68,9 @@ SEARCH_ENGINE_LOADED = False
 class SearchRequest(BaseModel):
     query: str = Field(..., min_length=1, max_length=1000)
     top_k: int = Field(8, ge=1, le=20)
-    use_reranking: bool = False
+    use_reranking: bool = True
     media_type: Literal["all", "movie", "series"] = "all"
+    scope: Literal["all", "scenes", "catalog"] = "all"
 
     @model_validator(mode="after")
     def nonempty_query(self):
@@ -183,10 +185,15 @@ def get_search_engine():
         if SEARCH_ENGINE_LOADED:
             return SEARCH_ENGINE, SEARCH_ENGINE_ERROR
         try:
-            from hybrid_search import HybridSearchEngine
-
             enable_reranker = os.getenv("CINESCENE_ENABLE_RERANKER", "1") == "1"
-            SEARCH_ENGINE = HybridSearchEngine(enable_reranker=enable_reranker)
+            if os.getenv("CINESCENE_SEARCH_ENGINE", "hybrid") == "passages":
+                from core.passage_search import PassageSearchEngine
+
+                SEARCH_ENGINE = PassageSearchEngine(enable_reranker=enable_reranker)
+            else:
+                from hybrid_search import HybridSearchEngine
+
+                SEARCH_ENGINE = HybridSearchEngine(enable_reranker=enable_reranker)
             SEARCH_ENGINE_ERROR = None
         except Exception as exc:
             SEARCH_ENGINE = None
@@ -217,8 +224,9 @@ def release_runtime_models(include_media: bool = False):
             pass
     gc.collect()
     try:
-        import torch
-
+        torch = sys.modules.get("torch")
+        if torch is None:
+            return
         if torch.cuda.is_available():
             torch.cuda.empty_cache()
     except Exception:
@@ -226,6 +234,12 @@ def release_runtime_models(include_media: bool = False):
 
 
 def rebuild_scene_index_safely(model_path: str, batch_size: int = 16) -> Dict:
+    if os.getenv("CINESCENE_SEARCH_ENGINE", "hybrid") == "passages":
+        release_runtime_models(include_media=True)
+        engine, error = get_search_engine()
+        if error:
+            raise RuntimeError(error)
+        return engine.status()
     from scene_index import build_scene_index
 
     with ENGINE_LOCK:
@@ -266,14 +280,26 @@ def rebuild_all_indexes_safely(payload: IndexBuildRequest, input_path: str, befo
         return scene_report, engine, error
 
 
+@lru_cache(maxsize=4)
+def _json_snapshot(path: str, modified: int, size: int):
+    with open(path, "r", encoding="utf-8") as handle:
+        return json.load(handle)
+
+
 def read_json(path: Path, default):
     try:
         if not path.exists():
             return default
-        with open(path, "r", encoding="utf-8") as f:
-            return json.load(f)
+        stat = path.stat()
+        return _json_snapshot(str(path), stat.st_mtime_ns, stat.st_size)
     except Exception:
         return default
+
+
+def catalog_document_count() -> int:
+    if SEARCH_ENGINE is not None:
+        return len({str(item.get("parent_id") or item.get("id")) for item in SEARCH_ENGINE.metadata})
+    return int(read_json(INDEX_REPORT_PATH, {}).get("movies_indexed") or 0)
 
 
 def active_embedding_model() -> str:
@@ -359,16 +385,15 @@ async def save_upload(upload: UploadFile, target: Path, max_bytes: int = MAX_UPL
 def runtime_status():
     cuda = {"available": False, "device": None}
     try:
-        import torch
-
-        cuda["available"] = bool(torch.cuda.is_available())
-        if cuda["available"]:
-            cuda["device"] = torch.cuda.get_device_name(0)
+        torch = sys.modules.get("torch")
+        if torch is not None:
+            cuda["available"] = bool(torch.cuda.is_available())
+            if cuda["available"]:
+                cuda["device"] = torch.cuda.get_device_name(0)
     except Exception:
         pass
 
     offline_catalog = read_json(OFFLINE_CATALOG_PATH, [])
-    combined_catalog = read_json(COMBINED_CATALOG_PATH, [])
     index_report = read_json(INDEX_REPORT_PATH, {})
     scene_index_report = read_json(ROOT / "data" / "index" / "scene_index_report.json", {})
     return {
@@ -377,7 +402,7 @@ def runtime_status():
         "scene_index_report": scene_index_report,
         "multilingual_report": read_json(ROOT / "data/index/multilingual_report.json", {}),
         "offline_documents": len(offline_catalog) if isinstance(offline_catalog, list) else 0,
-        "combined_documents": len(combined_catalog) if isinstance(combined_catalog, list) else 0,
+        "combined_documents": catalog_document_count(),
         "paths": {
             "index_report": str(INDEX_REPORT_PATH),
             "offline_catalog": str(OFFLINE_CATALOG_PATH),
@@ -390,7 +415,6 @@ def crawler_status_payload():
     from ingestion.offline_video import INGESTION_DIR, KEYFRAME_DIR, clean_media_title, crawler_capabilities
 
     offline_catalog = read_json(OFFLINE_CATALOG_PATH, [])
-    combined_catalog = read_json(COMBINED_CATALOG_PATH, [])
     report_path = INGESTION_DIR / "offline_crawl_report.json"
     report_rows = read_json(report_path, [])
     latest_report = report_rows[-1] if isinstance(report_rows, list) and report_rows else {}
@@ -453,7 +477,7 @@ def crawler_status_payload():
 
     keyframe_count = len(list(KEYFRAME_DIR.glob("*.jpg"))) if KEYFRAME_DIR.exists() else 0
     offline_count = len(offline_catalog) if isinstance(offline_catalog, list) else 0
-    combined_count = len(combined_catalog) if isinstance(combined_catalog, list) else 0
+    combined_count = catalog_document_count()
     series_count = 0
     movie_count = 0
     if isinstance(offline_catalog, list):
@@ -613,10 +637,10 @@ def search(payload: SearchRequest, sid: str = Header(default="anonymous", alias=
         if error or engine is None:
             raise HTTPException(status_code=503, detail=f"Search engine is not ready: {error}")
         results = decorate_search_media(
-            engine.search(payload.query, top_k=payload.top_k, use_reranking=payload.use_reranking, media_type=payload.media_type)
+            engine.search(payload.query, top_k=payload.top_k, use_reranking=payload.use_reranking, media_type=payload.media_type, scope=payload.scope)
         )
     memory.add_search(sid, payload.query, payload.top_k, payload.use_reranking, results)
-    return {"query": payload.query, "count": len(results), "results": results}
+    return {"query": payload.query, "scope": payload.scope, "count": len(results), "results": results}
 
 
 @app.get("/api/history")
@@ -672,7 +696,7 @@ def run_uploaded_video_job(job_id: str, upload_root: Path, options: Dict, sid: s
     start = time.perf_counter()
     update_job(job_id, status="running", stage="scene_detection", progress=4)
     try:
-        from ingestion.offline_video import crawl_offline_videos
+        from backend.media_worker import crawl_in_worker
 
         def progress(event: Dict):
             fraction = event.get("overall_fraction")
@@ -687,7 +711,7 @@ def run_uploaded_video_job(job_id: str, upload_root: Path, options: Dict, sid: s
                 stage=event.get("stage", "scene_detection"),
             )
 
-        report = crawl_offline_videos(
+        report = crawl_in_worker(
             str(upload_root),
             title_prefix=options["movie_title"],
             min_scene_sec=options["min_scene_sec"],
@@ -813,9 +837,9 @@ def ingestions(sid: str = Header(default="anonymous", alias="X-CineScene-Session
 @serialized_analysis
 def crawl_offline(payload: OfflineCrawlRequest, sid: str = Header(default="anonymous", alias="X-CineScene-Session")):
     try:
-        from ingestion.offline_video import crawl_offline_videos
+        from backend.media_worker import crawl_in_worker
 
-        report = crawl_offline_videos(
+        report = crawl_in_worker(
             payload.root,
             title_prefix=payload.title_prefix,
             min_scene_sec=payload.min_scene_sec,
@@ -856,7 +880,7 @@ def run_crawl_job(job_id: str, payload: OfflineCrawlRequest, sid: str):
     start = time.perf_counter()
     update_job(job_id, status="running")
     try:
-        from ingestion.offline_video import crawl_offline_videos
+        from backend.media_worker import crawl_in_worker
 
         def progress(event: Dict):
             total = max(1, int(event.get("total") or 1))
@@ -874,7 +898,7 @@ def run_crawl_job(job_id: str, payload: OfflineCrawlRequest, sid: str):
                 total=total,
             )
 
-        report = crawl_offline_videos(
+        report = crawl_in_worker(
             payload.root,
             title_prefix=payload.title_prefix,
             min_scene_sec=payload.min_scene_sec,

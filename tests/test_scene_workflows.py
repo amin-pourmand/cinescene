@@ -154,7 +154,7 @@ class RegressionTests(unittest.TestCase):
 
     def test_failed_crawl_is_not_reported_as_success(self):
         client = TestClient(app)
-        with patch("ingestion.offline_video.crawl_offline_videos", return_value={"documents_created": 0, "jobs": [{"error": "corrupt video"}]}):
+        with patch("backend.media_worker.crawl_in_worker", return_value={"documents_created": 0, "jobs": [{"error": "corrupt video"}]}):
             response = client.post("/api/crawl/offline", json={"root": "test"})
             self.assertEqual(response.status_code, 500)
             self.assertIn("corrupt video", response.json()["detail"])
