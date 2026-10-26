@@ -25,6 +25,22 @@ def normalized_title(value):
     return "".join(c for c in unicodedata.normalize("NFKD", value.casefold()) if not unicodedata.combining(c))
 
 
+def refresh_show(existing, official):
+    updated = to_document(official)
+    # Keep the catalog identity and provider metadata; refresh sourced story/genres.
+    existing.setdefault("provider_genres", existing.get("genres", []))
+    existing.setdefault("provider_release_year", existing.get("release_year"))
+    for key in ("overview", "genres", "rich_text", "keywords", "mood_tags", "poster_url", "external_imdb"):
+        if updated.get(key):
+            existing[key] = updated[key]
+    existing.update({"source_url": str(official.get("url") or existing.get("source_url", "")),
+                     "license": LICENSE, "overview_source": "tvmaze"})
+    if official.get("premiered"):
+        existing["premiered"] = str(official["premiered"])
+        existing["release_year"] = str(official["premiered"])[:4]
+        existing["premiere_source"] = existing["source_url"]
+
+
 def episode_document(show, episode):
     summary = strip_html(str(episode.get("summary") or ""))
     # A title-only episode adds noise, not evidence for scene identification.
@@ -100,9 +116,7 @@ def main():
                     added_shows += 1
             existing.update({"source_url": f"https://www.tvmaze.com/shows/{tvmaze_id}", "license": LICENSE, "external_tvmaze": tvmaze_id})
             official = fetch(f"/shows/{tvmaze_id}")
-            if official.get("premiered"):
-                existing["premiered"] = str(official["premiered"])
-                existing["premiere_source"] = existing["source_url"]
+            refresh_show(existing, official)
             payload = fetch(f"/shows/{tvmaze_id}/episodes")
             valid = [doc for row in payload if (doc := episode_document(existing, row))]
             valid = valid[:max(1, args.max_episodes_per_show)]

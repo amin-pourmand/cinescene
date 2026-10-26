@@ -1,0 +1,22 @@
+{
+  "version": 1,
+  "description": "Manually authored reserved final checks, frozen before implementation. Expected titles are disjoint from the development and original regression suites. Not a public or independently annotated academic test set. Do not tune on these results.",
+  "cases": [
+    {"category":"movie_en","query":"a lonely juror refuses to convict a teenager and challenges the other jurors' assumptions","expected":["12 Angry Men"]},
+    {"category":"movie_en","query":"a teenager drives a time-travelling car into the past and accidentally disrupts his parents meeting","expected":["Back to the Future"]},
+    {"category":"movie_en","query":"a Roman general is betrayed and becomes a slave forced to fight in an arena","expected":["Gladiator"]},
+    {"category":"movie_en","query":"a child psychologist helps a frightened little boy who says he sees dead people","expected":["The Sixth Sense"]},
+    {"category":"movie_en","query":"an insomniac office worker meets a soap salesman and they start an underground fighting group","expected":["Fight Club"]},
+    {"category":"movie_en","query":"a father clownfish crosses the ocean looking for his son who has been taken to a fish tank","expected":["Finding Nemo"]},
+    {"category":"movie_en","query":"a hotel concierge and a lobby boy get caught up in a stolen painting and a wealthy family's inheritance","expected":["The Grand Budapest Hotel"]},
+    {"category":"movie_en","query":"an astronaut survives on Mars by growing potatoes while his colleagues try to bring him home","expected":["The Martian"]},
+    {"category":"movie_en","query":"personified emotions inside a little girl's mind struggle when her family moves to a new city","expected":["Inside Out"]},
+    {"category":"movie_en","query":"a Harvard student builds a social networking website and ends up in lawsuits with former friends","expected":["The Social Network"]},
+    {"category":"series_en","query":"a police blood analyst secretly hunts and murders other serial killers at night","expected":["Dexter"],"media_type":"series"},
+    {"category":"series_en","query":"a selfish woman mistakenly enters a good afterlife and takes ethics lessons to avoid being discovered","expected":["The Good Place"],"media_type":"series"},
+    {"category":"series_en","query":"a struggling lawyer named Jimmy slowly becomes the morally compromised attorney Saul Goodman","expected":["Better Call Saul"],"media_type":"series"},
+    {"category":"persian","query":"یه دلقک ماهی دنبال پسرش میگرده که آدمها گرفتنش و تو آکواریوم گذاشتن","expected":["Finding Nemo"]},
+    {"category":"persian","query":"یه پسر بچه روح آدمهای مرده رو میبینه و یه روانشناس میخواد کمکش کنه","expected":["The Sixth Sense"]},
+    {"category":"persian","query":"یه فضانورد تو مریخ جا میمونه و برای زنده موندن سیب زمینی میکاره","expected":["The Martian"]}
+  ]
+}

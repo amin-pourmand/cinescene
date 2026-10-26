@@ -1,0 +1,30 @@
+{
+  "version": 1,
+  "description": "Frozen manual development suite: distinct scene clues, plots, Persian paraphrases and explicit filters. Used for diagnosing and choosing fixes; not independent academic accuracy.",
+  "cases": [
+    {"category":"scene_en","query":"a spinning hallway where a sleeping team fights while gravity keeps changing","expected":["Inception"]},
+    {"category":"scene_en","query":"a music teacher throws a chair at a young jazz drummer for not keeping the tempo","expected":["Whiplash"]},
+    {"category":"scene_en","query":"a magician performs a trick where he disappears from one cabinet and appears in another","expected":["The Prestige"]},
+    {"category":"scene_en","query":"a man sails into the painted wall at the edge of the television world built around his life","expected":["The Truman Show"]},
+    {"category":"scene_en","query":"a robot on a garbage-covered Earth finds a small living plant and shows it to another robot","expected":["WALL\u00b7E"]},
+    {"category":"scene_en","query":"an investigator tests artificial humans by asking questions to measure their emotional reactions","expected":["Blade Runner"]},
+    {"category":"contrast_en","query":"a soldier killed fighting aliens wakes up at the military base and repeats the invasion","expected":["Edge of Tomorrow"]},
+    {"category":"contrast_en","query":"a weather reporter is stuck repeating a small town holiday and tries to change himself","expected":["Groundhog Day"]},
+    {"category":"contrast_en","query":"a man repeatedly wakes on a passenger train to find the bomber before it explodes","expected":["Source Code"]},
+    {"category":"series_en","query":"office workers have an operation that separates their work memories from their personal memories","expected":["Severance"],"expected_ids":["tvmaze:44933"],"media_type":"series"},
+    {"category":"series_en","query":"people live in an underground tower because the outside world is supposedly poisonous","expected":["Silo"],"media_type":"series"},
+    {"category":"series_en","query":"a western amusement park has lifelike robot hosts who begin to become conscious","expected":["Westworld"],"media_type":"series"},
+    {"category":"series_en","query":"survivors of a plane crash on a mysterious island discover a hatch and strange experiments","expected":["Lost"],"media_type":"series"},
+    {"category":"series_en","query":"an anthology about the disturbing consequences of advanced technology on ordinary people","expected":["Black Mirror"],"media_type":"series"},
+    {"category":"series_en","query":"a brilliant modern London detective shares a flat with an army doctor and solves murders","expected":["Sherlock"],"media_type":"series"},
+    {"category":"persian","query":"یه سرباز تو جنگ با فضایی‌ها هر بار کشته میشه دوباره از اول همون روز بیدار میشه","expected":["Edge of Tomorrow"]},
+    {"category":"persian","query":"یه هکر میفهمه دنیایی که توش زندگی میکنه واقعی نیست و شبیه سازی کامپیوتریه","expected":["The Matrix"]},
+    {"category":"persian","query":"یه دزد با رفتن تو خواب دیگران میخواد یه ایده تو ذهن یه نفر بکاره","expected":["Inception"]},
+    {"category":"persian","query":"مردی که حافظه کوتاه مدتش را از دست داده برای پیدا کردن قاتل همسرش روی بدنش خالکوبی میکند","expected":["Memento"]},
+    {"category":"persian","query":"کارمندهای یک شرکت خاطرات محل کار و زندگی شخصیشان از هم جدا شده","expected":["Severance"],"expected_ids":["tvmaze:44933"],"media_type":"series"},
+    {"category":"filter","query":"a prison banker escapes through a tunnel released in 1994","expected":["The Shawshank Redemption"],"media_type":"movie"},
+    {"category":"filter","query":"a masked hero confronts a clown criminal directed by Christopher Nolan","expected":["The Dark Knight"],"media_type":"movie"},
+    {"category":"filter","query":"a sci-fi anthology about futuristic technology","expected":["Black Mirror"],"media_type":"series"},
+    {"category":"filter","query":"Severance released in 2022","expected":["Severance"],"expected_ids":["tvmaze:44933"],"media_type":"series"}
+  ]
+}

@@ -11,7 +11,7 @@ import gc
 import json
 import pickle
 import re
-from collections import Counter
+from collections import Counter, defaultdict, deque
 from pathlib import Path
 
 import faiss
@@ -140,6 +140,14 @@ class MultilingualSearch:
             raise ValueError("Multilingual index and metadata counts differ.")
         self.positions = {record_key(item): index for index, item in enumerate(metadata)}
         self.keys = keys
+        passages = defaultdict(deque)
+        for item in metadata:
+            texts = [retrieval_text(item)] if item.get("record_type") == "scene" else title_passages(item)
+            passages[record_key(item)].extend(texts)
+        counts = Counter(keys)
+        # Do not attach a different passage if an old index has stale chunk counts.
+        aligned = {key for key, values in passages.items() if len(values) == counts[key]}
+        self.passages = [passages[key].popleft() if key in aligned else "" for key in keys]
         # Small single-query inference stays on CPU so the 4 GB GPU is free for BGE/vision.
         report = json.loads(REPORT_PATH.read_text(encoding="utf-8"))
         self.model_path = report["model"]
@@ -153,14 +161,17 @@ class MultilingualSearch:
             self.model = SentenceTransformer(self.model_path, device="cpu")
         self.model.max_seq_length = 384
 
-    def search(self, query, k=100):
+    def search(self, query, k=100, evidence=None):
         vector = self.model.encode("query: " + query, normalize_embeddings=True, convert_to_numpy=True).astype("float32").reshape(1, -1)
         scores, indices = self.index.search(vector, min(k * 4, self.index.ntotal))
         results = {}
         for score, i in zip(scores[0], indices[0]):
             if int(i) >= 0 and self.keys[int(i)] in self.positions:
                 position = self.positions[self.keys[int(i)]]
-                results[position] = max(results.get(position, -1), float(score))
+                if float(score) > results.get(position, -1):
+                    results[position] = float(score)
+                    if evidence is not None and self.passages[int(i)]:
+                        evidence[position] = self.passages[int(i)].removeprefix("passage: ")
         return sorted(results.items(), key=lambda item: item[1], reverse=True)[:k]
 
 

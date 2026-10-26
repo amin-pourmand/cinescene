@@ -106,6 +106,19 @@ class QueryProcessor:
             "قرمز": ["red"],
             "اتاق": ["room"],
             "سرنخ": ["clue"],
+            "دزد": ["thief", "steal"],
+            "ایده": ["idea"],
+            "ذهن": ["mind"],
+            "کامپیوتر": ["computer"],
+            "قاتل": ["killer"],
+            "همسر": ["wife", "husband"],
+            "یادداشت": ["notes"],
+            "کوتاه مدت": ["short term"],
+            "خاطرات": ["memories"],
+            "شرکت": ["company"],
+            "کارمند": ["employee", "office"],
+            "شخصی": ["personal"],
+            "جدا": ["separate"],
         }
 
     @staticmethod
@@ -141,6 +154,14 @@ class QueryProcessor:
             for match in re.finditer(r"(?<!\w)" + re.escape(alias) + r"(?!\w)", query_lower):
                 prefix = query_lower[max(0, match.start() - 35):match.start()]
                 negated = re.search(r"(?:\b(?:no|not|without|exclude|excluding|except)\s+(?:any\s+|a\s+)?|(?:بدون|غیر|نه)\s*)$", prefix)
+                suffix = query_lower[match.end():match.end() + 18]
+                explicit = (query_lower.strip() == alias or
+                            re.search(r"(?:\bgenre\s*:\s*|(?:ژانر)\s*)$", prefix) or
+                            re.match(r"\s+(?:movies?|films?|series|shows?)\b", suffix) or
+                            re.search(r"(?:فیلم|سریال)\s*$", prefix) or
+                            alias in {"sci-fi", "scifi", "science fiction", "علمی تخیلی"})
+                if not negated and not explicit:
+                    continue
                 field = "excluded_genres" if negated else "genres"
                 if genre not in filters[field]:
                     filters[field].append(genre)
@@ -160,7 +181,8 @@ class QueryProcessor:
         expanded_terms = [query]
         query_lower = query.lower()
         for phrase, synonyms in self.expansions.items():
-            if re.search(r"(?<!\w)" + re.escape(phrase) + r"(?!\w)", query_lower):
+            suffix = r"(?:هایی|های|ها|شان|شون|ی|یه)?" if re.search(r"[\u0600-\u06ff]", phrase) else ""
+            if re.search(r"(?<!\w)" + re.escape(phrase) + suffix + r"(?!\w)", query_lower):
                 expanded_terms.extend(synonyms[:4])
         return " ".join(dict.fromkeys(term for term in expanded_terms if term))
 

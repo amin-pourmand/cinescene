@@ -1,0 +1,294 @@
+{
+  "generated_at": "2026-10-26T07:52:32.579846+00:00",
+  "model": "models\\bge-large-en-v1.5",
+  "device": "cpu",
+  "precision": "int8",
+  "embedding_dimension": 1024,
+  "reranker": true,
+  "transport": "http",
+  "multilingual": true,
+  "multilingual_model": "models\\multilingual-e5-base",
+  "multilingual_vectors": 23339,
+  "fusion_version": "rrf-v6-multilingual-relevance",
+  "cases": 16,
+  "hit_at_1": 0.6875,
+  "hit_at_5": 0.875,
+  "mrr_at_10": 0.7578,
+  "evaluation_version": 2,
+  "matching": "exact normalized title or explicit id/alias; sequels are distinct",
+  "suite_sha256": "bd0afa0f0f5e3bbff821cc7e03bfeaab2f270e228e6f880bce5b662ede54c495",
+  "suite_description": "Manually authored reserved final checks, frozen before implementation. Expected titles are disjoint from the development and original regression suites. Not a public or independently annotated academic test set. Do not tune on these results.",
+  "retrieval_mode": "hybrid",
+  "by_category": {
+    "movie_en": {
+      "cases": 10,
+      "hit_at_1": 0.8,
+      "hit_at_5": 1.0,
+      "mrr_at_10": 0.875
+    },
+    "persian": {
+      "cases": 3,
+      "hit_at_1": 0.0,
+      "hit_at_5": 0.3333,
+      "mrr_at_10": 0.125
+    },
+    "series_en": {
+      "cases": 3,
+      "hit_at_1": 1.0,
+      "hit_at_5": 1.0,
+      "mrr_at_10": 1.0
+    }
+  },
+  "mean_latency_sec": 8.1488,
+  "movie_vectors": 8163,
+  "scene_vectors": 158,
+  "index_vectors": 8321,
+  "rows": [
+    {
+      "query": "a lonely juror refuses to convict a teenager and challenges the other jurors' assumptions",
+      "expected": [
+        "12 Angry Men"
+      ],
+      "category": "movie_en",
+      "options": {},
+      "rank": 4,
+      "top_3": [
+        "The Juror",
+        "The Trial",
+        "Case"
+      ],
+      "latency_sec": 9.466
+    },
+    {
+      "query": "a teenager drives a time-travelling car into the past and accidentally disrupts his parents meeting",
+      "expected": [
+        "Back to the Future"
+      ],
+      "category": "movie_en",
+      "options": {},
+      "rank": 1,
+      "top_3": [
+        "Back to the Future",
+        "Back to the Future Part II",
+        "Timecrimes"
+      ],
+      "latency_sec": 13.397
+    },
+    {
+      "query": "a Roman general is betrayed and becomes a slave forced to fight in an arena",
+      "expected": [
+        "Gladiator"
+      ],
+      "category": "movie_en",
+      "options": {},
+      "rank": 2,
+      "top_3": [
+        "Dragon Blade",
+        "Gladiator",
+        "Pompeii"
+      ],
+      "latency_sec": 12.469
+    },
+    {
+      "query": "a child psychologist helps a frightened little boy who says he sees dead people",
+      "expected": [
+        "The Sixth Sense"
+      ],
+      "category": "movie_en",
+      "options": {},
+      "rank": 1,
+      "top_3": [
+        "The Sixth Sense",
+        "Demonic",
+        "Peeples"
+      ],
+      "latency_sec": 8.315
+    },
+    {
+      "query": "an insomniac office worker meets a soap salesman and they start an underground fighting group",
+      "expected": [
+        "Fight Club"
+      ],
+      "category": "movie_en",
+      "options": {},
+      "rank": 1,
+      "top_3": [
+        "Fight Club",
+        "The Matrix",
+        "Insomnia"
+      ],
+      "latency_sec": 12.512
+    },
+    {
+      "query": "a father clownfish crosses the ocean looking for his son who has been taken to a fish tank",
+      "expected": [
+        "Finding Nemo"
+      ],
+      "category": "movie_en",
+      "options": {},
+      "rank": 1,
+      "top_3": [
+        "Finding Nemo",
+        "Ponyo",
+        "Big Fish"
+      ],
+      "latency_sec": 9.487
+    },
+    {
+      "query": "a hotel concierge and a lobby boy get caught up in a stolen painting and a wealthy family's inheritance",
+      "expected": [
+        "The Grand Budapest Hotel"
+      ],
+      "category": "movie_en",
+      "options": {},
+      "rank": 1,
+      "top_3": [
+        "The Grand Budapest Hotel",
+        "Mortdecai",
+        "You Are My Spring"
+      ],
+      "latency_sec": 9.11
+    },
+    {
+      "query": "an astronaut survives on Mars by growing potatoes while his colleagues try to bring him home",
+      "expected": [
+        "The Martian"
+      ],
+      "category": "movie_en",
+      "options": {},
+      "rank": 1,
+      "top_3": [
+        "The Martian",
+        "The Last Days on Mars",
+        "A Year In Space"
+      ],
+      "latency_sec": 9.265
+    },
+    {
+      "query": "personified emotions inside a little girl's mind struggle when her family moves to a new city",
+      "expected": [
+        "Inside Out"
+      ],
+      "category": "movie_en",
+      "options": {},
+      "rank": 1,
+      "top_3": [
+        "Inside Out",
+        "North & South",
+        "Pieces of April"
+      ],
+      "latency_sec": 9.209
+    },
+    {
+      "query": "a Harvard student builds a social networking website and ends up in lawsuits with former friends",
+      "expected": [
+        "The Social Network"
+      ],
+      "category": "movie_en",
+      "options": {},
+      "rank": 1,
+      "top_3": [
+        "The Social Network",
+        "Harvard Man",
+        "Stealing Harvard"
+      ],
+      "latency_sec": 8.375
+    },
+    {
+      "query": "a police blood analyst secretly hunts and murders other serial killers at night",
+      "expected": [
+        "Dexter"
+      ],
+      "category": "series_en",
+      "options": {
+        "media_type": "series"
+      },
+      "rank": 1,
+      "top_3": [
+        "Dexter",
+        "Night Stalker: The Hunt for a Serial Killer",
+        "The Valhalla Murders"
+      ],
+      "latency_sec": 7.218
+    },
+    {
+      "query": "a selfish woman mistakenly enters a good afterlife and takes ethics lessons to avoid being discovered",
+      "expected": [
+        "The Good Place"
+      ],
+      "category": "series_en",
+      "options": {
+        "media_type": "series"
+      },
+      "rank": 1,
+      "top_3": [
+        "The Good Place",
+        "In The Dark",
+        "Hotel Beau Séjour"
+      ],
+      "latency_sec": 10.315
+    },
+    {
+      "query": "a struggling lawyer named Jimmy slowly becomes the morally compromised attorney Saul Goodman",
+      "expected": [
+        "Better Call Saul"
+      ],
+      "category": "series_en",
+      "options": {
+        "media_type": "series"
+      },
+      "rank": 1,
+      "top_3": [
+        "Better Call Saul",
+        "Jimmy: The True Story of a True Idiot",
+        "Breaking Bad"
+      ],
+      "latency_sec": 6.87
+    },
+    {
+      "query": "یه دلقک ماهی دنبال پسرش میگرده که آدمها گرفتنش و تو آکواریوم گذاشتن",
+      "expected": [
+        "Finding Nemo"
+      ],
+      "category": "persian",
+      "options": {},
+      "rank": 4,
+      "top_3": [
+        "The Curse of La Llorona",
+        "Future-Worm!",
+        "Chicken Squad"
+      ],
+      "latency_sec": 1.739
+    },
+    {
+      "query": "یه پسر بچه روح آدمهای مرده رو میبینه و یه روانشناس میخواد کمکش کنه",
+      "expected": [
+        "The Sixth Sense"
+      ],
+      "category": "persian",
+      "options": {},
+      "rank": null,
+      "top_3": [
+        "The Curse of La Llorona",
+        "Demonic",
+        "Fabled"
+      ],
+      "latency_sec": 1.411
+    },
+    {
+      "query": "یه فضانورد تو مریخ جا میمونه و برای زنده موندن سیب زمینی میکاره",
+      "expected": [
+        "The Martian"
+      ],
+      "category": "persian",
+      "options": {},
+      "rank": 8,
+      "top_3": [
+        "The Curse of La Llorona",
+        "Miles From Tomorrowland",
+        "Sublime"
+      ],
+      "latency_sec": 1.224
+    }
+  ]
+}

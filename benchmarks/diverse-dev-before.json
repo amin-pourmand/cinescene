@@ -1,0 +1,442 @@
+{
+  "generated_at": "2026-10-26T07:49:20.697304+00:00",
+  "model": "models\\bge-large-en-v1.5",
+  "device": "cpu",
+  "precision": "int8",
+  "embedding_dimension": 1024,
+  "reranker": true,
+  "transport": "http",
+  "multilingual": true,
+  "multilingual_model": "models\\multilingual-e5-base",
+  "multilingual_vectors": 23339,
+  "fusion_version": "rrf-v6-multilingual-relevance",
+  "cases": 24,
+  "hit_at_1": 0.5833,
+  "hit_at_5": 0.7083,
+  "mrr_at_10": 0.6414,
+  "evaluation_version": 2,
+  "matching": "exact normalized title or explicit id/alias; sequels are distinct",
+  "suite_sha256": "20b3d9019d657f789e81d4d404a7776f30988295ae5c862be71bc2c025a52261",
+  "suite_description": "Frozen manual development suite: distinct scene clues, plots, Persian paraphrases and explicit filters. Used for diagnosing and choosing fixes; not independent academic accuracy.",
+  "retrieval_mode": "hybrid",
+  "by_category": {
+    "contrast_en": {
+      "cases": 3,
+      "hit_at_1": 1.0,
+      "hit_at_5": 1.0,
+      "mrr_at_10": 1.0
+    },
+    "filter": {
+      "cases": 4,
+      "hit_at_1": 0.75,
+      "hit_at_5": 0.75,
+      "mrr_at_10": 0.75
+    },
+    "persian": {
+      "cases": 5,
+      "hit_at_1": 0.6,
+      "hit_at_5": 0.8,
+      "mrr_at_10": 0.6667
+    },
+    "scene_en": {
+      "cases": 6,
+      "hit_at_1": 0.3333,
+      "hit_at_5": 0.5,
+      "mrr_at_10": 0.3988
+    },
+    "series_en": {
+      "cases": 6,
+      "hit_at_1": 0.5,
+      "hit_at_5": 0.6667,
+      "mrr_at_10": 0.6111
+    }
+  },
+  "mean_latency_sec": 8.8445,
+  "movie_vectors": 8163,
+  "scene_vectors": 158,
+  "index_vectors": 8321,
+  "rows": [
+    {
+      "query": "a spinning hallway where a sleeping team fights while gravity keeps changing",
+      "expected": [
+        "Inception"
+      ],
+      "category": "scene_en",
+      "options": {},
+      "rank": null,
+      "top_3": [
+        "Severance",
+        "Gravity",
+        "Floor Is Lava"
+      ],
+      "latency_sec": 9.0
+    },
+    {
+      "query": "a music teacher throws a chair at a young jazz drummer for not keeping the tempo",
+      "expected": [
+        "Whiplash"
+      ],
+      "category": "scene_en",
+      "options": {},
+      "rank": 1,
+      "top_3": [
+        "Whiplash",
+        "The Chair",
+        "Crooklyn"
+      ],
+      "latency_sec": 11.68
+    },
+    {
+      "query": "a magician performs a trick where he disappears from one cabinet and appears in another",
+      "expected": [
+        "The Prestige"
+      ],
+      "category": "scene_en",
+      "options": {},
+      "rank": 7,
+      "top_3": [
+        "The Unremarkable Juanquini",
+        "Death by Magic",
+        "The Incredible Burt Wonderstone"
+      ],
+      "latency_sec": 9.443
+    },
+    {
+      "query": "a man sails into the painted wall at the edge of the television world built around his life",
+      "expected": [
+        "The Truman Show"
+      ],
+      "category": "scene_en",
+      "options": {},
+      "rank": 4,
+      "top_3": [
+        "All Is Lost",
+        "Westworld",
+        "Pollock"
+      ],
+      "latency_sec": 9.298
+    },
+    {
+      "query": "a robot on a garbage-covered Earth finds a small living plant and shows it to another robot",
+      "expected": [
+        "WALL·E"
+      ],
+      "category": "scene_en",
+      "options": {},
+      "rank": 1,
+      "top_3": [
+        "WALL·E",
+        "Mr. Robot",
+        "Transformers: Robots in Disguise"
+      ],
+      "latency_sec": 9.978
+    },
+    {
+      "query": "an investigator tests artificial humans by asking questions to measure their emotional reactions",
+      "expected": [
+        "Blade Runner"
+      ],
+      "category": "scene_en",
+      "options": {},
+      "rank": null,
+      "top_3": [
+        "A.I. Artificial Intelligence",
+        "100 Humans",
+        "Idiocracy"
+      ],
+      "latency_sec": 9.131
+    },
+    {
+      "query": "a soldier killed fighting aliens wakes up at the military base and repeats the invasion",
+      "expected": [
+        "Edge of Tomorrow"
+      ],
+      "category": "contrast_en",
+      "options": {},
+      "rank": 1,
+      "top_3": [
+        "Edge of Tomorrow",
+        "U.F.O.",
+        "Source Code"
+      ],
+      "latency_sec": 8.964
+    },
+    {
+      "query": "a weather reporter is stuck repeating a small town holiday and tries to change himself",
+      "expected": [
+        "Groundhog Day"
+      ],
+      "category": "contrast_en",
+      "options": {},
+      "rank": 1,
+      "top_3": [
+        "Groundhog Day",
+        "Four Christmases",
+        "Mr. Deeds"
+      ],
+      "latency_sec": 9.901
+    },
+    {
+      "query": "a man repeatedly wakes on a passenger train to find the bomber before it explodes",
+      "expected": [
+        "Source Code"
+      ],
+      "category": "contrast_en",
+      "options": {},
+      "rank": 1,
+      "top_3": [
+        "Source Code",
+        "Unbreakable",
+        "Under Siege 2: Dark Territory"
+      ],
+      "latency_sec": 10.075
+    },
+    {
+      "query": "office workers have an operation that separates their work memories from their personal memories",
+      "expected": [
+        "Severance"
+      ],
+      "category": "series_en",
+      "options": {
+        "media_type": "series"
+      },
+      "rank": 1,
+      "top_3": [
+        "Severance",
+        "The Office (U.S.)",
+        "Office Girls"
+      ],
+      "latency_sec": 8.5
+    },
+    {
+      "query": "people live in an underground tower because the outside world is supposedly poisonous",
+      "expected": [
+        "Silo"
+      ],
+      "category": "series_en",
+      "options": {
+        "media_type": "series"
+      },
+      "rank": 1,
+      "top_3": [
+        "Silo",
+        "Billy Dilley's Super-Duper Subterranean Summer",
+        "High-Rise Invasion"
+      ],
+      "latency_sec": 10.764
+    },
+    {
+      "query": "a western amusement park has lifelike robot hosts who begin to become conscious",
+      "expected": [
+        "Westworld"
+      ],
+      "category": "series_en",
+      "options": {
+        "media_type": "series"
+      },
+      "rank": 2,
+      "top_3": [
+        "Black Mirror",
+        "Westworld",
+        "Mr. Robot"
+      ],
+      "latency_sec": 9.996
+    },
+    {
+      "query": "survivors of a plane crash on a mysterious island discover a hatch and strange experiments",
+      "expected": [
+        "Lost"
+      ],
+      "category": "series_en",
+      "options": {
+        "media_type": "series"
+      },
+      "rank": 1,
+      "top_3": [
+        "Lost",
+        "Stranger Things",
+        "Robotech"
+      ],
+      "latency_sec": 10.241
+    },
+    {
+      "query": "an anthology about the disturbing consequences of advanced technology on ordinary people",
+      "expected": [
+        "Black Mirror"
+      ],
+      "category": "series_en",
+      "options": {
+        "media_type": "series"
+      },
+      "rank": 6,
+      "top_3": [
+        "Kon Kon Kon",
+        "Creeped Out",
+        "Ad Vitam"
+      ],
+      "latency_sec": 9.633
+    },
+    {
+      "query": "a brilliant modern London detective shares a flat with an army doctor and solves murders",
+      "expected": [
+        "Sherlock"
+      ],
+      "category": "series_en",
+      "options": {
+        "media_type": "series"
+      },
+      "rank": null,
+      "top_3": [
+        "Fallet",
+        "Collateral",
+        "Behzat Ç."
+      ],
+      "latency_sec": 8.079
+    },
+    {
+      "query": "یه سرباز تو جنگ با فضایی‌ها هر بار کشته میشه دوباره از اول همون روز بیدار میشه",
+      "expected": [
+        "Edge of Tomorrow"
+      ],
+      "category": "persian",
+      "options": {},
+      "rank": 1,
+      "top_3": [
+        "Edge of Tomorrow",
+        "Universal Soldier: The Return",
+        "Censored Voices"
+      ],
+      "latency_sec": 10.042
+    },
+    {
+      "query": "یه هکر میفهمه دنیایی که توش زندگی میکنه واقعی نیست و شبیه سازی کامپیوتریه",
+      "expected": [
+        "The Matrix"
+      ],
+      "category": "persian",
+      "options": {},
+      "rank": 1,
+      "top_3": [
+        "The Matrix",
+        "Hackers",
+        "eXistenZ"
+      ],
+      "latency_sec": 9.567
+    },
+    {
+      "query": "یه دزد با رفتن تو خواب دیگران میخواد یه ایده تو ذهن یه نفر بکاره",
+      "expected": [
+        "Inception"
+      ],
+      "category": "persian",
+      "options": {},
+      "rank": null,
+      "top_3": [
+        "The Curse of La Llorona",
+        "Walk the Prank",
+        "Sardaarji"
+      ],
+      "latency_sec": 3.457
+    },
+    {
+      "query": "مردی که حافظه کوتاه مدتش را از دست داده برای پیدا کردن قاتل همسرش روی بدنش خالکوبی میکند",
+      "expected": [
+        "Memento"
+      ],
+      "category": "persian",
+      "options": {},
+      "rank": 3,
+      "top_3": [
+        "Amnesiac",
+        "Tabula Rasa",
+        "Memento"
+      ],
+      "latency_sec": 8.357
+    },
+    {
+      "query": "کارمندهای یک شرکت خاطرات محل کار و زندگی شخصیشان از هم جدا شده",
+      "expected": [
+        "Severance"
+      ],
+      "category": "persian",
+      "options": {
+        "media_type": "series"
+      },
+      "rank": 1,
+      "top_3": [
+        "Severance",
+        "The Terminal",
+        "Borges"
+      ],
+      "latency_sec": 4.364
+    },
+    {
+      "query": "a prison banker escapes through a tunnel released in 1994",
+      "expected": [
+        "The Shawshank Redemption"
+      ],
+      "category": "filter",
+      "options": {
+        "media_type": "movie"
+      },
+      "rank": 1,
+      "top_3": [
+        "The Shawshank Redemption",
+        "The Naked Gun 33⅓: The Final Insult",
+        "Speed"
+      ],
+      "latency_sec": 8.143
+    },
+    {
+      "query": "a masked hero confronts a clown criminal directed by Christopher Nolan",
+      "expected": [
+        "The Dark Knight"
+      ],
+      "category": "filter",
+      "options": {
+        "media_type": "movie"
+      },
+      "rank": 1,
+      "top_3": [
+        "The Dark Knight",
+        "The Dark Knight Rises",
+        "Batman Begins"
+      ],
+      "latency_sec": 8.292
+    },
+    {
+      "query": "a sci-fi anthology about futuristic technology",
+      "expected": [
+        "Black Mirror"
+      ],
+      "category": "filter",
+      "options": {
+        "media_type": "series"
+      },
+      "rank": null,
+      "top_3": [
+        "Severance",
+        "Silo",
+        "Fallout"
+      ],
+      "latency_sec": 8.227
+    },
+    {
+      "query": "Severance released in 2022",
+      "expected": [
+        "Severance"
+      ],
+      "category": "filter",
+      "options": {
+        "media_type": "series"
+      },
+      "rank": 1,
+      "top_3": [
+        "Severance",
+        "Andor",
+        "The Bear"
+      ],
+      "latency_sec": 7.138
+    }
+  ]
+}

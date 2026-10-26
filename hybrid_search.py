@@ -22,6 +22,7 @@ import faiss
 import numpy as np
 from query_processor import QueryProcessor
 from core.onnx_models import LazyOnnxEncoder, OnnxReranker, available as onnx_available
+from core.story_evidence import select_story_evidence, story_windows
 
 try:
     from rank_bm25 import BM25Okapi
@@ -132,6 +133,17 @@ class HybridSearchEngine:
         print(f"Loading metadata: {self.metadata_path}")
         with open(self.metadata_path, "rb") as f:
             self.movie_metadata = pickle.load(f)
+        # Earlier indexes retained only the first 20 plot sentences. Full plots
+        # already on disk remain useful lexical/reranking evidence without re-encoding.
+        plot_path = Path("data/processed/movies_enriched.json")
+        if plot_path.exists():
+            source_rows = json.loads(plot_path.read_text(encoding="utf-8"))
+            plots = {str(row.get("id")): clean_text(row.get("wiki_plot")) or clean_text(row.get("cmu_plot")) or clean_text(row.get("plot")) for row in source_rows}
+            for row in self.movie_metadata:
+                if str(row.get("id")) in plots:
+                    row["plot"] = plots[str(row["id"])]
+            del source_rows, plots
+        self.story_windows = {i: story_windows(row["plot"]) for i, row in enumerate(self.movie_metadata) if row.get("plot")}
 
         from scene_index import load_scene_index
 
@@ -204,6 +216,7 @@ class HybridSearchEngine:
             [
                 clean_text(meta.get("title")),
                 clean_text(meta.get("overview")),
+                clean_text(meta.get("plot")),
                 " ".join(meta.get("genres", []) or []),
                 " ".join(meta.get("mood_tags", []) or []),
                 " ".join(meta.get("keywords", []) or []),
@@ -341,14 +354,15 @@ class HybridSearchEngine:
         filtered = []
         for idx, score in results:
             meta = self.metadata[idx]
-
+            parent = self.parent_metadata.get(str(meta.get("parent_id")), {}) if hasattr(self, "parent_metadata") else {}
+            genres = parent.get("genres", meta.get("genres", [])) or []
             if filters.get("media_type") in {"movie", "series"} and meta.get("media_type", "movie") != filters["media_type"]:
                 continue
             if filters.get("genres"):
-                meta_genres = {genre.replace("Science-Fiction", "Science Fiction") for genre in meta.get("genres", []) or []}
+                meta_genres = {genre.replace("Science-Fiction", "Science Fiction") for genre in genres}
                 if not any(genre in meta_genres for genre in filters["genres"]):
                     continue
-            if {genre.replace("Science-Fiction", "Science Fiction") for genre in meta.get("genres", []) or []} & set(filters.get("excluded_genres", [])):
+            if {genre.replace("Science-Fiction", "Science Fiction") for genre in genres} & set(filters.get("excluded_genres", [])):
                 continue
             if filters.get("scope") == "scenes" and meta.get("record_type") != "scene":
                 continue
@@ -371,7 +385,7 @@ class HybridSearchEngine:
             filtered.append((idx, score))
         return filtered
 
-    def _format_result(self, idx: int, score: float, rank: int, matched_scenes: Optional[List[Dict]] = None) -> Dict:
+    def _format_result(self, idx: int, score: float, rank: int, matched_scenes: Optional[List[Dict]] = None, evidence: str = "") -> Dict:
         candidate = self.metadata[idx]
         parent_id = candidate.get("parent_id") or candidate.get("id")
         meta = self.parent_metadata.get(str(parent_id), candidate)
@@ -398,7 +412,7 @@ class HybridSearchEngine:
             "matched_scene": scene_matches[0] if scene_matches else None,
             "matched_scenes": scene_matches,
             "matched_episode": candidate.get("matched_episode"),
-            "evidence": candidate.get("overview", "") if candidate.get("record_type") == "episode" else meta.get("overview", ""),
+            "evidence": candidate.get("overview", "") if candidate.get("record_type") == "episode" else evidence or meta.get("overview", ""),
             "evidence_kind": "episode" if candidate.get("record_type") == "episode" else "story",
             "scene_count": meta.get("scene_count"),
             "first_keyframe": meta.get("first_keyframe"),
@@ -432,7 +446,7 @@ class HybridSearchEngine:
             collapsed.append((group["idx"], float(group["score"]), scenes[:5]))
         return sorted(collapsed, key=lambda item: item[1], reverse=True)
 
-    def rerank_titles(self, query: str, candidates, limit: int = 40):
+    def rerank_titles(self, query: str, candidates, limit: int = 40, evidence=None):
         if self.cross_encoder is None or not candidates or re.search(r"[\u0600-\u06ff]", query):
             return candidates
         selected = candidates[:limit]
@@ -441,6 +455,16 @@ class HybridSearchEngine:
             meta = self.metadata[idx]
             scene = scenes[0] if scenes else meta.get("matched_scene") or {}
             text = f"{meta.get('title', '')}. {meta.get('overview', '')}"
+            parent = self.parent_metadata.get(str(meta.get("parent_id")), {}) if hasattr(self, "parent_metadata") else {}
+            if parent.get("overview") and parent["overview"] != meta.get("overview"):
+                text += f" Series: {parent['overview']}"
+            passage = (evidence or {}).get(idx, "")
+            passage = select_story_evidence(query, getattr(self, "story_windows", {}).get(idx, []), passage,
+                                           self._lexical_tokens, getattr(getattr(self, "bm25", None), "idf", None))
+            if evidence is not None and passage:
+                evidence[idx] = passage
+            if passage and passage not in text:
+                text += f" Story evidence: {passage}"
             if scene:
                 text += f" Scene: {scene.get('transcript', '')} {scene.get('visual_caption', '')}"
             pairs.append([query, text])
@@ -462,18 +486,19 @@ class HybridSearchEngine:
         filters = processed["filters"]
         filters["media_type"] = media_type
         filters["scope"] = scope
+        evidence = {}
 
         if mode == "semantic":
             fused_results = self.vector_search(search_query, k=120)
         elif mode == "multilingual":
             if self.multilingual is None:
                 raise RuntimeError("Build the multilingual index before using this mode.")
-            fused_results = self.multilingual.search(processed["cleaned"], k=150)
+            fused_results = self.multilingual.search(processed["cleaned"], k=150, evidence=evidence)
         elif mode == "lexical":
             fused_results = self.lexical_search(search_query, k=120)
         else:
-            multilingual_results = self.multilingual.search(processed["cleaned"], k=150) if self.multilingual else []
-            vector_results = self.vector_search(concepts if translated else search_query, k=100) if not is_persian or translated else []
+            multilingual_results = self.multilingual.search(processed["cleaned"], k=150, evidence=evidence) if self.multilingual else []
+            vector_results = self.vector_search(concepts if translated else processed["cleaned"], k=100) if not is_persian or translated else []
             lexical_results = self.lexical_search(concepts if translated else processed["cleaned"], k=100)
             if is_persian and multilingual_results and not translated:
                 # Most catalog text is English; lexical ranks over a few Persian subtitle
@@ -494,9 +519,9 @@ class HybridSearchEngine:
 
         collapsed = self._collapse_titles(fused_results)
         if use_reranking:
-            collapsed = self.rerank_titles(concepts if translated else processed["cleaned"], collapsed)
+            collapsed = self.rerank_titles(concepts if translated else processed["cleaned"], collapsed, evidence=evidence)
         return [
-            self._format_result(idx, score, rank + 1, matched_scenes=scenes)
+            self._format_result(idx, score, rank + 1, matched_scenes=scenes, evidence=evidence.get(idx, ""))
             for rank, (idx, score, scenes) in enumerate(collapsed[:top_k])
         ]
 
@@ -518,7 +543,7 @@ class HybridSearchEngine:
             "multilingual": self.multilingual is not None,
             "multilingual_model": self.multilingual.model_path if self.multilingual else None,
             "multilingual_vectors": int(self.multilingual.index.ntotal) if self.multilingual else 0,
-            "fusion_version": "rrf-v6-multilingual-relevance",
+            "fusion_version": "rrf-v7-passage-evidence",
             "multilingual_error": self.multilingual_error,
             "lexical": "bm25" if self.bm25 is not None else "token_overlap",
         }

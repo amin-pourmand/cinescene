@@ -94,7 +94,7 @@ def main():
     vocabulary, ids, weights = {}, [], []
     for token in sorted(postings):
         rows = postings[token]
-        vocabulary[token] = [len(ids), len(rows)]
+        vocabulary[token] = [len(ids), len(rows), bm25.idf[token]]
         ids.extend(row[0] for row in rows)
         weights.extend(row[1] for row in rows)
     with (directory / "hybrid-lexical.bin").open("wb") as output:
@@ -104,7 +104,8 @@ def main():
              for name in ("hybrid-en.f32", "hybrid-multilingual.f32", "hybrid-lexical.bin")}
     payload = {"version": 2, "catalog_sha256": digest(catalog_path), "files": files, "records": records,
                "english": model_info("Xenova/bge-large-en-v1.5", 1024, "cls", 256, "Represent this sentence for searching relevant passages: "),
-               "multilingual": {**model_info("Xenova/multilingual-e5-base", 768, "mean", 384, "query: "), "records": public_keys},
+               "multilingual": {**model_info("Xenova/multilingual-e5-base", 768, "mean", 384, "query: "), "records": public_keys,
+                                "texts": [engine.multilingual.passages[i].removeprefix("passage: ") for i in multilingual_rows]},
                "reranker": model_info("Xenova/ms-marco-MiniLM-L-6-v2", 1, "", 384, ""),
                "lexical": {"terms": vocabulary, "postings": len(ids)},
                "processor": {"stopwords": sorted(LEXICAL_STOPWORDS), "expansions": engine.query_processor.expansions,

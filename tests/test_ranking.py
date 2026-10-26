@@ -65,6 +65,24 @@ class RankingTests(unittest.TestCase):
         rows = self.engine.rerank_titles("query", [(0, .03, []), (1, .02, []), (2, .01, [])], limit=2)
         self.assertEqual([row[0] for row in rows], [1, 0, 2])
 
+    def test_reranker_receives_retrieved_story_and_series_context(self):
+        captured = []
+        class FakeReranker:
+            def predict(self, pairs, **kwargs):
+                captured.extend(pairs)
+                return [1]
+        self.engine.cross_encoder = FakeReranker()
+        self.engine.metadata = [{"title": "Show", "parent_id": "show", "overview": "Episode event"}]
+        self.engine.parent_metadata = {"show": {"overview": "Series premise"}}
+        self.engine.rerank_titles("query", [(0, .1, [])], evidence={0: "A detailed event beyond the short summary"})
+        self.assertIn("Series premise", captured[0][1])
+        self.assertIn("A detailed event beyond", captured[0][1])
+
+    def test_episode_filters_use_authoritative_parent_genres(self):
+        self.engine.metadata = [{"parent_id": "show", "genres": ["TV Dramas"]}]
+        self.engine.parent_metadata = {"show": {"genres": ["Science Fiction"]}}
+        self.assertEqual(self.engine.apply_filters([(0, 1)], {"genres": ["Science Fiction"]}), [(0, 1)])
+
 
 if __name__ == "__main__":
     unittest.main()

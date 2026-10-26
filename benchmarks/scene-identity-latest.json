@@ -1,19 +1,19 @@
 {
-  "generated_at": "2026-10-26T06:48:09.666563+00:00",
+  "generated_at": "2026-10-26T08:11:19.523734+00:00",
   "model": "models\\bge-large-en-v1.5",
   "device": "cpu",
   "precision": "int8",
   "embedding_dimension": 1024,
   "reranker": true,
-  "transport": "http",
+  "transport": "in_process",
   "multilingual": true,
   "multilingual_model": "models\\multilingual-e5-base",
-  "multilingual_vectors": 23339,
-  "fusion_version": "rrf-v6-multilingual-relevance",
+  "multilingual_vectors": 23341,
+  "fusion_version": "rrf-v7-passage-evidence",
   "cases": 12,
-  "hit_at_1": 0.75,
-  "hit_at_5": 0.9167,
-  "mrr_at_10": 0.8299,
+  "hit_at_1": 0.6667,
+  "hit_at_5": 1.0,
+  "mrr_at_10": 0.8125,
   "evaluation_version": 2,
   "matching": "exact normalized title or explicit id/alias; sequels are distinct",
   "suite_sha256": "6f1daf83f0d74e0c267a3d4f68248b68eeddbe9da561bb56aa2eb9628497860c",
@@ -29,20 +29,20 @@
     "movie_scene": {
       "cases": 3,
       "hit_at_1": 0.3333,
-      "hit_at_5": 0.6667,
-      "mrr_at_10": 0.4861
+      "hit_at_5": 1.0,
+      "mrr_at_10": 0.5833
     },
     "paraphrase": {
+      "cases": 2,
+      "hit_at_1": 0.0,
+      "hit_at_5": 1.0,
+      "mrr_at_10": 0.5
+    },
+    "persian": {
       "cases": 2,
       "hit_at_1": 1.0,
       "hit_at_5": 1.0,
       "mrr_at_10": 1.0
-    },
-    "persian": {
-      "cases": 2,
-      "hit_at_1": 0.5,
-      "hit_at_5": 1.0,
-      "mrr_at_10": 0.75
     },
     "series": {
       "cases": 1,
@@ -63,7 +63,7 @@
       "mrr_at_10": 1.0
     }
   },
-  "mean_latency_sec": 4.1987,
+  "mean_latency_sec": 5.2073,
   "movie_vectors": 8163,
   "scene_vectors": 158,
   "index_vectors": 8321,
@@ -74,13 +74,14 @@
         "Edge of Tomorrow"
       ],
       "category": "user_report",
+      "options": {},
       "rank": 1,
       "top_3": [
         "Edge of Tomorrow",
-        "Black or White",
-        "Soldier"
+        "Passchendaele",
+        "Glory"
       ],
-      "latency_sec": 3.798
+      "latency_sec": 5.762
     },
     {
       "query": "Every time this reluctant soldier is killed fighting aliens, he wakes up before the invasion and learns how to survive a little longer",
@@ -88,13 +89,14 @@
         "Edge of Tomorrow"
       ],
       "category": "paraphrase",
-      "rank": 1,
+      "options": {},
+      "rank": 2,
       "top_3": [
+        "U.F.O.",
         "Edge of Tomorrow",
-        "Source Code",
-        "U.F.O."
+        "The 5th Wave"
       ],
-      "latency_sec": 3.815
+      "latency_sec": 5.041
     },
     {
       "query": "A military officer keeps returning to the morning after dying on a battlefield and trains with a female warrior",
@@ -102,13 +104,14 @@
         "Edge of Tomorrow"
       ],
       "category": "paraphrase",
-      "rank": 1,
+      "options": {},
+      "rank": 2,
       "top_3": [
-        "Edge of Tomorrow",
         "Courage Under Fire",
-        "Ong Bak 2"
+        "Edge of Tomorrow",
+        "Good Morning, Vietnam"
       ],
-      "latency_sec": 4.294
+      "latency_sec": 5.394
     },
     {
       "query": "یه افسر تو جنگ با موجودات فضایی هر بار میمیره دوباره همون روز بیدار میشه و سعی میکنه سربازها رو زنده نگه داره",
@@ -116,13 +119,14 @@
         "Edge of Tomorrow"
       ],
       "category": "persian",
+      "options": {},
       "rank": 1,
       "top_3": [
         "Edge of Tomorrow",
-        "Aliens vs Predator: Requiem",
-        "Predator 2"
+        "War of the Worlds",
+        "Creature"
       ],
-      "latency_sec": 4.442
+      "latency_sec": 5.019
     },
     {
       "query": "A weatherman wakes up to the same day in a small town over and over",
@@ -130,13 +134,14 @@
         "Groundhog Day"
       ],
       "category": "time_loop_distractor",
+      "options": {},
       "rank": 1,
       "top_3": [
         "Groundhog Day",
-        "30 Days of Night",
-        "After"
+        "After",
+        "The Weather Man"
       ],
-      "latency_sec": 3.854
+      "latency_sec": 4.844
     },
     {
       "query": "A man repeatedly relives the final eight minutes of another man's life aboard a train to find a bomber",
@@ -144,13 +149,14 @@
         "Source Code"
       ],
       "category": "time_loop_distractor",
+      "options": {},
       "rank": 1,
       "top_3": [
         "Source Code",
-        "Unbreakable",
+        "Kites",
         "The Missing Person"
       ],
-      "latency_sec": 4.515
+      "latency_sec": 5.278
     },
     {
       "query": "A thief steals secrets through dreams and a fight takes place in a rotating hotel corridor",
@@ -158,13 +164,14 @@
         "Inception"
       ],
       "category": "movie_scene",
-      "rank": 8,
+      "options": {},
+      "rank": 2,
       "top_3": [
         "The Thief and the Cobbler",
-        "Parker",
-        "Kiss Kiss Bang Bang"
+        "Inception",
+        "What's the Worst That Could Happen?"
       ],
-      "latency_sec": 4.004
+      "latency_sec": 5.299
     },
     {
       "query": "A hacker takes a red pill and discovers his entire world is a computer simulation",
@@ -172,13 +179,14 @@
         "The Matrix"
       ],
       "category": "movie_scene",
-      "rank": 3,
+      "options": {},
+      "rank": 4,
       "top_3": [
         "Hackers",
         "Pulse",
-        "The Matrix"
+        "The Thirteenth Floor"
       ],
-      "latency_sec": 4.774
+      "latency_sec": 5.068
     },
     {
       "query": "A man with short term memory loss uses tattoos and photographs to investigate his wife's murder",
@@ -186,13 +194,14 @@
         "Memento"
       ],
       "category": "movie_scene",
+      "options": {},
       "rank": 1,
       "top_3": [
         "Memento",
-        "Amnesiac",
-        "20 Minutes"
+        "Cure",
+        "Gothika"
       ],
-      "latency_sec": 4.147
+      "latency_sec": 5.468
     },
     {
       "query": "A child wins a golden ticket to visit a strange candy maker's chocolate factory",
@@ -200,13 +209,14 @@
         "Charlie and the Chocolate Factory"
       ],
       "category": "contrast",
+      "options": {},
       "rank": 1,
       "top_3": [
         "Charlie and the Chocolate Factory",
         "Willy Wonka & the Chocolate Factory",
         "Epic Movie"
       ],
-      "latency_sec": 4.004
+      "latency_sec": 5.414
     },
     {
       "query": "A chemistry teacher diagnosed with cancer starts cooking methamphetamine with a former student",
@@ -214,13 +224,14 @@
         "Breaking Bad"
       ],
       "category": "series",
+      "options": {},
       "rank": 1,
       "top_3": [
         "Breaking Bad",
-        "Cooking on High",
-        "50/50"
+        "Spun",
+        "Chronicle"
       ],
-      "latency_sec": 3.868
+      "latency_sec": 5.119
     },
     {
       "query": "یه هکر با خوردن قرص قرمز میفهمه دنیایی که توش زندگی میکنه یه شبیه سازی کامپیوتریه",
@@ -228,13 +239,14 @@
         "The Matrix"
       ],
       "category": "persian",
-      "rank": 2,
+      "options": {},
+      "rank": 1,
       "top_3": [
-        "eXistenZ",
         "The Matrix",
+        "Total Recall",
         "Pulse"
       ],
-      "latency_sec": 4.868
+      "latency_sec": 4.779
     }
   ]
 }

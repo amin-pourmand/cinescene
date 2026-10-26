@@ -1,19 +1,19 @@
 {
-  "generated_at": "2026-10-26T06:51:21.823145+00:00",
+  "generated_at": "2026-10-26T08:09:27.466892+00:00",
   "model": "models\\bge-large-en-v1.5",
   "device": "cpu",
   "precision": "int8",
   "embedding_dimension": 1024,
   "reranker": true,
-  "transport": "http",
+  "transport": "in_process",
   "multilingual": true,
   "multilingual_model": "models\\multilingual-e5-base",
-  "multilingual_vectors": 23339,
-  "fusion_version": "rrf-v6-multilingual-relevance",
+  "multilingual_vectors": 23341,
+  "fusion_version": "rrf-v7-passage-evidence",
   "cases": 27,
-  "hit_at_1": 0.5926,
-  "hit_at_5": 0.7778,
-  "mrr_at_10": 0.6821,
+  "hit_at_1": 0.7407,
+  "hit_at_5": 0.9259,
+  "mrr_at_10": 0.8111,
   "evaluation_version": 2,
   "matching": "exact normalized title or explicit id/alias; sequels are distinct",
   "suite_sha256": "b7fc19e19b2ae5a57899940f8db097146bdf0ca7739e1d5a484548451e9b2551",
@@ -22,15 +22,15 @@
   "by_category": {
     "movie_plot": {
       "cases": 12,
-      "hit_at_1": 0.6667,
+      "hit_at_1": 0.75,
       "hit_at_5": 0.8333,
-      "mrr_at_10": 0.7639
+      "mrr_at_10": 0.7917
     },
     "persian_plot": {
       "cases": 4,
-      "hit_at_1": 0.25,
-      "hit_at_5": 0.5,
-      "mrr_at_10": 0.375
+      "hit_at_1": 1.0,
+      "hit_at_5": 1.0,
+      "mrr_at_10": 1.0
     },
     "persian_synthetic_scene": {
       "cases": 1,
@@ -41,8 +41,8 @@
     "series_plot": {
       "cases": 8,
       "hit_at_1": 0.5,
-      "hit_at_5": 0.75,
-      "mrr_at_10": 0.5938
+      "hit_at_5": 1.0,
+      "mrr_at_10": 0.675
     },
     "synthetic_scene": {
       "cases": 2,
@@ -51,7 +51,7 @@
       "mrr_at_10": 1.0
     }
   },
-  "mean_latency_sec": 4.3267,
+  "mean_latency_sec": 6.6482,
   "movie_vectors": 8163,
   "scene_vectors": 158,
   "index_vectors": 8321,
@@ -62,13 +62,14 @@
         "Inception"
       ],
       "category": "movie_plot",
+      "options": {},
       "rank": 1,
       "top_3": [
         "Inception",
         "The Thief and the Cobbler",
         "Parker"
       ],
-      "latency_sec": 7.689
+      "latency_sec": 13.762
     },
     {
       "query": "a marine meets blue aliens on the moon Pandora",
@@ -76,13 +77,14 @@
         "Avatar"
       ],
       "category": "movie_plot",
+      "options": {},
       "rank": 1,
       "top_3": [
         "Avatar",
-        "Meet Dave",
+        "Creature",
         "Aliens"
       ],
-      "latency_sec": 11.234
+      "latency_sec": 15.592
     },
     {
       "query": "an amnesiac man uses tattoos and notes to find a killer",
@@ -90,13 +92,14 @@
         "Memento"
       ],
       "category": "movie_plot",
+      "options": {},
       "rank": 1,
       "top_3": [
         "Memento",
-        "Amnesiac",
-        "DEATH NOTE"
+        "The Number 23",
+        "Amnesiac"
       ],
-      "latency_sec": 7.525
+      "latency_sec": 13.419
     },
     {
       "query": "toys come alive when their owner leaves the room",
@@ -104,13 +107,14 @@
         "Toy Story"
       ],
       "category": "movie_plot",
+      "options": {},
       "rank": 1,
       "top_3": [
         "Toy Story",
-        "Toy Story 2",
-        "Toy Story 3"
+        "Toy Story 3",
+        "Toy Story 2"
       ],
-      "latency_sec": 4.248
+      "latency_sec": 8.157
     },
     {
       "query": "a giant shark terrorizes a seaside town",
@@ -118,13 +122,14 @@
         "Jaws"
       ],
       "category": "movie_plot",
+      "options": {},
       "rank": 1,
       "top_3": [
         "Jaws",
-        "Creature",
-        "Jaws 2"
+        "Jaws 2",
+        "Creature"
       ],
-      "latency_sec": 3.891
+      "latency_sec": 6.32
     },
     {
       "query": "a computer hacker discovers reality is a simulation",
@@ -132,13 +137,14 @@
         "The Matrix"
       ],
       "category": "movie_plot",
-      "rank": 2,
+      "options": {},
+      "rank": 1,
       "top_3": [
-        "Hackers",
         "The Matrix",
-        "Pulse"
+        "Hackers",
+        "The Thirteenth Floor"
       ],
-      "latency_sec": 3.235
+      "latency_sec": 6.475
     },
     {
       "query": "a romance aboard a ship that hits an iceberg",
@@ -146,13 +152,14 @@
         "Titanic"
       ],
       "category": "movie_plot",
-      "rank": 1,
+      "options": {},
+      "rank": 6,
       "top_3": [
-        "Titanic",
-        "Oscar and Lucinda",
-        "Swept Away"
+        "Ice Age: Continental Drift",
+        "Waterworld",
+        "The Boat That Rocked"
       ],
-      "latency_sec": 3.829
+      "latency_sec": 6.602
     },
     {
       "query": "a hobbit carries a powerful ring toward a volcano",
@@ -161,13 +168,14 @@
         "The Lord of the Rings: The Return of the King"
       ],
       "category": "movie_plot",
-      "rank": 2,
+      "options": {},
+      "rank": 1,
       "top_3": [
-        "The Hobbit: The Desolation of Smaug",
+        "The Lord of the Rings: The Return of the King",
         "The Lord of the Rings: The Fellowship of the Ring",
-        "The Hobbit: The Battle of the Five Armies"
+        "The Hobbit: The Desolation of Smaug"
       ],
-      "latency_sec": 4.29
+      "latency_sec": 6.256
     },
     {
       "query": "a prison banker slowly tunnels through a wall to escape",
@@ -175,13 +183,14 @@
         "The Shawshank Redemption"
       ],
       "category": "movie_plot",
-      "rank": 6,
+      "options": {},
+      "rank": 3,
       "top_3": [
         "Lucky Break",
-        "Escape Plan",
-        "The Great Escape"
+        "The Great Escape",
+        "The Shawshank Redemption"
       ],
-      "latency_sec": 4.044
+      "latency_sec": 6.13
     },
     {
       "query": "a clown criminal tests a masked vigilante by threatening a city",
@@ -189,13 +198,14 @@
         "The Dark Knight"
       ],
       "category": "movie_plot",
+      "options": {},
       "rank": null,
       "top_3": [
+        "Batman",
         "Hobo with a Shotgun",
-        "V for Vendetta",
         "Defendor"
       ],
-      "latency_sec": 4.304
+      "latency_sec": 6.942
     },
     {
       "query": "a theme park's cloned dinosaurs escape their enclosures",
@@ -203,13 +213,14 @@
         "Jurassic Park"
       ],
       "category": "movie_plot",
+      "options": {},
       "rank": 1,
       "top_3": [
         "Jurassic Park",
         "Jurassic World",
-        "The Lost World: Jurassic Park"
+        "Alien: Resurrection"
       ],
-      "latency_sec": 3.197
+      "latency_sec": 6.951
     },
     {
       "query": "a young boy discovers that he is a wizard and attends a school of magic",
@@ -218,13 +229,14 @@
         "Harry Potter and the Sorcerer's Stone"
       ],
       "category": "movie_plot",
+      "options": {},
       "rank": 1,
       "top_3": [
         "Harry Potter and the Philosopher's Stone",
         "The NeverEnding Story",
         "The Magicians"
       ],
-      "latency_sec": 3.847
+      "latency_sec": 6.433
     },
     {
       "query": "a chemistry teacher diagnosed with cancer begins making methamphetamine",
@@ -232,13 +244,14 @@
         "Breaking Bad"
       ],
       "category": "series_plot",
+      "options": {},
       "rank": 1,
       "top_3": [
         "Breaking Bad",
         "Medicine Man",
         "Life as a House"
       ],
-      "latency_sec": 3.608
+      "latency_sec": 6.468
     },
     {
       "query": "children search for a missing friend while a strange girl has supernatural powers",
@@ -246,13 +259,14 @@
         "Stranger Things"
       ],
       "category": "series_plot",
-      "rank": 1,
+      "options": {},
+      "rank": 2,
       "top_3": [
+        "Ouija",
         "Stranger Things",
-        "Diablero",
-        "Dark"
+        "Darkness"
       ],
-      "latency_sec": 3.323
+      "latency_sec": 5.983
     },
     {
       "query": "an anthology of disturbing stories about technology and society",
@@ -260,13 +274,14 @@
         "Black Mirror"
       ],
       "category": "series_plot",
-      "rank": null,
+      "options": {},
+      "rank": 5,
       "top_3": [
         "Creeped Out",
         "Easy",
         "The Horror Network Vol. 1"
       ],
-      "latency_sec": 3.417
+      "latency_sec": 4.414
     },
     {
       "query": "a modern London detective and his doctor companion solve crimes",
@@ -274,13 +289,14 @@
         "Sherlock"
       ],
       "category": "series_plot",
-      "rank": null,
+      "options": {},
+      "rank": 2,
       "top_3": [
-        "Fallet",
-        "Collateral",
-        "The Irregulars"
+        "Sherlock Holmes",
+        "Sherlock",
+        "Fallet"
       ],
-      "latency_sec": 4.464
+      "latency_sec": 5.026
     },
     {
       "query": "the reign of Queen Elizabeth and the private life of the royal family",
@@ -288,13 +304,14 @@
         "The Crown"
       ],
       "category": "series_plot",
-      "rank": 4,
+      "options": {},
+      "rank": 5,
       "top_3": [
         "The Queen",
         "Elizabeth",
         "Elizabeth: The Golden Age"
       ],
-      "latency_sec": 3.614
+      "latency_sec": 6.066
     },
     {
       "query": "a Birmingham gangster family rises to power after the first world war",
@@ -302,13 +319,14 @@
         "Peaky Blinders"
       ],
       "category": "series_plot",
+      "options": {},
       "rank": 1,
       "top_3": [
         "Peaky Blinders",
-        "Rebellion",
-        "Legend"
+        "Legend",
+        "Manderlay"
       ],
-      "latency_sec": 3.833
+      "latency_sec": 5.817
     },
     {
       "query": "a monster hunter struggles to find his place in a world of magic",
@@ -316,13 +334,14 @@
         "The Witcher"
       ],
       "category": "series_plot",
+      "options": {},
       "rank": 1,
       "top_3": [
         "The Witcher",
-        "Legend Quest: Masters of Myth",
-        "Jack Brooks: Monster Slayer"
+        "Dragon Hunters",
+        "Legend Quest: Masters of Myth"
       ],
-      "latency_sec": 4.726
+      "latency_sec": 5.431
     },
     {
       "query": "missing children reveal a time travel mystery in a German town",
@@ -330,13 +349,14 @@
         "Dark"
       ],
       "category": "series_plot",
-      "rank": 2,
+      "options": {},
+      "rank": 1,
       "top_3": [
-        "The White Ribbon",
         "Dark",
-        "The Golden Child"
+        "The White Ribbon",
+        "The Brothers Grimm"
       ],
-      "latency_sec": 3.521
+      "latency_sec": 4.672
     },
     {
       "query": "دزدی وارد خواب آدم‌ها می‌شود تا یک ایده در ذهنشان بکارد",
@@ -344,13 +364,14 @@
         "Inception"
       ],
       "category": "persian_plot",
-      "rank": 6,
+      "options": {},
+      "rank": 1,
       "top_3": [
-        "The Curse of La Llorona",
-        "MUPPET BABIES",
-        "Amnesiac"
+        "Inception",
+        "The Thief and the Cobbler",
+        "Kiss Kiss Bang Bang"
       ],
-      "latency_sec": 1.48
+      "latency_sec": 5.518
     },
     {
       "query": "مردی حافظه‌اش را از دست داده و با خالکوبی و یادداشت دنبال قاتل می‌گردد",
@@ -358,13 +379,14 @@
         "Memento"
       ],
       "category": "persian_plot",
-      "rank": 3,
+      "options": {},
+      "rank": 1,
       "top_3": [
-        "Amnesiac",
-        "Tabula Rasa",
-        "Memento"
+        "Memento",
+        "The Number 23",
+        "Amnesiac"
       ],
-      "latency_sec": 3.924
+      "latency_sec": 5.314
     },
     {
       "query": "معلم شیمی سرطان می‌گیرد و شروع به ساخت مواد مخدر می‌کند",
@@ -372,13 +394,14 @@
         "Breaking Bad"
       ],
       "category": "persian_plot",
+      "options": {},
       "rank": 1,
       "top_3": [
         "Breaking Bad",
         "Dandy",
         "The Curse of La Llorona"
       ],
-      "latency_sec": 1.584
+      "latency_sec": 1.31
     },
     {
       "query": "هکری متوجه می‌شود دنیای واقعی یک شبیه‌سازی کامپیوتری است",
@@ -386,13 +409,14 @@
         "The Matrix"
       ],
       "category": "persian_plot",
-      "rank": null,
+      "options": {},
+      "rank": 1,
       "top_3": [
-        "eXistenZ",
-        "Sparta",
-        "Spy Kids 3-D: Game Over"
+        "The Matrix",
+        "The Thirteenth Floor",
+        "The Lawnmower Man"
       ],
-      "latency_sec": 4.089
+      "latency_sec": 4.833
     },
     {
       "query": "lonely detective enters a dark room and investigates a mystery",
@@ -400,13 +424,14 @@
         "Benchmark Show"
       ],
       "category": "synthetic_scene",
+      "options": {},
       "rank": 1,
       "top_3": [
         "Benchmark Show",
         "Alone in the Dark",
         "Edge of Darkness"
       ],
-      "latency_sec": 5.24
+      "latency_sec": 5.26
     },
     {
       "query": "the city lights flicker while he investigates the mystery",
@@ -414,13 +439,14 @@
         "Benchmark Show"
       ],
       "category": "synthetic_scene",
+      "options": {},
       "rank": 1,
       "top_3": [
         "Benchmark Show",
         "City of Ember",
-        "Geronimo Stilton"
+        "Skyline"
       ],
-      "latency_sec": 4.134
+      "latency_sec": 5.119
     },
     {
       "query": "کارآگاهی تنها وارد اتاق تاریک می‌شود و دنبال سرنخ می‌گردد",
@@ -428,13 +454,14 @@
         "Benchmark Show"
       ],
       "category": "persian_synthetic_scene",
+      "options": {},
       "rank": 1,
       "top_3": [
         "Benchmark Show",
-        "Sherlock",
-        "American Beast"
+        "Sea of Love",
+        "Alone in the Dark"
       ],
-      "latency_sec": 4.535
+      "latency_sec": 5.231
     }
   ]
 }

@@ -10,7 +10,7 @@ Episode summaries and newly imported show metadata are from [TVmaze](https://www
 
 The enriched movie corpus and existing public-series CSV are the project's earlier inputs, not newly collected subtitles. Their original provider terms continue to apply. Do not assume all catalog text is covered by the software license or the TVmaze license.
 
-For the 18 enriched shows, a source-linked TVmaze premiere date takes precedence over the older platform-catalog year in filters and presentation. The original provider year is retained in the source record rather than silently overwritten. Other historical CSV records can still have platform-specific release years; they have not all been individually reconciled.
+For the 18 enriched shows, a source-linked TVmaze premiere date takes precedence over the older platform-catalog year in filters and presentation. The refresh also uses official show summaries and canonical genres rather than provider buckets such as "British TV Shows". Original provider data remains in the raw CSV; the refresh function preserves provider genres and, for future refreshes, the pre-refresh year separately. Other historical CSV records can still have platform-specific release years; they have not all been individually reconciled.
 
 ## Local Media
 

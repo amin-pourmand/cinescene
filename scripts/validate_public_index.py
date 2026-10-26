@@ -28,6 +28,9 @@ def validate(directory=None):
         raise ValueError("Invalid multilingual vector dimensions")
     if any(not 0 <= i < len(records) for i in mapping):
         raise ValueError("Invalid multilingual record mapping")
+    texts = manifest["multilingual"].get("texts")
+    if texts is not None and (len(texts) != len(mapping) or any(not isinstance(text, str) for text in texts)):
+        raise ValueError("Invalid multilingual evidence mapping")
     count = manifest["lexical"]["postings"]
     binary = (directory / "hybrid-lexical.bin").read_bytes()
     if len(binary) != count * 8:
@@ -35,7 +38,8 @@ def validate(directory=None):
     for (record_id,) in struct.iter_unpack("<I", binary[:count * 4]):
         if record_id >= len(records):
             raise ValueError("Lexical posting references a missing record")
-    for start, size in manifest["lexical"]["terms"].values():
+    for posting in manifest["lexical"]["terms"].values():
+        start, size = posting[:2]
         if start < 0 or size < 0 or start + size > count:
             raise ValueError("Invalid lexical posting range")
     for item in items:

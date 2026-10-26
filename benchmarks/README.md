@@ -37,7 +37,28 @@ That historical GPU hybrid run averaged 0.234 seconds per warm HTTP query. The c
 
 These suites have different purposes and must not be pooled into a headline accuracy score. The episode examples are informed by source descriptions and are functional acceptance checks, not unseen human-authored evaluation. Dataset expansion does not automatically improve ranking; compare per-query failures as well as aggregate metrics.
 
-On the current 27-query CPU-ONNX snapshot: Hit@1 **59.26%**, Hit@5 **77.78%**, MRR@10 **0.6821**, observed mean HTTP latency **4.33 s**. Relative to the historical GPU snapshot, first-result rank improves but top-five coverage is lower. The runtime, quantization, fusion and dataset all changed, so this is a system comparison, not evidence that one isolated model choice caused the difference. Timing on the development host is not a controlled throughput benchmark.
+The earlier CPU-ONNX snapshot (59.26% Hit@1, 77.78% Hit@5, MRR@10 0.6821) is preserved in `hybrid-quality-before-evidence.json`. Current `hybrid-quality-latest.json` measures **74.07% Hit@1**, **92.59% Hit@5**, **MRR@10 0.8111** on the same 27-query hash. Mean observed in-process latency was 6.65 seconds. Previous reports used HTTP and different host load; these timings are not controlled throughput measurements.
+
+## Diverse Scene Evaluation, 2026-10-26
+
+```powershell
+.\.venv\Scripts\python.exe scripts/retrieval_quality_benchmark.py --reranker --cases benchmarks/diverse-dev-cases.json --output benchmarks/diverse-dev-latest.json
+.\.venv\Scripts\python.exe scripts/retrieval_quality_benchmark.py --reranker --cases benchmarks/diverse-reserved-cases.json --output benchmarks/diverse-reserved-latest.json
+```
+
+The 24-query development suite covers remembered scenes, time-loop contrasts, series plots, five Persian descriptions and explicit media/year/director/genre filters. The benchmark now actually forwards case-specific media/scope options. The 16 reserved queries concern disjoint titles; their baseline report was saved without inspecting it during implementation. `quality-policy.json` records the policy frozen before reading final reserved results. No runtime rule maps a test sentence to an expected title.
+
+| Suite | Hit@1 Before / After | Hit@5 Before / After | MRR@10 Before / After |
+| --- | ---: | ---: | ---: |
+| Diverse development (24) | 58.33% / 79.17% | 70.83% / 95.83% | 0.6414 / 0.8802 |
+| Reserved final (16) | 68.75% / 68.75% | 87.50% / 87.50% | 0.7578 / 0.7734 |
+| Targeted identity (12) | 75% / 66.67% | 91.67% / 100% | 0.8299 / 0.8125 |
+
+The development gains do not generalize into a higher reserved Hit@1/Hit@5. In particular, the three reserved Persian queries rank 4, absent and 8, while all five development Persian queries rank first. Concept expansion is not a full translator. The scene about Inception's rotating corridor remains difficult: the new scene-only wording ranks 8, while the older richer description ranks 2. Two English Edge of Tomorrow paraphrases regressed to rank 2. Titanic ranks 6 and the original Dark Knight description is absent from ten. These limitations are recorded rather than removed from the suites. All three episode-identity acceptance checks still pass first.
+
+`diverse-dev-mxbai-ablation.json` tests an already prepared alternative reranker over frozen candidates. It raises Hit@1 to 83.33% but lowers Hit@5 and loses a previously successful Persian Edge of Tomorrow query. `diverse-dev-snippets-ablation.json` tests stitched plot sentences; it loses the hallway match. Neither is the release policy. `scripts/compare_reranker.py` reproduces these local trace-based experiments. Traces can contain private upload text, so keep `--trace` outputs on E and do not publish them.
+
+To refresh the same sourced series metadata and its changed title vectors, stop Studio, run `scripts/expand_episode_dataset.py`, then `scripts/refresh_series_index.py`, rebuild the public catalog/index and restart Studio. Existing vectors for unchanged titles are retained. Local model, cache and test artifacts remain on E; do not run model inference and browser WASM inference simultaneously on low-memory Windows hosts.
 
 This suite has informed development and contains synthetic fixtures. It is **not held-out**, is too small for a reliable general accuracy estimate, and must not be presented as an independent academic test. A defensible final study requires unseen descriptions, human relevance judgments, larger authorized scene/episode coverage, per-language metrics, and separately labeled timestamp relevance.
 

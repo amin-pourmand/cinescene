@@ -24,6 +24,7 @@ def parse_args():
     parser.add_argument("--mode", choices=["hybrid", "semantic", "lexical", "multilingual"], default="hybrid")
     parser.add_argument("--api-url", help="Reuse a running backend instead of loading another copy of the models.")
     parser.add_argument("--engine", choices=("hybrid", "passages", "legacy"), default="hybrid")
+    parser.add_argument("--trace", help="Save local candidate/evidence diagnostics (in-process hybrid only; may contain private upload text).")
     return parser.parse_args()
 
 
@@ -32,6 +33,10 @@ def main():
     case_file = Path(args.cases)
     suite = json.loads(case_file.read_text(encoding="utf-8"))
     cases = suite["cases"]
+    traces = []
+    current_trace = {}
+    if args.trace and (args.api_url or args.engine != "hybrid"):
+        raise ValueError("--trace requires an in-process hybrid engine")
     if args.api_url:
         if args.mode != "hybrid":
             raise ValueError("API evaluation currently supports hybrid mode only.")
@@ -42,8 +47,9 @@ def main():
         health.raise_for_status()
         status = health.json()["engine"]
 
-        def retrieve(query, count):
-            response = client.post("/api/search", json={"query": query, "top_k": count, "use_reranking": args.reranker})
+        def retrieve(query, count, case=None):
+            options = {key: case[key] for key in ("media_type", "scope") if case and key in case}
+            response = client.post("/api/search", json={"query": query, "top_k": count, "use_reranking": args.reranker, **options})
             response.raise_for_status()
             return response.json()["results"]
     else:
@@ -54,24 +60,51 @@ def main():
             from hybrid_search import HybridSearchEngine
             engine = HybridSearchEngine(enable_reranker=args.reranker)
         status = engine.status()
+        if args.trace:
+            original = engine.rerank_titles
+            def traced_rerank(query, candidates, **kwargs):
+                current_trace["candidates"] = [
+                    {"id": engine.metadata[i].get("parent_id") or engine.metadata[i].get("id"),
+                     "title": engine.metadata[i].get("title"), "score": score,
+                     "kind": engine.metadata[i].get("record_type", "title"),
+                     "matched_episode": engine.metadata[i].get("matched_episode"),
+                     "overview": engine.metadata[i].get("overview"), "evidence": kwargs.get("evidence", {}).get(i)}
+                    for i, score, _ in candidates[:40]]
+                return original(query, candidates, **kwargs)
+            engine.rerank_titles = traced_rerank
+            if engine.cross_encoder:
+                predict = engine.cross_encoder.predict
+                def traced_predict(pairs, **kwargs):
+                    scores = predict(pairs, **kwargs)
+                    current_trace["pairs"] = [{"query": q, "text": text, "score": float(score)}
+                                               for (q, text), score in zip(pairs, scores)]
+                    return scores
+                engine.cross_encoder.predict = traced_predict
 
-        def retrieve(query, count):
-            return engine.search(query, top_k=count, use_reranking=args.reranker, mode=args.mode)
+        def retrieve(query, count, case=None):
+            options = {key: case[key] for key in ("media_type", "scope") if case and key in case}
+            return engine.search(query, top_k=count, use_reranking=args.reranker, mode=args.mode, **options)
 
     retrieve("movie scene", 1)
     rows = []
     latencies = []
     for case in cases:
+        current_trace = dict(case)
         started = time.perf_counter()
-        results = retrieve(case["query"], 10)
+        results = retrieve(case["query"], 10, case)
         latency = time.perf_counter() - started
         latencies.append(latency)
         rank = expected_rank(results, case)
+        if args.trace:
+            current_trace["rank"] = rank
+            traces.append(current_trace)
+        print(f"[{len(rows) + 1}/{len(cases)}] rank={rank} expected={case['expected'][0]}", flush=True)
         rows.append(
             {
                 "query": case["query"],
                 "expected": case["expected"],
                 "category": case.get("category", "unclassified"),
+                "options": {key: case[key] for key in ("media_type", "scope") if key in case},
                 "rank": rank,
                 "top_3": [item["title"] for item in results[:3]],
                 "latency_sec": round(latency, 3),
@@ -107,6 +140,10 @@ def main():
     output = Path(args.output)
     output.parent.mkdir(parents=True, exist_ok=True)
     output.write_text(json.dumps(report, indent=2, ensure_ascii=False), encoding="utf-8")
+    if args.trace:
+        trace_path = Path(args.trace)
+        trace_path.parent.mkdir(parents=True, exist_ok=True)
+        trace_path.write_text(json.dumps(traces, ensure_ascii=False, indent=2), encoding="utf-8")
     print(json.dumps(report, indent=2, ensure_ascii=True))
     print(f"Saved benchmark report to {output}")
 

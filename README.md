@@ -163,7 +163,16 @@ Run model and browser tests sequentially on memory-constrained Windows machines.
 
 ### Current CPU-ONNX Snapshot
 
-See `benchmarks/hybrid-quality-latest.json` for the unchanged 27-query development suite and every failure. The targeted 12-case identity suite retrieves the exact reported Edge of Tomorrow query, two English paraphrases and a Persian paraphrase at rank 1. It measures 75% Hit@1 and 91.67% Hit@5; the complex Inception description remains outside the top five. The small E5-only experiment and reranker-consensus experiment were not selected for release. These are development measurements, not held-out accuracy claims.
+The release uses query-relevant full-plot/passages in the relevance check, sourced parent-series context, explicit-intent genre filters and Persian inflection-aware concept expansion. It does not contain query-to-film rules. Existing full plots are searched lexically without re-encoding the whole catalog. Thirteen series title records were refreshed from the same attributed TVmaze import, including canonical genres; episode prose is unchanged.
+
+| Manual suite | Hit@1 Before / After | Hit@5 Before / After |
+| --- | ---: | ---: |
+| New diverse development, 24 queries | 58.33% / 79.17% | 70.83% / 95.83% |
+| Original development, 27 queries | 59.26% / 74.07% | 77.78% / 92.59% |
+| Reserved final, 16 queries | 68.75% / 68.75% | 87.50% / 87.50% |
+| Targeted identity, 12 queries | 75.00% / 66.67% | 91.67% / 100% |
+
+The reserved titles are disjoint from development titles and were evaluated after the ranking policy was frozen. They are still manually authored checks, not an independent academic dataset. The reserved Persian descriptions of The Sixth Sense and The Martian remain failures (absent from top ten and rank 8 respectively); do not infer universal Persian understanding from the five successful development examples. Two English Edge of Tomorrow paraphrases regressed from first to second, although the exact reported query remains first. Three source-informed episode checks still identify the correct show and episode at rank 1. Full results, rejected ablations and reproducible commands are in [benchmarks](benchmarks/README.md).
 
 ### Historical Baseline
 

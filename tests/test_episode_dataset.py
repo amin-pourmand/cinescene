@@ -1,8 +1,19 @@
 import unittest
-from scripts.expand_episode_dataset import episode_document, normalized_title
+from scripts.expand_episode_dataset import episode_document, normalized_title, refresh_show
 
 
 class EpisodeDatasetTests(unittest.TestCase):
+    def test_refresh_preserves_identity_and_updates_sourced_genres(self):
+        row = {"id": "provider:abc", "genres": ["British TV Shows"], "overview": "Old summary"}
+        refresh_show(row, {"id": 12, "name": "A Show", "genres": ["Science-Fiction"],
+                           "summary": "<p>A complete official summary.</p>", "premiered": "2011-01-01",
+                           "url": "https://www.tvmaze.com/shows/12"})
+        self.assertEqual(row["id"], "provider:abc")
+        self.assertEqual(row["genres"], ["Science Fiction"])
+        self.assertEqual(row["provider_genres"], ["British TV Shows"])
+        self.assertEqual(row["overview"], "A complete official summary.")
+        self.assertEqual(row["license"], "CC-BY-SA-4.0")
+
     def test_official_premiere_year_overrides_platform_catalog_year(self):
         from scripts.build_pwa_catalog import year_for
         self.assertEqual(year_for({"release_year": "2013", "premiered": "2008-01-20"}), "2008")

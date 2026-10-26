@@ -1,17 +1,17 @@
-const CACHE_NAME = "cinescene-pwa-v20261026-hybrid-v19";
+const CACHE_NAME = "cinescene-pwa-v20261026-evidence-v20";
 const ASSETS = [
   "./",
   "./index.html",
   "./manifest.webmanifest",
   "./assets/styles.css?v=20261025-reel-v11",
-  "./assets/app.js?v=20261026-hybrid-v18",
-  "./assets/semantic-client.js?v=20261026-hybrid-v18",
-  "./assets/semantic-worker.mjs",
-  "./assets/hybrid-ranking.mjs",
+  "./assets/app.js?v=20261026-evidence-v20",
+  "./assets/semantic-client.js?v=20261026-evidence-v20",
+  "./assets/semantic-worker.mjs?v=20261026-evidence-v20",
+  "./assets/hybrid-ranking.mjs?v=20261026-evidence-v20",
   "./assets/vendor/transformers.min.js",
   "./assets/vendor/ort-wasm-simd-threaded.jsep.mjs",
   "./assets/vendor/ort-wasm-simd-threaded.jsep.wasm",
-  "./assets/workspace-ui.js?v=20261026-hybrid-v18",
+  "./assets/workspace-ui.js?v=20261026-evidence-v20",
   "./assets/workspace.css?v=20261025-semantic-v13",
   "./assets/scene-explorer.js?v=20261025-reel-v11",
   "./assets/scene-explorer.css?v=20261025-reel-v11",

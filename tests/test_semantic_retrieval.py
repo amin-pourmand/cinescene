@@ -26,8 +26,25 @@ class QueryIntentTests(unittest.TestCase):
         result = self.processor.process("فیلم محصول ۲۰۱۴")
         self.assertEqual(result["filters"]["year_range"], (2014, 2014))
 
+    def test_story_adjectives_are_not_implicit_genre_constraints(self):
+        self.assertEqual(self.processor.extract_filters("a funny teacher in a drama class")["genres"], [])
+        self.assertEqual(self.processor.extract_filters("a comedy movie")["genres"], ["Comedy"])
+        self.assertEqual(self.processor.extract_filters("genre: horror")["genres"], ["Horror"])
+
+    def test_persian_inflections_expand_without_matching_unrelated_substrings(self):
+        self.assertIn("hacker", self.processor.expand_query("هکری"))
+        self.assertIn("employee", self.processor.expand_query("کارمندهای شرکت"))
+        self.assertNotIn("war", self.processor.expand_query("جنگل"))
+
 
 class PassageEvidenceTests(unittest.TestCase):
+    def test_full_story_selection_can_use_later_events(self):
+        from core.story_evidence import story_windows, select_story_evidence
+        plot = "Ordinary opening events. " * 50 + "A detective discovers a rare clockwork bird hidden in a cupboard."
+        windows = story_windows(plot)
+        self.assertGreater(len(windows), 1)
+        self.assertIn("clockwork bird", select_story_evidence("clockwork bird cupboard", windows, "An ordinary opening.", str.split))
+
     def test_reranker_uses_metadata_and_does_not_duplicate_summary(self):
         item = {"title": "Example", "year": "2020", "genres": ["Drama"], "keywords": ["memory"], "overview": "A short plot."}
         text = relevance_text(item, "Example (2020). A short plot.")
