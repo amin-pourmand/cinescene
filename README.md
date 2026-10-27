@@ -163,6 +163,10 @@ Run model and browser tests sequentially on memory-constrained Windows machines.
 
 ### Current CPU-ONNX Snapshot
 
+**Broader diagnostic:** [196 actual API inputs](benchmarks/broad-report.md) expose substantially weaker generalization than the small development suites. On 160 retrieval queries over 68 catalog identities, English first-result accuracy was 70/97 (72.2%), Persian 2/61 (3.3%), and mixed-language 1/2. On the controlled 60-story paired sample, English was first in 46 cases and Persian in two. Detailed English scene descriptions were first in only 6/14 cases. This release should not be presented as reliable general Persian scene recognition.
+
+The same run separately checked 20 requested titles/versions (17 absent in this deliberately gap-focused sample), four unrelated/noise inputs (none correctly rejected), four ambiguous inputs (distinct suggestions only, not relevance judgments) and eight invalid requests (all rejected correctly). All 196 requests completed without a technical error. The 10 source-informed episode checks passed, but are not independent recognition evidence. No ranking/model changes were made during this broad evaluation; `broad-scenarios.json` and the complete input ledger retain the failures.
+
 The release uses query-relevant full-plot/passages in the relevance check, sourced parent-series context, explicit-intent genre filters and Persian inflection-aware concept expansion. It does not contain query-to-film rules. Existing full plots are searched lexically without re-encoding the whole catalog. Thirteen series title records were refreshed from the same attributed TVmaze import, including canonical genres; episode prose is unchanged.
 
 | Manual suite | Hit@1 Before / After | Hit@5 Before / After |

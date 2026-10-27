@@ -27,6 +27,9 @@ That historical GPU hybrid run averaged 0.234 seconds per warm HTTP query. The c
 
 ## Current Release Checks
 
+- `broad-report.md`: readable ledger of 196 actual HTTP inputs, including every query, expected title, rank and first suggestion.
+- `broad-latest.json`: complete structured broad diagnostic, with ten returned identities per successful request and no private media text/paths.
+- `broad-scenarios.json`: frozen bilingual topics, scene descriptions, episode acceptance checks, coverage requests and boundary probes.
 - `hybrid-quality-latest.json`: the unchanged 27-query development suite on the release engine.
 - `scene-identity-latest.json`: 12 targeted identity/contrast queries, including the exact reported Edge of Tomorrow failure, independent paraphrases and Persian queries.
 - `episode-latest.json`: three source-informed checks requiring the correct parent series AND season/episode, not just a matching show title.
@@ -36,6 +39,36 @@ That historical GPU hybrid run averaged 0.234 seconds per warm HTTP query. The c
 - `onnx-consensus.json`: the rank-consensus ablation; not the selected release policy because targeted scene identity regressed.
 
 These suites have different purposes and must not be pooled into a headline accuracy score. The episode examples are informed by source descriptions and are functional acceptance checks, not unseen human-authored evaluation. Dataset expansion does not automatically improve ranking; compare per-query failures as well as aggregate metrics.
+
+## Broad Diagnostic: 196 Inputs
+
+The production `rrf-v7-passage-evidence` engine was tested sequentially through the running HTTP API, with reranking enabled and no retrieval-policy changes during the run. Preflight checked all 160 retrieval cases against exact catalog IDs, including season/episode availability. The cases span 68 title/version identities. Checkpoints and runtime logs were saved on E. The complete engine fingerprint was unchanged at completion; there were no technical errors or non-200 retrieval responses.
+
+| Retrieval group | Inputs | First | Top five |
+| --- | ---: | ---: | ---: |
+| English | 97 | 70 (72.2%) | 81 (83.5%) |
+| Persian | 61 | 2 (3.3%) | 13 (21.3%) |
+| Mixed language | 2 | 1 | 1 |
+| Manual cases only | 150 | 63 (42.0%) | 85 (56.7%) |
+| Source-informed episode identity | 10 | 10 | 10 |
+
+The clean paired comparison uses the same 60 target stories: English 46/60 first, Persian 2/60 first. English movie plots are 36/40 first, English series plots 10/20 first, and English scene-detail questions 6/14 first. One private local title dominates 40/61 Persian first suggestions; its label and ID are pseudonymized in the published report. This concentration is a symptom requiring investigation, not proof that one isolated change will fix the system.
+
+These are strict intended-title labels, not exhaustive relevance annotations. A description can also fit a film adaptation or another related story, especially when the prompt does not specify a medium. Such alternatives were not systematically judged; do not interpret every non-first intended title as an unequivocally irrelevant first suggestion.
+
+Coverage and probes are excluded from these retrieval metrics. Seventeen of the 20 deliberately selected coverage requests are absent; that is not an estimate of the fraction of all cinema missing. The Dune remakes are checked by requested year, and Money Heist resolves through its exact La Casa de Papel alias. Twelve absent targets still produced nonempty suggestions. All four unrelated/noise queries also produced inappropriate movie suggestions. Invalid inputs passed 8/8; ambiguous probes passed 4/4 only for returning distinct multiple candidates, not for judged relevance.
+
+These results supersede any inference of general reliability from a few successful Persian examples. Before claiming dependable scene retrieval, priorities are genuine cross-language query understanding, calibrated no-match behavior, stronger film/series and scene-level discrimination, and broader authorized evidence coverage. If these cases are used for tuning, they become development data; reserve a new evaluation set rather than reporting the same cases as unseen.
+
+```powershell
+.\.venv\Scripts\python.exe scripts/broad_retrieval_benchmark.py --preflight
+.\.venv\Scripts\python.exe scripts/broad_retrieval_benchmark.py --output E:/CineSceneCache/cinescene/artifacts/broad-next.json
+.\.venv\Scripts\python.exe scripts/broad_retrieval_benchmark.py --output E:/CineSceneCache/cinescene/artifacts/broad-next.json --resume
+.\.venv\Scripts\python.exe scripts/summarize_broad_benchmark.py
+.\.venv\Scripts\python.exe scripts/summarize_broad_benchmark.py --input E:/CineSceneCache/cinescene/artifacts/broad-next.json --public-json benchmarks/broad-latest.json
+```
+
+The runner now checks a 2 GB system-drive free-space floor before each new request. Long CPU inference can expand Windows paging on C even with model files on E. This is a native API diagnostic, not a run of every query in the browser WASM engine, and its observed median 5.02 s / p95 6.026 s latency is not a controlled load benchmark.
 
 The earlier CPU-ONNX snapshot (59.26% Hit@1, 77.78% Hit@5, MRR@10 0.6821) is preserved in `hybrid-quality-before-evidence.json`. Current `hybrid-quality-latest.json` measures **74.07% Hit@1**, **92.59% Hit@5**, **MRR@10 0.8111** on the same 27-query hash. Mean observed in-process latency was 6.65 seconds. Previous reports used HTTP and different host load; these timings are not controlled throughput measurements.
 
