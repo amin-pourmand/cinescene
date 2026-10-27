@@ -68,7 +68,7 @@ These results supersede any inference of general reliability from a few successf
 .\.venv\Scripts\python.exe scripts/summarize_broad_benchmark.py --input E:/CineSceneCache/cinescene/artifacts/broad-next.json --public-json benchmarks/broad-latest.json
 ```
 
-The runner now checks a 2 GB system-drive free-space floor before each new request. Long CPU inference can expand Windows paging on C even with model files on E. This is a native API diagnostic, not a run of every query in the browser WASM engine, and its observed median 5.02 s / p95 6.026 s latency is not a controlled load benchmark.
+The runner now checks a 2 GB system-drive free-space floor before the initial health request (which can initialize a cold engine) and each search. This guard does not cap Windows memory or pagefile allocation; long CPU inference can still expand paging on C even with model files on E. This is a native API diagnostic, not a run of every query in the browser WASM engine, and its observed median 5.02 s / p95 6.026 s latency is not a controlled load benchmark.
 
 The earlier CPU-ONNX snapshot (59.26% Hit@1, 77.78% Hit@5, MRR@10 0.6821) is preserved in `hybrid-quality-before-evidence.json`. Current `hybrid-quality-latest.json` measures **74.07% Hit@1**, **92.59% Hit@5**, **MRR@10 0.8111** on the same 27-query hash. Mean observed in-process latency was 6.65 seconds. Previous reports used HTTP and different host load; these timings are not controlled throughput measurements.
 

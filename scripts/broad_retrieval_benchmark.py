@@ -211,6 +211,8 @@ def main():
     output = Path(args.output)
     output.parent.mkdir(parents=True, exist_ok=True)
     checkpoint = output.with_suffix(".jsonl")
+    # /api/health may initialize a cold engine, so guard it as well as searches.
+    check_system_space(args.min_system_free_gb)
     with httpx.Client(base_url=args.api_url, timeout=180, headers={"X-CineScene-Session": "broad-quality-diagnostics-v1"}) as client:
         response = client.get("/api/health")
         response.raise_for_status()
