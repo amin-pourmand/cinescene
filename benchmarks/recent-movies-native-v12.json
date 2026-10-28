@@ -1,0 +1,2923 @@
+{
+  "generated_at": "2026-10-28T13:39:28.931445+00:00",
+  "description": "Manual bilingual diagnostic for recent film coverage and narrative retrieval, authored before running the expanded generation. Source-verified target identities, not independent population accuracy or timed-scene ground truth. No runtime tuning during this run.",
+  "suite_sha256": "e0a0bea8ee616a525cedd1eb72e05689cfa6c296a94bf597b611660498638384",
+  "planned_inputs": 28,
+  "completed_inputs": 28,
+  "engine": {
+    "fusion_version": "rrf-v11-resilient-bilingual",
+    "index_generation": "2026-10-28T09:45:41.905409+00:00",
+    "model": "models\\bge-large-en-v1.5",
+    "precision": "int8",
+    "embedding_dimension": 1024,
+    "index_vectors": 11393,
+    "multilingual_vectors": 28473,
+    "reranker": true,
+    "reranker_model": "models\\ms-marco-MiniLM-L-6-v2",
+    "identity_aliases": {
+      "tvmaze:431": "public-series:1faeb5bc77b6fc7e",
+      "tvmaze:175": "public-series:4f4a313aa0fb17dc",
+      "tvmaze:19": "public-series:e99de67d063adb9d"
+    }
+  },
+  "engine_unchanged": true,
+  "transport": "http; one request at a time; reranking enabled",
+  "evaluation_version": "broad-v1",
+  "identity_resolution": {
+    "tvmaze:431": "public-series:1faeb5bc77b6fc7e",
+    "tvmaze:175": "public-series:4f4a313aa0fb17dc",
+    "tvmaze:19": "public-series:e99de67d063adb9d"
+  },
+  "limitations": "Manual diagnostic sample, not a population estimate or independent held-out dataset. Episode checks are source-informed. Coverage/probes are excluded from retrieval metrics. Timing reflects this host, not a controlled load test.",
+  "retrieval": {
+    "cases": 26,
+    "hit_at_1": 0.5769,
+    "hit_at_5": 0.8077,
+    "mrr_at_10": 0.6939
+  },
+  "by_language": {
+    "en": {
+      "cases": 13,
+      "hit_at_1": 0.4615,
+      "hit_at_5": 0.7692,
+      "mrr_at_10": 0.6186
+    },
+    "fa": {
+      "cases": 13,
+      "hit_at_1": 0.6923,
+      "hit_at_5": 0.8462,
+      "mrr_at_10": 0.7692
+    }
+  },
+  "by_category": {
+    "movie_plot": {
+      "cases": 26,
+      "hit_at_1": 0.5769,
+      "hit_at_5": 0.8077,
+      "mrr_at_10": 0.6939
+    }
+  },
+  "by_provenance": {
+    "manual": {
+      "cases": 26,
+      "hit_at_1": 0.5769,
+      "hit_at_5": 0.8077,
+      "mrr_at_10": 0.6939
+    }
+  },
+  "paired_topics": {
+    "complete_pairs": 13,
+    "both_first": 6,
+    "english_only_first": 0,
+    "persian_only_first": 3,
+    "neither_first": 4
+  },
+  "coverage": {
+    "requests": 0,
+    "present": 0,
+    "missing": [],
+    "nonempty_results_for_missing": 0
+  },
+  "probes": {
+    "negative": {
+      "cases": 2,
+      "passed": 0
+    },
+    "ambiguous": {
+      "cases": 0,
+      "passed": 0
+    },
+    "invalid": {
+      "cases": 0,
+      "passed": 0
+    }
+  },
+  "technical_errors": 1,
+  "degraded_retrieval": 0,
+  "retrieval_non_200": 1,
+  "retrieval_p50_sec": 28.101,
+  "retrieval_p95_sec": 54.732,
+  "rows": [
+    {
+      "id": "pair-001-en",
+      "kind": "retrieval",
+      "category": "movie_plot",
+      "language": "en",
+      "provenance": "manual",
+      "pair": "pair-001",
+      "query": "an exiled young nobleman joins desert warriors, learns to ride enormous sandworms and becomes the focus of a dangerous religious uprising",
+      "expected": [
+        "Dune: Part Two"
+      ],
+      "expected_ids": [
+        "693134"
+      ],
+      "status": 200,
+      "error": null,
+      "original_expected_ids": null,
+      "latency_sec": 24.705,
+      "results": [
+        {
+          "id": "841",
+          "title": "Dune",
+          "year": "1984",
+          "media_type": "movie",
+          "matched_episode": null
+        },
+        {
+          "id": "9355",
+          "title": "Mad Max Beyond Thunderdome",
+          "year": "1985",
+          "media_type": "movie",
+          "matched_episode": null
+        },
+        {
+          "id": "438631",
+          "title": "Dune",
+          "year": "2021",
+          "media_type": "movie",
+          "matched_episode": null
+        },
+        {
+          "id": "8367",
+          "title": "Robin Hood: Prince of Thieves",
+          "year": "1991",
+          "media_type": "movie",
+          "matched_episode": null
+        },
+        {
+          "id": "146",
+          "title": "Crouching Tiger, Hidden Dragon",
+          "year": "2000",
+          "media_type": "movie",
+          "matched_episode": null
+        },
+        {
+          "id": "693134",
+          "title": "Dune: Part Two",
+          "year": "2024",
+          "media_type": "movie",
+          "matched_episode": null
+        },
+        {
+          "id": "1911",
+          "title": "The 13th Warrior",
+          "year": "1999",
+          "media_type": "movie",
+          "matched_episode": null
+        },
+        {
+          "id": "205584",
+          "title": "Gods of Egypt",
+          "year": "2016",
+          "media_type": "movie",
+          "matched_episode": null
+        },
+        {
+          "id": "10764",
+          "title": "Quantum of Solace",
+          "year": "2008",
+          "media_type": "movie",
+          "matched_episode": null
+        },
+        {
+          "id": "147441",
+          "title": "Exodus: Gods and Kings",
+          "year": "2014",
+          "media_type": "movie",
+          "matched_episode": null
+        }
+      ],
+      "rank": 6,
+      "interpretation": {
+        "language": "en",
+        "translation": "not_needed",
+        "translated_query": null,
+        "warning": null
+      },
+      "options": {
+        "top_k": 10
+      },
+      "season": null,
+      "episode": null
+    },
+    {
+      "id": "pair-001-fa",
+      "kind": "retrieval",
+      "category": "movie_plot",
+      "language": "fa",
+      "provenance": "manual",
+      "pair": "pair-001",
+      "query": "یه جوان تبعیدی به مبارزهای صحرا ملحق میشه، یاد میگیره سوار کرم های غول پیکر شنی بشه و پیروانش اونو ناجی خودشون میدونن",
+      "expected": [
+        "Dune: Part Two"
+      ],
+      "expected_ids": [
+        "693134"
+      ],
+      "status": 200,
+      "error": null,
+      "original_expected_ids": null,
+      "latency_sec": 55.472,
+      "results": [
+        {
+          "id": "9837",
+          "title": "The Prince of Egypt",
+          "year": "1998",
+          "media_type": "movie",
+          "matched_episode": null
+        },
+        {
+          "id": "235260",
+          "title": "Son of God",
+          "year": "2014",
+          "media_type": "movie",
+          "matched_episode": null
+        },
+        {
+          "id": "318850",
+          "title": "The Young Messiah",
+          "year": "2016",
+          "media_type": "movie",
+          "matched_episode": null
+        },
+        {
+          "id": "11051",
+          "title": "The Last Temptation of Christ",
+          "year": "1988",
+          "media_type": "movie",
+          "matched_episode": null
+        },
+        {
+          "id": "417859",
+          "title": "Puss in Boots",
+          "year": "2011",
+          "media_type": "movie",
+          "matched_episode": null
+        },
+        {
+          "id": "438631",
+          "title": "Dune",
+          "year": "2021",
+          "media_type": "movie",
+          "matched_episode": null
+        },
+        {
+          "id": "public-series:da42390bd18716d9",
+          "title": "Future-Worm!",
+          "year": "2016",
+          "media_type": "series",
+          "matched_episode": null
+        },
+        {
+          "id": "147441",
+          "title": "Exodus: Gods and Kings",
+          "year": "2014",
+          "media_type": "movie",
+          "matched_episode": null
+        },
+        {
+          "id": "10634",
+          "title": "Friday",
+          "year": "1995",
+          "media_type": "movie",
+          "matched_episode": null
+        },
+        {
+          "id": "9362",
+          "title": "Tremors",
+          "year": "1990",
+          "media_type": "movie",
+          "matched_episode": null
+        }
+      ],
+      "rank": null,
+      "interpretation": {
+        "language": "fa",
+        "translation": "offline",
+        "translated_query": "A young exile joins the desert struggles, learns to ride giant worms, and his followers know him as their savior.",
+        "warning": null
+      },
+      "options": {
+        "top_k": 10
+      },
+      "season": null,
+      "episode": null
+    },
+    {
+      "id": "pair-002-en",
+      "kind": "retrieval",
+      "category": "movie_plot",
+      "language": "en",
+      "provenance": "manual",
+      "pair": "pair-002",
+      "query": "a physicist leads a secret wartime atomic bomb project and later faces a hearing about his loyalty and political connections",
+      "expected": [
+        "Oppenheimer"
+      ],
+      "expected_ids": [
+        "872585"
+      ],
+      "status": 200,
+      "error": null,
+      "original_expected_ids": null,
+      "latency_sec": 21.429,
+      "results": [
+        {
+          "id": "872585",
+          "title": "Oppenheimer",
+          "year": "2023",
+          "media_type": "movie",
+          "matched_episode": null
+        },
+        {
+          "id": "146216",
+          "title": "RED 2",
+          "year": "2013",
+          "media_type": "movie",
+          "matched_episode": null
+        },
+        {
+          "id": "tvmaze:30770",
+          "title": "Chernobyl",
+          "year": "2019",
+          "media_type": "series",
+          "matched_episode": {
+            "season": 1,
+            "episode": 2
+          }
+        },
+        {
+          "id": "35073",
+          "title": "The Beast from 20,000 Fathoms",
+          "year": "1953",
+          "media_type": "movie",
+          "matched_episode": null
+        },
+        {
+          "id": "4614",
+          "title": "The Sum of All Fears",
+          "year": "2002",
+          "media_type": "movie",
+          "matched_episode": null
+        },
+        {
+          "id": "10003",
+          "title": "The Saint",
+          "year": "1997",
+          "media_type": "movie",
+          "matched_episode": null
+        },
+        {
+          "id": "13448",
+          "title": "Angels & Demons",
+          "year": "2009",
+          "media_type": "movie",
+          "matched_episode": null
+        },
+        {
+          "id": "821",
+          "title": "Judgment at Nuremberg",
+          "year": "1961",
+          "media_type": "movie",
+          "matched_episode": null
+        },
+        {
+          "id": "5780",
+          "title": "Torn Curtain",
+          "year": "1966",
+          "media_type": "movie",
+          "matched_episode": null
+        },
+        {
+          "id": "660",
+          "title": "Thunderball",
+          "year": "1965",
+          "media_type": "movie",
+          "matched_episode": null
+        }
+      ],
+      "rank": 1,
+      "interpretation": {
+        "language": "en",
+        "translation": "not_needed",
+        "translated_query": null,
+        "warning": null
+      },
+      "options": {
+        "top_k": 10
+      },
+      "season": null,
+      "episode": null
+    },
+    {
+      "id": "pair-002-fa",
+      "kind": "retrieval",
+      "category": "movie_plot",
+      "language": "fa",
+      "provenance": "manual",
+      "pair": "pair-002",
+      "query": "یه فیزیکدان پروژه محرمانه ساخت بمب اتم در جنگ جهانی دوم رو رهبری میکنه و بعدا تو جلسه رسیدگی امنیتی بابت ارتباطات سیاسی اش بازخواست میشه",
+      "expected": [
+        "Oppenheimer"
+      ],
+      "expected_ids": [
+        "872585"
+      ],
+      "status": 200,
+      "error": null,
+      "original_expected_ids": null,
+      "latency_sec": 49.537,
+      "results": [
+        {
+          "id": "872585",
+          "title": "Oppenheimer",
+          "year": "2023",
+          "media_type": "movie",
+          "matched_episode": null
+        },
+        {
+          "id": "146216",
+          "title": "RED 2",
+          "year": "2013",
+          "media_type": "movie",
+          "matched_episode": null
+        },
+        {
+          "id": "5780",
+          "title": "Torn Curtain",
+          "year": "1966",
+          "media_type": "movie",
+          "matched_episode": null
+        },
+        {
+          "id": "203801",
+          "title": "The Man from U.N.C.L.E.",
+          "year": "2015",
+          "media_type": "movie",
+          "matched_episode": null
+        },
+        {
+          "id": "4614",
+          "title": "The Sum of All Fears",
+          "year": "2002",
+          "media_type": "movie",
+          "matched_episode": null
+        },
+        {
+          "id": "821",
+          "title": "Judgment at Nuremberg",
+          "year": "1961",
+          "media_type": "movie",
+          "matched_episode": null
+        },
+        {
+          "id": "35073",
+          "title": "The Beast from 20,000 Fathoms",
+          "year": "1953",
+          "media_type": "movie",
+          "matched_episode": null
+        },
+        {
+          "id": "8850",
+          "title": "The Shadow",
+          "year": "1994",
+          "media_type": "movie",
+          "matched_episode": null
+        },
+        {
+          "id": "10003",
+          "title": "The Saint",
+          "year": "1997",
+          "media_type": "movie",
+          "matched_episode": null
+        },
+        {
+          "id": "660",
+          "title": "Thunderball",
+          "year": "1965",
+          "media_type": "movie",
+          "matched_episode": null
+        }
+      ],
+      "rank": 1,
+      "interpretation": {
+        "language": "fa",
+        "translation": "offline",
+        "translated_query": "A physicist leads a secret project to build an atomic bomb in World War II and is later questioned at a security hearing about his political connections.",
+        "warning": null
+      },
+      "options": {
+        "top_k": 10
+      },
+      "season": null,
+      "episode": null
+    },
+    {
+      "id": "pair-003-en",
+      "kind": "retrieval",
+      "category": "movie_plot",
+      "language": "en",
+      "provenance": "manual",
+      "pair": "pair-003",
+      "query": "a woman revived by an eccentric surgeon develops a new understanding of the world and escapes with a lawyer on a journey of discovery",
+      "expected": [
+        "Poor Things"
+      ],
+      "expected_ids": [
+        "792307"
+      ],
+      "status": 200,
+      "error": null,
+      "original_expected_ids": null,
+      "latency_sec": 22.598,
+      "results": [
+        {
+          "id": "public-series:9a5feeb660b99acb",
+          "title": "Gonul",
+          "year": "2015",
+          "media_type": "series",
+          "matched_episode": null
+        },
+        {
+          "id": "314",
+          "title": "Catwoman",
+          "year": "2004",
+          "media_type": "movie",
+          "matched_episode": null
+        },
+        {
+          "id": "13483",
+          "title": "Awake",
+          "year": "2007",
+          "media_type": "movie",
+          "matched_episode": null
+        },
+        {
+          "id": "9839",
+          "title": "Beyond Borders",
+          "year": "2003",
+          "media_type": "movie",
+          "matched_episode": null
+        },
+        {
+          "id": "38167",
+          "title": "Eat Pray Love",
+          "year": "2010",
+          "media_type": "movie",
+          "matched_episode": null
+        },
+        {
+          "id": "10678",
+          "title": "Bringing Down the House",
+          "year": "2003",
+          "media_type": "movie",
+          "matched_episode": null
+        },
+        {
+          "id": "194",
+          "title": "Amélie",
+          "year": "2001",
+          "media_type": "movie",
+          "matched_episode": null
+        },
+        {
+          "id": "792307",
+          "title": "Poor Things",
+          "year": "2023",
+          "media_type": "movie",
+          "matched_episode": null
+        },
+        {
+          "id": "11013",
+          "title": "Secretary",
+          "year": "2002",
+          "media_type": "movie",
+          "matched_episode": null
+        },
+        {
+          "id": "public-series:884857ed8ba436bd",
+          "title": "A Little Thing Called First Love",
+          "year": "2019",
+          "media_type": "series",
+          "matched_episode": null
+        }
+      ],
+      "rank": 8,
+      "interpretation": {
+        "language": "en",
+        "translation": "not_needed",
+        "translated_query": null,
+        "warning": null
+      },
+      "options": {
+        "top_k": 10
+      },
+      "season": null,
+      "episode": null
+    },
+    {
+      "id": "pair-003-fa",
+      "kind": "retrieval",
+      "category": "movie_plot",
+      "language": "fa",
+      "provenance": "manual",
+      "pair": "pair-003",
+      "query": "یک جراح عجیب زنی رو به زندگی برمیگردونه که دوباره مثل بچه ها داره دنیا رو یاد میگیره و بعد با یه وکیل به سفر میره تا مستقل بشه",
+      "expected": [
+        "Poor Things"
+      ],
+      "expected_ids": [
+        "792307"
+      ],
+      "status": 200,
+      "error": null,
+      "original_expected_ids": null,
+      "latency_sec": 48.695,
+      "results": [
+        {
+          "id": "44634",
+          "title": "Woman Thou Art Loosed",
+          "year": "2004",
+          "media_type": "movie",
+          "matched_episode": null
+        },
+        {
+          "id": "792307",
+          "title": "Poor Things",
+          "year": "2023",
+          "media_type": "movie",
+          "matched_episode": null
+        },
+        {
+          "id": "122906",
+          "title": "About Time",
+          "year": "2013",
+          "media_type": "movie",
+          "matched_episode": null
+        },
+        {
+          "id": "2280",
+          "title": "Big",
+          "year": "1988",
+          "media_type": "movie",
+          "matched_episode": null
+        },
+        {
+          "id": "50546",
+          "title": "Just Go with It",
+          "year": "2011",
+          "media_type": "movie",
+          "matched_episode": null
+        },
+        {
+          "id": "9842",
+          "title": "School for Scoundrels",
+          "year": "2006",
+          "media_type": "movie",
+          "matched_episode": null
+        },
+        {
+          "id": "17734",
+          "title": "Thirteen Conversations About One Thing",
+          "year": "2001",
+          "media_type": "movie",
+          "matched_episode": null
+        },
+        {
+          "id": "346698",
+          "title": "Barbie",
+          "year": "2023",
+          "media_type": "movie",
+          "matched_episode": null
+        },
+        {
+          "id": "10480",
+          "title": "Nurse Betty",
+          "year": "2000",
+          "media_type": "movie",
+          "matched_episode": null
+        },
+        {
+          "id": "1955",
+          "title": "The Elephant Man",
+          "year": "1980",
+          "media_type": "movie",
+          "matched_episode": null
+        }
+      ],
+      "rank": 2,
+      "interpretation": {
+        "language": "fa",
+        "translation": "offline",
+        "translated_query": "A strange surgeon brings a woman back to life who's learning the world again like a child and then travels with a lawyer to become an independent.",
+        "warning": null
+      },
+      "options": {
+        "top_k": 10
+      },
+      "season": null,
+      "episode": null
+    },
+    {
+      "id": "pair-004-en",
+      "kind": "retrieval",
+      "category": "movie_plot",
+      "language": "en",
+      "provenance": "manual",
+      "pair": "pair-004",
+      "query": "an aging television fitness celebrity uses an experimental treatment that creates a younger self, but the two must take turns living every week",
+      "expected": [
+        "The Substance"
+      ],
+      "expected_ids": [
+        "933260"
+      ],
+      "status": 200,
+      "error": null,
+      "original_expected_ids": null,
+      "latency_sec": 22.642,
+      "results": [
+        {
+          "id": "933260",
+          "title": "The Substance",
+          "year": "2024",
+          "media_type": "movie",
+          "matched_episode": null
+        },
+        {
+          "id": "238615",
+          "title": "Self/less",
+          "year": "2015",
+          "media_type": "movie",
+          "matched_episode": null
+        },
+        {
+          "id": "44857",
+          "title": "Molly",
+          "year": "1999",
+          "media_type": "movie",
+          "matched_episode": null
+        },
+        {
+          "id": "public-series:aca352aa1d02d288",
+          "title": "The Kominsky Method",
+          "year": "2021",
+          "media_type": "series",
+          "matched_episode": null
+        },
+        {
+          "id": "293660",
+          "title": "Deadpool",
+          "year": "2016",
+          "media_type": "movie",
+          "matched_episode": null
+        },
+        {
+          "id": "public-series:792e62c42b4a87d7",
+          "title": "46",
+          "year": "2016",
+          "media_type": "series",
+          "matched_episode": null
+        },
+        {
+          "id": "76494",
+          "title": "What to Expect When You're Expecting",
+          "year": "2012",
+          "media_type": "movie",
+          "matched_episode": null
+        },
+        {
+          "id": "13856",
+          "title": "Special",
+          "year": "2006",
+          "media_type": "movie",
+          "matched_episode": null
+        },
+        {
+          "id": "9466",
+          "title": "Celebrity",
+          "year": "1998",
+          "media_type": "movie",
+          "matched_episode": null
+        },
+        {
+          "id": "2925",
+          "title": "The First Wives Club",
+          "year": "1996",
+          "media_type": "movie",
+          "matched_episode": null
+        }
+      ],
+      "rank": 1,
+      "interpretation": {
+        "language": "en",
+        "translation": "not_needed",
+        "translated_query": null,
+        "warning": null
+      },
+      "options": {
+        "top_k": 10
+      },
+      "season": null,
+      "episode": null
+    },
+    {
+      "id": "pair-004-fa",
+      "kind": "retrieval",
+      "category": "movie_plot",
+      "language": "fa",
+      "provenance": "manual",
+      "pair": "pair-004",
+      "query": "یک ستاره مسن برنامه ورزشی تلویزیون دارویی میگیره که نسخه جوان تری از خودش میسازه و باید هر هفته جای زندگی کردنشون رو با هم عوض کنن",
+      "expected": [
+        "The Substance"
+      ],
+      "expected_ids": [
+        "933260"
+      ],
+      "status": 200,
+      "error": null,
+      "original_expected_ids": null,
+      "latency_sec": 34.426,
+      "results": [
+        {
+          "id": "933260",
+          "title": "The Substance",
+          "year": "2024",
+          "media_type": "movie",
+          "matched_episode": null
+        },
+        {
+          "id": "10024",
+          "title": "My Sister's Keeper",
+          "year": "2009",
+          "media_type": "movie",
+          "matched_episode": null
+        },
+        {
+          "id": "16232",
+          "title": "Mr. 3000",
+          "year": "2004",
+          "media_type": "movie",
+          "matched_episode": null
+        },
+        {
+          "id": "16871",
+          "title": "Drag Me to Hell",
+          "year": "2009",
+          "media_type": "movie",
+          "matched_episode": null
+        },
+        {
+          "id": "74534",
+          "title": "The Best Exotic Marigold Hotel",
+          "year": "2011",
+          "media_type": "movie",
+          "matched_episode": null
+        },
+        {
+          "id": "20",
+          "title": "My Life Without Me",
+          "year": "2003",
+          "media_type": "movie",
+          "matched_episode": null
+        },
+        {
+          "id": "14351",
+          "title": "Crossover",
+          "year": "2006",
+          "media_type": "movie",
+          "matched_episode": null
+        },
+        {
+          "id": "346698",
+          "title": "Barbie",
+          "year": "2023",
+          "media_type": "movie",
+          "matched_episode": null
+        },
+        {
+          "id": "77875",
+          "title": "Playing for Keeps",
+          "year": "2012",
+          "media_type": "movie",
+          "matched_episode": null
+        },
+        {
+          "id": "11056",
+          "title": "Darkness",
+          "year": "2002",
+          "media_type": "movie",
+          "matched_episode": null
+        }
+      ],
+      "rank": 1,
+      "interpretation": {
+        "language": "fa",
+        "translation": "offline",
+        "translated_query": "An elderly star gets a medical TV sports show that makes a younger version of herself, and they have to change their place of residence every week.",
+        "warning": null
+      },
+      "options": {
+        "top_k": 10
+      },
+      "season": null,
+      "episode": null
+    },
+    {
+      "id": "pair-005-en",
+      "kind": "retrieval",
+      "category": "movie_plot",
+      "language": "en",
+      "provenance": "manual",
+      "pair": "pair-005",
+      "query": "a Brooklyn sex worker impulsively marries the son of a wealthy Russian businessman and his family sends men to force an annulment",
+      "expected": [
+        "Anora"
+      ],
+      "expected_ids": [
+        "1064213"
+      ],
+      "status": 500,
+      "error": "HTTP 500",
+      "original_expected_ids": null,
+      "latency_sec": 27.709,
+      "results": [],
+      "rank": null,
+      "interpretation": {},
+      "options": {
+        "top_k": 10
+      },
+      "season": null,
+      "episode": null
+    },
+    {
+      "id": "pair-005-fa",
+      "kind": "retrieval",
+      "category": "movie_plot",
+      "language": "fa",
+      "provenance": "manual",
+      "pair": "pair-005",
+      "query": "یه دختر رقصنده تو بروکلین ناگهانی با پسر یک ثروتمند روس ازدواج میکنه و خانواده پسر چند نفر رو میفرستن تا ازدواجشون رو باطل کنن",
+      "expected": [
+        "Anora"
+      ],
+      "expected_ids": [
+        "1064213"
+      ],
+      "status": 200,
+      "error": null,
+      "original_expected_ids": null,
+      "latency_sec": 54.732,
+      "results": [
+        {
+          "id": "1064213",
+          "title": "Anora",
+          "year": "2024",
+          "media_type": "movie",
+          "matched_episode": null
+        },
+        {
+          "id": "21208",
+          "title": "Orphan",
+          "year": "2009",
+          "media_type": "movie",
+          "matched_episode": null
+        },
+        {
+          "id": "10362",
+          "title": "Two Lovers",
+          "year": "2008",
+          "media_type": "movie",
+          "matched_episode": null
+        },
+        {
+          "id": "3078",
+          "title": "It Happened One Night",
+          "year": "1934",
+          "media_type": "movie",
+          "matched_episode": null
+        },
+        {
+          "id": "10557",
+          "title": "East Is East",
+          "year": "1999",
+          "media_type": "movie",
+          "matched_episode": null
+        },
+        {
+          "id": "14811",
+          "title": "Fiddler on the Roof",
+          "year": "1971",
+          "media_type": "movie",
+          "matched_episode": null
+        },
+        {
+          "id": "18840",
+          "title": "The White Countess",
+          "year": "2005",
+          "media_type": "movie",
+          "matched_episode": null
+        },
+        {
+          "id": "96724",
+          "title": "Anna Karenina",
+          "year": "2012",
+          "media_type": "movie",
+          "matched_episode": null
+        },
+        {
+          "id": "2252",
+          "title": "Eastern Promises",
+          "year": "2007",
+          "media_type": "movie",
+          "matched_episode": null
+        },
+        {
+          "id": "278316",
+          "title": "Da Sweet Blood of Jesus",
+          "year": "2014",
+          "media_type": "movie",
+          "matched_episode": null
+        }
+      ],
+      "rank": 1,
+      "interpretation": {
+        "language": "fa",
+        "translation": "offline",
+        "translated_query": "A dancing girl in Brooklyn suddenly marries the son of a wealthy Russian, and the family sends several sons to annul their marriage.",
+        "warning": null
+      },
+      "options": {
+        "top_k": 10
+      },
+      "season": null,
+      "episode": null
+    },
+    {
+      "id": "pair-006-en",
+      "kind": "retrieval",
+      "category": "movie_plot",
+      "language": "en",
+      "provenance": "manual",
+      "pair": "pair-006",
+      "query": "after the pope dies, a cardinal oversees a secret election in the Vatican while disturbing information about the candidates emerges",
+      "expected": [
+        "Conclave"
+      ],
+      "expected_ids": [
+        "974576"
+      ],
+      "status": 200,
+      "error": null,
+      "original_expected_ids": null,
+      "latency_sec": 23.179,
+      "results": [
+        {
+          "id": "13448",
+          "title": "Angels & Demons",
+          "year": "2009",
+          "media_type": "movie",
+          "matched_episode": null
+        },
+        {
+          "id": "157544",
+          "title": "The Vatican Tapes",
+          "year": "2015",
+          "media_type": "movie",
+          "matched_episode": null
+        },
+        {
+          "id": "9352",
+          "title": "EuroTrip",
+          "year": "2004",
+          "media_type": "movie",
+          "matched_episode": null
+        },
+        {
+          "id": "974576",
+          "title": "Conclave",
+          "year": "2024",
+          "media_type": "movie",
+          "matched_episode": null
+        },
+        {
+          "id": "9946",
+          "title": "End of Days",
+          "year": "1999",
+          "media_type": "movie",
+          "matched_episode": null
+        },
+        {
+          "id": "10307",
+          "title": "Stigmata",
+          "year": "1999",
+          "media_type": "movie",
+          "matched_episode": null
+        },
+        {
+          "id": "tvmaze:38052",
+          "title": "Silo",
+          "year": "2023",
+          "media_type": "series",
+          "matched_episode": {
+            "season": 1,
+            "episode": 6
+          }
+        },
+        {
+          "id": "202604",
+          "title": "The Vatican Exorcisms",
+          "year": "2013",
+          "media_type": "movie",
+          "matched_episode": null
+        },
+        {
+          "id": "242",
+          "title": "The Godfather: Part III",
+          "year": "1990",
+          "media_type": "movie",
+          "matched_episode": null
+        },
+        {
+          "id": "11586",
+          "title": "Exorcist II: The Heretic",
+          "year": "1977",
+          "media_type": "movie",
+          "matched_episode": null
+        }
+      ],
+      "rank": 4,
+      "interpretation": {
+        "language": "en",
+        "translation": "not_needed",
+        "translated_query": null,
+        "warning": null
+      },
+      "options": {
+        "top_k": 10
+      },
+      "season": null,
+      "episode": null
+    },
+    {
+      "id": "pair-006-fa",
+      "kind": "retrieval",
+      "category": "movie_plot",
+      "language": "fa",
+      "provenance": "manual",
+      "pair": "pair-006",
+      "query": "بعد از مرگ پاپ، یک کاردینال مسئول انتخابات محرمانه جانشین او تو واتیکان میشه و کم کم رازهای نامزدها رو میفهمه",
+      "expected": [
+        "Conclave"
+      ],
+      "expected_ids": [
+        "974576"
+      ],
+      "status": 200,
+      "error": null,
+      "original_expected_ids": null,
+      "latency_sec": 57.426,
+      "results": [
+        {
+          "id": "13448",
+          "title": "Angels & Demons",
+          "year": "2009",
+          "media_type": "movie",
+          "matched_episode": null
+        },
+        {
+          "id": "974576",
+          "title": "Conclave",
+          "year": "2024",
+          "media_type": "movie",
+          "matched_episode": null
+        },
+        {
+          "id": "242",
+          "title": "The Godfather: Part III",
+          "year": "1990",
+          "media_type": "movie",
+          "matched_episode": null
+        },
+        {
+          "id": "9946",
+          "title": "End of Days",
+          "year": "1999",
+          "media_type": "movie",
+          "matched_episode": null
+        },
+        {
+          "id": "9616",
+          "title": "The Order",
+          "year": "2003",
+          "media_type": "movie",
+          "matched_episode": null
+        },
+        {
+          "id": "202604",
+          "title": "The Vatican Exorcisms",
+          "year": "2013",
+          "media_type": "movie",
+          "matched_episode": null
+        },
+        {
+          "id": "157544",
+          "title": "The Vatican Tapes",
+          "year": "2015",
+          "media_type": "movie",
+          "matched_episode": null
+        },
+        {
+          "id": "public-series:6cde6052c5d39359",
+          "title": "The Kingdom",
+          "year": "2021",
+          "media_type": "series",
+          "matched_episode": null
+        },
+        {
+          "id": "10307",
+          "title": "Stigmata",
+          "year": "1999",
+          "media_type": "movie",
+          "matched_episode": null
+        },
+        {
+          "id": "11586",
+          "title": "Exorcist II: The Heretic",
+          "year": "1977",
+          "media_type": "movie",
+          "matched_episode": null
+        }
+      ],
+      "rank": 2,
+      "interpretation": {
+        "language": "fa",
+        "translation": "offline",
+        "translated_query": "After the pope's death, a cardinal responsible for the secret election will succeed him in the Vatican and gradually unlock the secrets of the candidates.",
+        "warning": null
+      },
+      "options": {
+        "top_k": 10
+      },
+      "season": null,
+      "episode": null
+    },
+    {
+      "id": "pair-007-en",
+      "kind": "retrieval",
+      "category": "movie_plot",
+      "language": "en",
+      "provenance": "manual",
+      "pair": "pair-007",
+      "query": "a solitary black cat survives a devastating flood by sharing a small boat with other animals in a world without human dialogue",
+      "expected": [
+        "Flow"
+      ],
+      "expected_ids": [
+        "823219"
+      ],
+      "status": 200,
+      "error": null,
+      "original_expected_ids": null,
+      "latency_sec": 35.283,
+      "results": [
+        {
+          "id": "823219",
+          "title": "Flow",
+          "year": "2024",
+          "media_type": "movie",
+          "matched_episode": null
+        },
+        {
+          "id": "50135",
+          "title": "Animals United",
+          "year": "2010",
+          "media_type": "movie",
+          "matched_episode": null
+        },
+        {
+          "id": "9306",
+          "title": "The Island of Dr. Moreau",
+          "year": "1996",
+          "media_type": "movie",
+          "matched_episode": null
+        },
+        {
+          "id": "950",
+          "title": "Ice Age: The Meltdown",
+          "year": "2006",
+          "media_type": "movie",
+          "matched_episode": null
+        },
+        {
+          "id": "508883",
+          "title": "The Boy and the Heron",
+          "year": "2023",
+          "media_type": "movie",
+          "matched_episode": null
+        },
+        {
+          "id": "172391",
+          "title": "Khumba",
+          "year": "2013",
+          "media_type": "movie",
+          "matched_episode": null
+        },
+        {
+          "id": "24662",
+          "title": "Cats Don't Dance",
+          "year": "1997",
+          "media_type": "movie",
+          "matched_episode": null
+        },
+        {
+          "id": "6217",
+          "title": "Cat People",
+          "year": "1982",
+          "media_type": "movie",
+          "matched_episode": null
+        },
+        {
+          "id": "86834",
+          "title": "Noah",
+          "year": "2014",
+          "media_type": "movie",
+          "matched_episode": null
+        },
+        {
+          "id": "425",
+          "title": "Ice Age",
+          "year": "2002",
+          "media_type": "movie",
+          "matched_episode": null
+        }
+      ],
+      "rank": 1,
+      "interpretation": {
+        "language": "en",
+        "translation": "not_needed",
+        "translated_query": null,
+        "warning": null
+      },
+      "options": {
+        "top_k": 10
+      },
+      "season": null,
+      "episode": null
+    },
+    {
+      "id": "pair-007-fa",
+      "kind": "retrieval",
+      "category": "movie_plot",
+      "language": "fa",
+      "provenance": "manual",
+      "pair": "pair-007",
+      "query": "یه گربه سیاه تو یک سیل بزرگ برای زنده موندن سوار قایقی میشه و مجبور میشه با چند حیوان دیگه همراه بشه، فیلم هم دیالوگ انسانی نداره",
+      "expected": [
+        "Flow"
+      ],
+      "expected_ids": [
+        "823219"
+      ],
+      "status": 200,
+      "error": null,
+      "original_expected_ids": null,
+      "latency_sec": 29.539,
+      "results": [
+        {
+          "id": "823219",
+          "title": "Flow",
+          "year": "2024",
+          "media_type": "movie",
+          "matched_episode": null
+        },
+        {
+          "id": "9306",
+          "title": "The Island of Dr. Moreau",
+          "year": "1996",
+          "media_type": "movie",
+          "matched_episode": null
+        },
+        {
+          "id": "50135",
+          "title": "Animals United",
+          "year": "2010",
+          "media_type": "movie",
+          "matched_episode": null
+        },
+        {
+          "id": "950",
+          "title": "Ice Age: The Meltdown",
+          "year": "2006",
+          "media_type": "movie",
+          "matched_episode": null
+        },
+        {
+          "id": "17264",
+          "title": "The Black Stallion",
+          "year": "1979",
+          "media_type": "movie",
+          "matched_episode": null
+        },
+        {
+          "id": "2698",
+          "title": "Evan Almighty",
+          "year": "2007",
+          "media_type": "movie",
+          "matched_episode": null
+        },
+        {
+          "id": "36355",
+          "title": "Flipper",
+          "year": "1996",
+          "media_type": "movie",
+          "matched_episode": null
+        },
+        {
+          "id": "86834",
+          "title": "Noah",
+          "year": "2014",
+          "media_type": "movie",
+          "matched_episode": null
+        },
+        {
+          "id": "152747",
+          "title": "All Is Lost",
+          "year": "2013",
+          "media_type": "movie",
+          "matched_episode": null
+        },
+        {
+          "id": "24662",
+          "title": "Cats Don't Dance",
+          "year": "1997",
+          "media_type": "movie",
+          "matched_episode": null
+        }
+      ],
+      "rank": 1,
+      "interpretation": {
+        "language": "fa",
+        "translation": "offline",
+        "translated_query": "A black cat in a great flood gets on a boat to survive and has to go with a few other animals.",
+        "warning": null
+      },
+      "options": {
+        "top_k": 10
+      },
+      "season": null,
+      "episode": null
+    },
+    {
+      "id": "pair-008-en",
+      "kind": "retrieval",
+      "category": "movie_plot",
+      "language": "en",
+      "provenance": "manual",
+      "pair": "pair-008",
+      "query": "twin brothers return to Mississippi to open a music club in the 1930s, but vampires threaten the people gathered there that night",
+      "expected": [
+        "Sinners"
+      ],
+      "expected_ids": [
+        "1233413"
+      ],
+      "status": 200,
+      "error": null,
+      "original_expected_ids": null,
+      "latency_sec": 21.57,
+      "results": [
+        {
+          "id": "1233413",
+          "title": "Sinners",
+          "year": "2025",
+          "media_type": "movie",
+          "matched_episode": null
+        },
+        {
+          "id": "9429",
+          "title": "A Night at the Roxbury",
+          "year": "1998",
+          "media_type": "movie",
+          "matched_episode": null
+        },
+        {
+          "id": "276907",
+          "title": "Legend",
+          "year": "2015",
+          "media_type": "movie",
+          "matched_episode": null
+        },
+        {
+          "id": "58151",
+          "title": "Fright Night",
+          "year": "2011",
+          "media_type": "movie",
+          "matched_episode": null
+        },
+        {
+          "id": "8374",
+          "title": "The Boondock Saints",
+          "year": "1999",
+          "media_type": "movie",
+          "matched_episode": null
+        },
+        {
+          "id": "10066",
+          "title": "House of Wax",
+          "year": "2005",
+          "media_type": "movie",
+          "matched_episode": null
+        },
+        {
+          "id": "755",
+          "title": "From Dusk Till Dawn",
+          "year": "1996",
+          "media_type": "movie",
+          "matched_episode": null
+        },
+        {
+          "id": "8292",
+          "title": "Four Brothers",
+          "year": "2005",
+          "media_type": "movie",
+          "matched_episode": null
+        },
+        {
+          "id": "134",
+          "title": "O Brother, Where Art Thou?",
+          "year": "2000",
+          "media_type": "movie",
+          "matched_episode": null
+        },
+        {
+          "id": "1645",
+          "title": "A Time to Kill",
+          "year": "1996",
+          "media_type": "movie",
+          "matched_episode": null
+        }
+      ],
+      "rank": 1,
+      "interpretation": {
+        "language": "en",
+        "translation": "not_needed",
+        "translated_query": null,
+        "warning": null
+      },
+      "options": {
+        "top_k": 10
+      },
+      "season": null,
+      "episode": null
+    },
+    {
+      "id": "pair-008-fa",
+      "kind": "retrieval",
+      "category": "movie_plot",
+      "language": "fa",
+      "provenance": "manual",
+      "pair": "pair-008",
+      "query": "دو برادر دوقلو تو دهه سی میلادی به میسیسیپی برمیگردن و یک باشگاه موسیقی راه میندازن ولی همون شب خون آشام ها سراغ مهمونا میان",
+      "expected": [
+        "Sinners"
+      ],
+      "expected_ids": [
+        "1233413"
+      ],
+      "status": 200,
+      "error": null,
+      "original_expected_ids": null,
+      "latency_sec": 44.785,
+      "results": [
+        {
+          "id": "1233413",
+          "title": "Sinners",
+          "year": "2025",
+          "media_type": "movie",
+          "matched_episode": null
+        },
+        {
+          "id": "public-series:e99de67d063adb9d",
+          "title": "Supernatural",
+          "year": "2005",
+          "media_type": "series",
+          "matched_episode": {
+            "season": 1,
+            "episode": 13
+          }
+        },
+        {
+          "id": "9429",
+          "title": "A Night at the Roxbury",
+          "year": "1998",
+          "media_type": "movie",
+          "matched_episode": null
+        },
+        {
+          "id": "276907",
+          "title": "Legend",
+          "year": "2015",
+          "media_type": "movie",
+          "matched_episode": null
+        },
+        {
+          "id": "11979",
+          "title": "Queen of the Damned",
+          "year": "2002",
+          "media_type": "movie",
+          "matched_episode": null
+        },
+        {
+          "id": "834",
+          "title": "Underworld: Evolution",
+          "year": "2006",
+          "media_type": "movie",
+          "matched_episode": null
+        },
+        {
+          "id": "134",
+          "title": "O Brother, Where Art Thou?",
+          "year": "2000",
+          "media_type": "movie",
+          "matched_episode": null
+        },
+        {
+          "id": "9594",
+          "title": "Double Impact",
+          "year": "1991",
+          "media_type": "movie",
+          "matched_episode": null
+        },
+        {
+          "id": "1547",
+          "title": "The Lost Boys",
+          "year": "1987",
+          "media_type": "movie",
+          "matched_episode": null
+        },
+        {
+          "id": "525",
+          "title": "The Blues Brothers",
+          "year": "1980",
+          "media_type": "movie",
+          "matched_episode": null
+        }
+      ],
+      "rank": 1,
+      "interpretation": {
+        "language": "fa",
+        "translation": "offline",
+        "translated_query": "Two twin brothers go back to Mississippi in the 1930s and start a music club, but that night the vampires come to our guests.",
+        "warning": null
+      },
+      "options": {
+        "top_k": 10
+      },
+      "season": null,
+      "episode": null
+    },
+    {
+      "id": "pair-009-en",
+      "kind": "retrieval",
+      "category": "movie_plot",
+      "language": "en",
+      "provenance": "manual",
+      "pair": "pair-009",
+      "query": "nearly every child in one school class runs out of their homes at the same time during the night, leaving a teacher and one remaining pupil under suspicion",
+      "expected": [
+        "Weapons"
+      ],
+      "expected_ids": [
+        "1078605"
+      ],
+      "status": 200,
+      "error": null,
+      "original_expected_ids": null,
+      "latency_sec": 27.67,
+      "results": [
+        {
+          "id": "1078605",
+          "title": "Weapons",
+          "year": "2025",
+          "media_type": "movie",
+          "matched_episode": null
+        },
+        {
+          "id": "21334",
+          "title": "Children of Heaven",
+          "year": "1997",
+          "media_type": "movie",
+          "matched_episode": null
+        },
+        {
+          "id": "19405",
+          "title": "Recess: School's Out",
+          "year": "2001",
+          "media_type": "movie",
+          "matched_episode": null
+        },
+        {
+          "id": "109491",
+          "title": "Beautiful Creatures",
+          "year": "2013",
+          "media_type": "movie",
+          "matched_episode": null
+        },
+        {
+          "id": "5528",
+          "title": "The Chorus",
+          "year": "2004",
+          "media_type": "movie",
+          "matched_episode": null
+        },
+        {
+          "id": "11564",
+          "title": "Class of 1984",
+          "year": "1982",
+          "media_type": "movie",
+          "matched_episode": null
+        },
+        {
+          "id": "tvmaze:118",
+          "title": "House",
+          "year": "2004",
+          "media_type": "series",
+          "matched_episode": {
+            "season": 1,
+            "episode": 1
+          }
+        },
+        {
+          "id": "8841",
+          "title": "The Class",
+          "year": "2008",
+          "media_type": "movie",
+          "matched_episode": null
+        },
+        {
+          "id": "9451",
+          "title": "Election",
+          "year": "1999",
+          "media_type": "movie",
+          "matched_episode": null
+        },
+        {
+          "id": "13811",
+          "title": "Knowing",
+          "year": "2009",
+          "media_type": "movie",
+          "matched_episode": null
+        }
+      ],
+      "rank": 1,
+      "interpretation": {
+        "language": "en",
+        "translation": "not_needed",
+        "translated_query": null,
+        "warning": null
+      },
+      "options": {
+        "top_k": 10
+      },
+      "season": null,
+      "episode": null
+    },
+    {
+      "id": "pair-009-fa",
+      "kind": "retrieval",
+      "category": "movie_plot",
+      "language": "fa",
+      "provenance": "manual",
+      "pair": "pair-009",
+      "query": "تقریبا همه بچه های یک کلاس مدرسه در یک ساعت مشخص شب از خونه هاشون فرار میکنن و فقط یک دانش آموز باقی میمونه، بعد همه به معلم شک میکنن",
+      "expected": [
+        "Weapons"
+      ],
+      "expected_ids": [
+        "1078605"
+      ],
+      "status": 200,
+      "error": null,
+      "original_expected_ids": null,
+      "latency_sec": 35.554,
+      "results": [
+        {
+          "id": "1078605",
+          "title": "Weapons",
+          "year": "2025",
+          "media_type": "movie",
+          "matched_episode": null
+        },
+        {
+          "id": "77883",
+          "title": "The Possession",
+          "year": "2012",
+          "media_type": "movie",
+          "matched_episode": null
+        },
+        {
+          "id": "9276",
+          "title": "The Faculty",
+          "year": "1998",
+          "media_type": "movie",
+          "matched_episode": null
+        },
+        {
+          "id": "21334",
+          "title": "Children of Heaven",
+          "year": "1997",
+          "media_type": "movie",
+          "matched_episode": null
+        },
+        {
+          "id": "10944",
+          "title": "In the Cut",
+          "year": "2003",
+          "media_type": "movie",
+          "matched_episode": null
+        },
+        {
+          "id": "19405",
+          "title": "Recess: School's Out",
+          "year": "2001",
+          "media_type": "movie",
+          "matched_episode": null
+        },
+        {
+          "id": "103663",
+          "title": "The Hunt",
+          "year": "2012",
+          "media_type": "movie",
+          "matched_episode": null
+        },
+        {
+          "id": "tvmaze:118",
+          "title": "House",
+          "year": "2004",
+          "media_type": "series",
+          "matched_episode": {
+            "season": 1,
+            "episode": 1
+          }
+        },
+        {
+          "id": "19052",
+          "title": "Light It Up",
+          "year": "1999",
+          "media_type": "movie",
+          "matched_episode": null
+        },
+        {
+          "id": "68684",
+          "title": "Detention",
+          "year": "2011",
+          "media_type": "movie",
+          "matched_episode": null
+        }
+      ],
+      "rank": 1,
+      "interpretation": {
+        "language": "fa",
+        "translation": "offline",
+        "translated_query": "Almost all the kids in a classroom run away from home at a certain time of night, and there's only one student left, and then everyone suspects the teacher.",
+        "warning": null
+      },
+      "options": {
+        "top_k": 10
+      },
+      "season": null,
+      "episode": null
+    },
+    {
+      "id": "pair-010-en",
+      "kind": "retrieval",
+      "category": "movie_plot",
+      "language": "en",
+      "provenance": "manual",
+      "pair": "pair-010",
+      "query": "a Hungarian Jewish architect emigrates to America after the war and a wealthy patron commissions a monumental building that transforms his life",
+      "expected": [
+        "The Brutalist"
+      ],
+      "expected_ids": [
+        "549509"
+      ],
+      "status": 200,
+      "error": null,
+      "original_expected_ids": null,
+      "latency_sec": 22.525,
+      "results": [
+        {
+          "id": "549509",
+          "title": "The Brutalist",
+          "year": "2024",
+          "media_type": "movie",
+          "matched_episode": null
+        },
+        {
+          "id": "25784",
+          "title": "Journey from the Fall",
+          "year": "2006",
+          "media_type": "movie",
+          "matched_episode": null
+        },
+        {
+          "id": "41508",
+          "title": "Fateless",
+          "year": "2005",
+          "media_type": "movie",
+          "matched_episode": null
+        },
+        {
+          "id": "120467",
+          "title": "The Grand Budapest Hotel",
+          "year": "2014",
+          "media_type": "movie",
+          "matched_episode": null
+        },
+        {
+          "id": "467244",
+          "title": "The Zone of Interest",
+          "year": "2023",
+          "media_type": "movie",
+          "matched_episode": null
+        },
+        {
+          "id": "424",
+          "title": "Schindler's List",
+          "year": "1993",
+          "media_type": "movie",
+          "matched_episode": null
+        },
+        {
+          "id": "423",
+          "title": "The Pianist",
+          "year": "2002",
+          "media_type": "movie",
+          "matched_episode": null
+        },
+        {
+          "id": "340611",
+          "title": "Indignation",
+          "year": "2016",
+          "media_type": "movie",
+          "matched_episode": null
+        },
+        {
+          "id": "12555",
+          "title": "I Served the King of England",
+          "year": "2006",
+          "media_type": "movie",
+          "matched_episode": null
+        },
+        {
+          "id": "304357",
+          "title": "Woman in Gold",
+          "year": "2015",
+          "media_type": "movie",
+          "matched_episode": null
+        }
+      ],
+      "rank": 1,
+      "interpretation": {
+        "language": "en",
+        "translation": "not_needed",
+        "translated_query": null,
+        "warning": null
+      },
+      "options": {
+        "top_k": 10
+      },
+      "season": null,
+      "episode": null
+    },
+    {
+      "id": "pair-010-fa",
+      "kind": "retrieval",
+      "category": "movie_plot",
+      "language": "fa",
+      "provenance": "manual",
+      "pair": "pair-010",
+      "query": "یک معمار یهودی مجارستانی بعد از جنگ به آمریکا مهاجرت میکنه و یک سرمایه دار ثروتمند بهش سفارش ساخت بنای بزرگی میده که زندگیش رو عوض میکنه",
+      "expected": [
+        "The Brutalist"
+      ],
+      "expected_ids": [
+        "549509"
+      ],
+      "status": 200,
+      "error": null,
+      "original_expected_ids": null,
+      "latency_sec": 28.492,
+      "results": [
+        {
+          "id": "549509",
+          "title": "The Brutalist",
+          "year": "2024",
+          "media_type": "movie",
+          "matched_episode": null
+        },
+        {
+          "id": "25784",
+          "title": "Journey from the Fall",
+          "year": "2006",
+          "media_type": "movie",
+          "matched_episode": null
+        },
+        {
+          "id": "41508",
+          "title": "Fateless",
+          "year": "2005",
+          "media_type": "movie",
+          "matched_episode": null
+        },
+        {
+          "id": "467244",
+          "title": "The Zone of Interest",
+          "year": "2023",
+          "media_type": "movie",
+          "matched_episode": null
+        },
+        {
+          "id": "424",
+          "title": "Schindler's List",
+          "year": "1993",
+          "media_type": "movie",
+          "matched_episode": null
+        },
+        {
+          "id": "3060",
+          "title": "The Big Parade",
+          "year": "1925",
+          "media_type": "movie",
+          "matched_episode": null
+        },
+        {
+          "id": "13403",
+          "title": "Hedwig and the Angry Inch",
+          "year": "2001",
+          "media_type": "movie",
+          "matched_episode": null
+        },
+        {
+          "id": "340611",
+          "title": "Indignation",
+          "year": "2016",
+          "media_type": "movie",
+          "matched_episode": null
+        },
+        {
+          "id": "409",
+          "title": "The English Patient",
+          "year": "1996",
+          "media_type": "movie",
+          "matched_episode": null
+        },
+        {
+          "id": "152760",
+          "title": "The Monuments Men",
+          "year": "2014",
+          "media_type": "movie",
+          "matched_episode": null
+        }
+      ],
+      "rank": 1,
+      "interpretation": {
+        "language": "fa",
+        "translation": "offline",
+        "translated_query": "A Hungarian-Jewish architect emigrates to America after the war and a wealthy capitalist orders him to build a massive building that will change his life.",
+        "warning": null
+      },
+      "options": {
+        "top_k": 10
+      },
+      "season": null,
+      "episode": null
+    },
+    {
+      "id": "pair-011-en",
+      "kind": "retrieval",
+      "category": "movie_plot",
+      "language": "en",
+      "provenance": "manual",
+      "pair": "pair-011",
+      "query": "a lone astronaut wakes aboard a spacecraft with no memory, gradually remembers a mission to save the dying sun and befriends an alien facing the same problem",
+      "expected": [
+        "Project Hail Mary"
+      ],
+      "expected_ids": [
+        "687163"
+      ],
+      "status": 200,
+      "error": null,
+      "original_expected_ids": null,
+      "latency_sec": 21.831,
+      "results": [
+        {
+          "id": "19898",
+          "title": "Pandorum",
+          "year": "2009",
+          "media_type": "movie",
+          "matched_episode": null
+        },
+        {
+          "id": "687163",
+          "title": "Project Hail Mary",
+          "year": "2026",
+          "media_type": "movie",
+          "matched_episode": null
+        },
+        {
+          "id": "1272",
+          "title": "Sunshine",
+          "year": "2007",
+          "media_type": "movie",
+          "matched_episode": null
+        },
+        {
+          "id": "8870",
+          "title": "Red Planet",
+          "year": "2000",
+          "media_type": "movie",
+          "matched_episode": null
+        },
+        {
+          "id": "2900",
+          "title": "The Astronaut's Wife",
+          "year": "1999",
+          "media_type": "movie",
+          "matched_episode": null
+        },
+        {
+          "id": "957",
+          "title": "Spaceballs",
+          "year": "1987",
+          "media_type": "movie",
+          "matched_episode": null
+        },
+        {
+          "id": "62",
+          "title": "2001: A Space Odyssey",
+          "year": "1968",
+          "media_type": "movie",
+          "matched_episode": null
+        },
+        {
+          "id": "50357",
+          "title": "Apollo 18",
+          "year": "2011",
+          "media_type": "movie",
+          "matched_episode": null
+        },
+        {
+          "id": "11260",
+          "title": "Meet Dave",
+          "year": "2008",
+          "media_type": "movie",
+          "matched_episode": null
+        },
+        {
+          "id": "8077",
+          "title": "Alien³",
+          "year": "1992",
+          "media_type": "movie",
+          "matched_episode": null
+        }
+      ],
+      "rank": 2,
+      "interpretation": {
+        "language": "en",
+        "translation": "not_needed",
+        "translated_query": null,
+        "warning": null
+      },
+      "options": {
+        "top_k": 10
+      },
+      "season": null,
+      "episode": null
+    },
+    {
+      "id": "pair-011-fa",
+      "kind": "retrieval",
+      "category": "movie_plot",
+      "language": "fa",
+      "provenance": "manual",
+      "pair": "pair-011",
+      "query": "یک فضانورد تنها بدون حافظه توی سفینه بیدار میشه، کم کم یادش میاد باید خورشید در حال مرگ رو نجات بده و با یک موجود فضایی که مشکل مشابهی داره دوست میشه",
+      "expected": [
+        "Project Hail Mary"
+      ],
+      "expected_ids": [
+        "687163"
+      ],
+      "status": 200,
+      "error": null,
+      "original_expected_ids": null,
+      "latency_sec": 48.6,
+      "results": [
+        {
+          "id": "19898",
+          "title": "Pandorum",
+          "year": "2009",
+          "media_type": "movie",
+          "matched_episode": null
+        },
+        {
+          "id": "8870",
+          "title": "Red Planet",
+          "year": "2000",
+          "media_type": "movie",
+          "matched_episode": null
+        },
+        {
+          "id": "8077",
+          "title": "Alien³",
+          "year": "1992",
+          "media_type": "movie",
+          "matched_episode": null
+        },
+        {
+          "id": "62",
+          "title": "2001: A Space Odyssey",
+          "year": "1968",
+          "media_type": "movie",
+          "matched_episode": null
+        },
+        {
+          "id": "68179",
+          "title": "Escape from Planet Earth",
+          "year": "2013",
+          "media_type": "movie",
+          "matched_episode": null
+        },
+        {
+          "id": "2900",
+          "title": "The Astronaut's Wife",
+          "year": "1999",
+          "media_type": "movie",
+          "matched_episode": null
+        },
+        {
+          "id": "1272",
+          "title": "Sunshine",
+          "year": "2007",
+          "media_type": "movie",
+          "matched_episode": null
+        },
+        {
+          "id": "8078",
+          "title": "Alien: Resurrection",
+          "year": "1997",
+          "media_type": "movie",
+          "matched_episode": null
+        },
+        {
+          "id": "11802",
+          "title": "Space Chimps",
+          "year": "2008",
+          "media_type": "movie",
+          "matched_episode": null
+        },
+        {
+          "id": "11260",
+          "title": "Meet Dave",
+          "year": "2008",
+          "media_type": "movie",
+          "matched_episode": null
+        }
+      ],
+      "rank": null,
+      "interpretation": {
+        "language": "fa",
+        "translation": "offline",
+        "translated_query": "An astronaut wakes up alone on a ship with no memory, slowly remembers he has to save the dying sun and befriends an alien with a similar problem.",
+        "warning": null
+      },
+      "options": {
+        "top_k": 10
+      },
+      "season": null,
+      "episode": null
+    },
+    {
+      "id": "pair-012-en",
+      "kind": "retrieval",
+      "category": "movie_plot",
+      "language": "en",
+      "provenance": "manual",
+      "pair": "pair-012",
+      "query": "after the Trojan War a Greek king struggles to return to his wife and son while facing a cyclops and other dangers at sea",
+      "expected": [
+        "The Odyssey"
+      ],
+      "expected_ids": [
+        "1368337"
+      ],
+      "status": 200,
+      "error": null,
+      "original_expected_ids": null,
+      "latency_sec": 21.371,
+      "results": [
+        {
+          "id": "652",
+          "title": "Troy",
+          "year": "2004",
+          "media_type": "movie",
+          "matched_episode": null
+        },
+        {
+          "id": "1368337",
+          "title": "The Odyssey",
+          "year": "2026",
+          "media_type": "movie",
+          "matched_episode": null
+        },
+        {
+          "id": "256917",
+          "title": "The Water Diviner",
+          "year": "2014",
+          "media_type": "movie",
+          "matched_episode": null
+        },
+        {
+          "id": "53182",
+          "title": "300: Rise of an Empire",
+          "year": "2014",
+          "media_type": "movie",
+          "matched_episode": null
+        },
+        {
+          "id": "188207",
+          "title": "The Legend of Hercules",
+          "year": "2014",
+          "media_type": "movie",
+          "matched_episode": null
+        },
+        {
+          "id": "public-series:7dcac901eb04c157",
+          "title": "Troy",
+          "year": "2018",
+          "media_type": "series",
+          "matched_episode": null
+        },
+        {
+          "id": "7278",
+          "title": "Meet the Spartans",
+          "year": "2008",
+          "media_type": "movie",
+          "matched_episode": null
+        },
+        {
+          "id": "122",
+          "title": "The Lord of the Rings: The Return of the King",
+          "year": "2003",
+          "media_type": "movie",
+          "matched_episode": null
+        },
+        {
+          "id": "18823",
+          "title": "Clash of the Titans",
+          "year": "2010",
+          "media_type": "movie",
+          "matched_episode": null
+        },
+        {
+          "id": "98",
+          "title": "Gladiator",
+          "year": "2000",
+          "media_type": "movie",
+          "matched_episode": null
+        }
+      ],
+      "rank": 2,
+      "interpretation": {
+        "language": "en",
+        "translation": "not_needed",
+        "translated_query": null,
+        "warning": null
+      },
+      "options": {
+        "top_k": 10
+      },
+      "season": null,
+      "episode": null
+    },
+    {
+      "id": "pair-012-fa",
+      "kind": "retrieval",
+      "category": "movie_plot",
+      "language": "fa",
+      "provenance": "manual",
+      "pair": "pair-012",
+      "query": "یک پادشاه یونانی بعد از جنگ تروا تلاش میکنه از راه دریا پیش همسر و پسرش برگرده ولی سر راه با غول یک چشم و خطرهای اسطوره ای روبرو میشه",
+      "expected": [
+        "The Odyssey"
+      ],
+      "expected_ids": [
+        "1368337"
+      ],
+      "status": 200,
+      "error": null,
+      "original_expected_ids": null,
+      "latency_sec": 37.569,
+      "results": [
+        {
+          "id": "1368337",
+          "title": "The Odyssey",
+          "year": "2026",
+          "media_type": "movie",
+          "matched_episode": null
+        },
+        {
+          "id": "652",
+          "title": "Troy",
+          "year": "2004",
+          "media_type": "movie",
+          "matched_episode": null
+        },
+        {
+          "id": "53182",
+          "title": "300: Rise of an Empire",
+          "year": "2014",
+          "media_type": "movie",
+          "matched_episode": null
+        },
+        {
+          "id": "256917",
+          "title": "The Water Diviner",
+          "year": "2014",
+          "media_type": "movie",
+          "matched_episode": null
+        },
+        {
+          "id": "188207",
+          "title": "The Legend of Hercules",
+          "year": "2014",
+          "media_type": "movie",
+          "matched_episode": null
+        },
+        {
+          "id": "18823",
+          "title": "Clash of the Titans",
+          "year": "2010",
+          "media_type": "movie",
+          "matched_episode": null
+        },
+        {
+          "id": "37958",
+          "title": "Immortals",
+          "year": "2011",
+          "media_type": "movie",
+          "matched_episode": null
+        },
+        {
+          "id": "297802",
+          "title": "Aquaman",
+          "year": "2018",
+          "media_type": "movie",
+          "matched_episode": null
+        },
+        {
+          "id": "147441",
+          "title": "Exodus: Gods and Kings",
+          "year": "2014",
+          "media_type": "movie",
+          "matched_episode": null
+        },
+        {
+          "id": "184315",
+          "title": "Hercules",
+          "year": "2014",
+          "media_type": "movie",
+          "matched_episode": null
+        }
+      ],
+      "rank": 1,
+      "interpretation": {
+        "language": "fa",
+        "translation": "offline",
+        "translated_query": "A Greek king after the Trojan War tries to return by sea to his wife and son, but encounters a giant eye and mythical dangers along the way.",
+        "warning": null
+      },
+      "options": {
+        "top_k": 10
+      },
+      "season": null,
+      "episode": null
+    },
+    {
+      "id": "pair-013-en",
+      "kind": "retrieval",
+      "category": "movie_plot",
+      "language": "en",
+      "provenance": "manual",
+      "pair": "pair-013",
+      "query": "an officer that could raise to the life each time after he dies so he can fix the issues and keep soldiers alive and win the battle",
+      "expected": [
+        "Edge of Tomorrow"
+      ],
+      "expected_ids": [
+        "137113"
+      ],
+      "status": 200,
+      "error": null,
+      "original_expected_ids": null,
+      "latency_sec": 20.419,
+      "results": [
+        {
+          "id": "9665",
+          "title": "Glory",
+          "year": "1989",
+          "media_type": "movie",
+          "matched_episode": null
+        },
+        {
+          "id": "137113",
+          "title": "Edge of Tomorrow",
+          "year": "2014",
+          "media_type": "movie",
+          "matched_episode": null
+        },
+        {
+          "id": "tvmaze:118",
+          "title": "House",
+          "year": "2004",
+          "media_type": "series",
+          "matched_episode": {
+            "season": 2,
+            "episode": 21
+          }
+        },
+        {
+          "id": "9425",
+          "title": "Soldier",
+          "year": "1998",
+          "media_type": "movie",
+          "matched_episode": null
+        },
+        {
+          "id": "10592",
+          "title": "Hart's War",
+          "year": "2002",
+          "media_type": "movie",
+          "matched_episode": null
+        },
+        {
+          "id": "11202",
+          "title": "Patton",
+          "year": "1970",
+          "media_type": "movie",
+          "matched_episode": null
+        },
+        {
+          "id": "public-series:d7a9f00c60cd515a",
+          "title": "After Life",
+          "year": "2020",
+          "media_type": "series",
+          "matched_episode": null
+        },
+        {
+          "id": "14582",
+          "title": "Passchendaele",
+          "year": "2008",
+          "media_type": "movie",
+          "matched_episode": null
+        },
+        {
+          "id": "10212",
+          "title": "Ravenous",
+          "year": "1999",
+          "media_type": "movie",
+          "matched_episode": null
+        },
+        {
+          "id": "9104",
+          "title": "Buffalo Soldiers",
+          "year": "2001",
+          "media_type": "movie",
+          "matched_episode": null
+        }
+      ],
+      "rank": 2,
+      "interpretation": {
+        "language": "en",
+        "translation": "not_needed",
+        "translated_query": null,
+        "warning": null
+      },
+      "options": {
+        "top_k": 10
+      },
+      "season": null,
+      "episode": null
+    },
+    {
+      "id": "pair-013-fa",
+      "kind": "retrieval",
+      "category": "movie_plot",
+      "language": "fa",
+      "provenance": "manual",
+      "pair": "pair-013",
+      "query": "یه افسر هر بار که تو جنگ با موجودات بیگانه کشته میشه دوباره همون روز رو از اول زندگی میکنه تا اشتباهاتش رو درست کنه و سربازها رو نجات بده",
+      "expected": [
+        "Edge of Tomorrow"
+      ],
+      "expected_ids": [
+        "137113"
+      ],
+      "status": 200,
+      "error": null,
+      "original_expected_ids": null,
+      "latency_sec": 26.91,
+      "results": [
+        {
+          "id": "137113",
+          "title": "Edge of Tomorrow",
+          "year": "2014",
+          "media_type": "movie",
+          "matched_episode": null
+        },
+        {
+          "id": "74",
+          "title": "War of the Worlds",
+          "year": "2005",
+          "media_type": "movie",
+          "matched_episode": null
+        },
+        {
+          "id": "607",
+          "title": "Men in Black",
+          "year": "1997",
+          "media_type": "movie",
+          "matched_episode": null
+        },
+        {
+          "id": "12100",
+          "title": "Windtalkers",
+          "year": "2002",
+          "media_type": "movie",
+          "matched_episode": null
+        },
+        {
+          "id": "9425",
+          "title": "Soldier",
+          "year": "1998",
+          "media_type": "movie",
+          "matched_episode": null
+        },
+        {
+          "id": "20856",
+          "title": "Aliens in the Attic",
+          "year": "2009",
+          "media_type": "movie",
+          "matched_episode": null
+        },
+        {
+          "id": "8988",
+          "title": "Stop-Loss",
+          "year": "2008",
+          "media_type": "movie",
+          "matched_episode": null
+        },
+        {
+          "id": "8077",
+          "title": "Alien³",
+          "year": "1992",
+          "media_type": "movie",
+          "matched_episode": null
+        },
+        {
+          "id": "10592",
+          "title": "Hart's War",
+          "year": "2002",
+          "media_type": "movie",
+          "matched_episode": null
+        },
+        {
+          "id": "1091",
+          "title": "The Thing",
+          "year": "1982",
+          "media_type": "movie",
+          "matched_episode": null
+        }
+      ],
+      "rank": 1,
+      "interpretation": {
+        "language": "fa",
+        "translation": "offline",
+        "translated_query": "Every time an officer is killed in a war with aliens, he lives that day again to right his mistakes and save his soldiers.",
+        "warning": null
+      },
+      "options": {
+        "top_k": 10
+      },
+      "season": null,
+      "episode": null
+    },
+    {
+      "id": "negative-recent-en",
+      "kind": "negative",
+      "category": null,
+      "language": "en",
+      "provenance": null,
+      "pair": null,
+      "query": "how many teaspoons of salt should I use to cook plain rice",
+      "expected": null,
+      "expected_ids": null,
+      "status": 200,
+      "error": null,
+      "original_expected_ids": null,
+      "latency_sec": 24.787,
+      "results": [
+        {
+          "id": "public-series:bfeff373c581cdb7",
+          "title": "Salt Fat Acid Heat",
+          "year": "2018",
+          "media_type": "series",
+          "matched_episode": null
+        },
+        {
+          "id": "12477",
+          "title": "Grave of the Fireflies",
+          "year": "1988",
+          "media_type": "movie",
+          "matched_episode": null
+        },
+        {
+          "id": "46785",
+          "title": "The White Balloon",
+          "year": "1994",
+          "media_type": "movie",
+          "matched_episode": null
+        },
+        {
+          "id": "11342",
+          "title": "Warlock",
+          "year": "1989",
+          "media_type": "movie",
+          "matched_episode": null
+        },
+        {
+          "id": "795",
+          "title": "City of Angels",
+          "year": "1998",
+          "media_type": "movie",
+          "matched_episode": null
+        },
+        {
+          "id": "310",
+          "title": "Bruce Almighty",
+          "year": "2003",
+          "media_type": "movie",
+          "matched_episode": null
+        },
+        {
+          "id": "27576",
+          "title": "Salt",
+          "year": "2010",
+          "media_type": "movie",
+          "matched_episode": null
+        },
+        {
+          "id": "9074",
+          "title": "The Man",
+          "year": "2005",
+          "media_type": "movie",
+          "matched_episode": null
+        },
+        {
+          "id": "6950",
+          "title": "Outbreak",
+          "year": "1995",
+          "media_type": "movie",
+          "matched_episode": null
+        },
+        {
+          "id": "46420",
+          "title": "The Loved Ones",
+          "year": "2009",
+          "media_type": "movie",
+          "matched_episode": null
+        }
+      ],
+      "rank": null,
+      "interpretation": {
+        "language": "en",
+        "translation": "not_needed",
+        "translated_query": null,
+        "warning": null
+      },
+      "options": {
+        "top_k": 10
+      },
+      "passed": false
+    },
+    {
+      "id": "negative-recent-fa",
+      "kind": "negative",
+      "category": null,
+      "language": "fa",
+      "provenance": null,
+      "pair": null,
+      "query": "برای پختن برنج ساده چند پیمانه آب بریزم",
+      "expected": null,
+      "expected_ids": null,
+      "status": 200,
+      "error": null,
+      "original_expected_ids": null,
+      "latency_sec": 32.721,
+      "results": [
+        {
+          "id": "2675",
+          "title": "Signs",
+          "year": "2002",
+          "media_type": "movie",
+          "matched_episode": null
+        },
+        {
+          "id": "194",
+          "title": "Amélie",
+          "year": "2001",
+          "media_type": "movie",
+          "matched_episode": null
+        },
+        {
+          "id": "602666",
+          "title": "Detective Chinatown 3",
+          "year": "2021",
+          "media_type": "movie",
+          "matched_episode": null
+        },
+        {
+          "id": "16538",
+          "title": "I Love You, Man",
+          "year": "2009",
+          "media_type": "movie",
+          "matched_episode": null
+        },
+        {
+          "id": "22803",
+          "title": "Law Abiding Citizen",
+          "year": "2009",
+          "media_type": "movie",
+          "matched_episode": null
+        },
+        {
+          "id": "795",
+          "title": "City of Angels",
+          "year": "1998",
+          "media_type": "movie",
+          "matched_episode": null
+        },
+        {
+          "id": "7509",
+          "title": "Water",
+          "year": "2005",
+          "media_type": "movie",
+          "matched_episode": null
+        },
+        {
+          "id": "72113",
+          "title": "Carnage",
+          "year": "2011",
+          "media_type": "movie",
+          "matched_episode": null
+        },
+        {
+          "id": "823219",
+          "title": "Flow",
+          "year": "2024",
+          "media_type": "movie",
+          "matched_episode": null
+        },
+        {
+          "id": "24747",
+          "title": "Bobby Jones: Stroke of Genius",
+          "year": "2004",
+          "media_type": "movie",
+          "matched_episode": null
+        }
+      ],
+      "rank": null,
+      "interpretation": {
+        "language": "fa",
+        "translation": "offline",
+        "translated_query": "I'll take a couple of glasses of water to make simple rice.",
+        "warning": null
+      },
+      "options": {
+        "top_k": 10
+      },
+      "passed": false
+    }
+  ],
+  "publication_redaction": {
+    "private_result_identities": 0,
+    "rankings_unchanged": true,
+    "policy": "Non-allowlisted local result IDs/titles are pseudonymized. Raw identities remain in the local checkpoint only."
+  }
+}
