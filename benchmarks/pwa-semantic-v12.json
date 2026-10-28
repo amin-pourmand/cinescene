@@ -1,0 +1,744 @@
+{
+  "generated_at": "2026-10-28T13:16:56.856Z",
+  "runtime": "Shared production JavaScript runtime; Node CPU int8 kernels, not browser WASM latency",
+  "limitations": "Manual development cohort; previously inspected cases, not held-out or population accuracy. Private uploads are absent from public artifacts. Browser/device performance can differ.",
+  "index_generation": "2026-10-28T09:45:41.905409+00:00",
+  "fusion_version": "rrf-v11-resilient-bilingual",
+  "ranking_policy": "independent-evidence-v1",
+  "planned": 26,
+  "completed": 26,
+  "technical_errors": 0,
+  "reduced_capability": 0,
+  "rows": [
+    {
+      "query": "an exiled young nobleman joins desert warriors, learns to ride enormous sandworms and becomes the focus of a dangerous religious uprising",
+      "language": "en",
+      "id": "693134",
+      "title": "Dune: Part Two",
+      "rank": 6,
+      "top_3": [
+        {
+          "id": 841,
+          "title": "Dune"
+        },
+        {
+          "id": 9355,
+          "title": "Mad Max Beyond Thunderdome"
+        },
+        {
+          "id": 146,
+          "title": "Crouching Tiger, Hidden Dragon"
+        }
+      ],
+      "interpretation": {
+        "language": "en",
+        "translation": "not_needed",
+        "translated_query": null
+      },
+      "error": null,
+      "elapsed_sec": 10.51
+    },
+    {
+      "query": "یه جوان تبعیدی به مبارزهای صحرا ملحق میشه، یاد میگیره سوار کرم های غول پیکر شنی بشه و پیروانش اونو ناجی خودشون میدونن",
+      "language": "fa",
+      "id": "693134",
+      "title": "Dune: Part Two",
+      "rank": null,
+      "top_3": [
+        {
+          "id": 9837,
+          "title": "The Prince of Egypt"
+        },
+        {
+          "id": 235260,
+          "title": "Son of God"
+        },
+        {
+          "id": 11051,
+          "title": "The Last Temptation of Christ"
+        }
+      ],
+      "interpretation": {
+        "language": "fa",
+        "translation": "offline",
+        "translated_query": "A young exile joins the desert struggles, learns to ride giant worms, and his followers know him as their savior."
+      },
+      "error": null,
+      "elapsed_sec": 26.99
+    },
+    {
+      "query": "a physicist leads a secret wartime atomic bomb project and later faces a hearing about his loyalty and political connections",
+      "language": "en",
+      "id": "872585",
+      "title": "Oppenheimer",
+      "rank": 1,
+      "top_3": [
+        {
+          "id": 872585,
+          "title": "Oppenheimer"
+        },
+        {
+          "id": 146216,
+          "title": "RED 2"
+        },
+        {
+          "id": "tvmaze:30770",
+          "title": "Chernobyl"
+        }
+      ],
+      "interpretation": {
+        "language": "en",
+        "translation": "not_needed",
+        "translated_query": null
+      },
+      "error": null,
+      "elapsed_sec": 2.44
+    },
+    {
+      "query": "یه فیزیکدان پروژه محرمانه ساخت بمب اتم در جنگ جهانی دوم رو رهبری میکنه و بعدا تو جلسه رسیدگی امنیتی بابت ارتباطات سیاسی اش بازخواست میشه",
+      "language": "fa",
+      "id": "872585",
+      "title": "Oppenheimer",
+      "rank": 1,
+      "top_3": [
+        {
+          "id": 872585,
+          "title": "Oppenheimer"
+        },
+        {
+          "id": 146216,
+          "title": "RED 2"
+        },
+        {
+          "id": 203801,
+          "title": "The Man from U.N.C.L.E."
+        }
+      ],
+      "interpretation": {
+        "language": "fa",
+        "translation": "offline",
+        "translated_query": "A physicist leads a secret project to build an atomic bomb in World War II, and is later questioned in a security hearing about his political connections."
+      },
+      "error": null,
+      "elapsed_sec": 22.4
+    },
+    {
+      "query": "a woman revived by an eccentric surgeon develops a new understanding of the world and escapes with a lawyer on a journey of discovery",
+      "language": "en",
+      "id": "792307",
+      "title": "Poor Things",
+      "rank": 8,
+      "top_3": [
+        {
+          "id": "public-series:9a5feeb660b99acb",
+          "title": "Gonul"
+        },
+        {
+          "id": 314,
+          "title": "Catwoman"
+        },
+        {
+          "id": 13483,
+          "title": "Awake"
+        }
+      ],
+      "interpretation": {
+        "language": "en",
+        "translation": "not_needed",
+        "translated_query": null
+      },
+      "error": null,
+      "elapsed_sec": 2.25
+    },
+    {
+      "query": "یک جراح عجیب زنی رو به زندگی برمیگردونه که دوباره مثل بچه ها داره دنیا رو یاد میگیره و بعد با یه وکیل به سفر میره تا مستقل بشه",
+      "language": "fa",
+      "id": "792307",
+      "title": "Poor Things",
+      "rank": 3,
+      "top_3": [
+        {
+          "id": 44634,
+          "title": "Woman Thou Art Loosed"
+        },
+        {
+          "id": 122906,
+          "title": "About Time"
+        },
+        {
+          "id": 792307,
+          "title": "Poor Things"
+        }
+      ],
+      "interpretation": {
+        "language": "fa",
+        "translation": "offline",
+        "translated_query": "A strange surgeon brings a woman back to life who's learning the world again like a child and then travels with a lawyer to become independent."
+      },
+      "error": null,
+      "elapsed_sec": 21.7
+    },
+    {
+      "query": "an aging television fitness celebrity uses an experimental treatment that creates a younger self, but the two must take turns living every week",
+      "language": "en",
+      "id": "933260",
+      "title": "The Substance",
+      "rank": 1,
+      "top_3": [
+        {
+          "id": 933260,
+          "title": "The Substance"
+        },
+        {
+          "id": 238615,
+          "title": "Self/less"
+        },
+        {
+          "id": 44857,
+          "title": "Molly"
+        }
+      ],
+      "interpretation": {
+        "language": "en",
+        "translation": "not_needed",
+        "translated_query": null
+      },
+      "error": null,
+      "elapsed_sec": 2.39
+    },
+    {
+      "query": "یک ستاره مسن برنامه ورزشی تلویزیون دارویی میگیره که نسخه جوان تری از خودش میسازه و باید هر هفته جای زندگی کردنشون رو با هم عوض کنن",
+      "language": "fa",
+      "id": "933260",
+      "title": "The Substance",
+      "rank": 1,
+      "top_3": [
+        {
+          "id": 933260,
+          "title": "The Substance"
+        },
+        {
+          "id": 16232,
+          "title": "Mr. 3000"
+        },
+        {
+          "id": 20,
+          "title": "My Life Without Me"
+        }
+      ],
+      "interpretation": {
+        "language": "fa",
+        "translation": "offline",
+        "translated_query": "An elderly star gets a medical TV sports show that makes a younger version of herself and they have to change their living quarters every week."
+      },
+      "error": null,
+      "elapsed_sec": 20.84
+    },
+    {
+      "query": "a Brooklyn sex worker impulsively marries the son of a wealthy Russian businessman and his family sends men to force an annulment",
+      "language": "en",
+      "id": "1064213",
+      "title": "Anora",
+      "rank": 1,
+      "top_3": [
+        {
+          "id": 1064213,
+          "title": "Anora"
+        },
+        {
+          "id": 11363,
+          "title": "She's the One"
+        },
+        {
+          "id": 2001,
+          "title": "We Own the Night"
+        }
+      ],
+      "interpretation": {
+        "language": "en",
+        "translation": "not_needed",
+        "translated_query": null
+      },
+      "error": null,
+      "elapsed_sec": 2.37
+    },
+    {
+      "query": "یه دختر رقصنده تو بروکلین ناگهانی با پسر یک ثروتمند روس ازدواج میکنه و خانواده پسر چند نفر رو میفرستن تا ازدواجشون رو باطل کنن",
+      "language": "fa",
+      "id": "1064213",
+      "title": "Anora",
+      "rank": 1,
+      "top_3": [
+        {
+          "id": 1064213,
+          "title": "Anora"
+        },
+        {
+          "id": 21208,
+          "title": "Orphan"
+        },
+        {
+          "id": 10362,
+          "title": "Two Lovers"
+        }
+      ],
+      "interpretation": {
+        "language": "fa",
+        "translation": "offline",
+        "translated_query": "A dancing girl in Brooklyn suddenly marries the son of a wealthy Russian, and the family sends several sons to annul their marriage."
+      },
+      "error": null,
+      "elapsed_sec": 20.29
+    },
+    {
+      "query": "after the pope dies, a cardinal oversees a secret election in the Vatican while disturbing information about the candidates emerges",
+      "language": "en",
+      "id": "974576",
+      "title": "Conclave",
+      "rank": 4,
+      "top_3": [
+        {
+          "id": 13448,
+          "title": "Angels & Demons"
+        },
+        {
+          "id": 157544,
+          "title": "The Vatican Tapes"
+        },
+        {
+          "id": 9352,
+          "title": "EuroTrip"
+        }
+      ],
+      "interpretation": {
+        "language": "en",
+        "translation": "not_needed",
+        "translated_query": null
+      },
+      "error": null,
+      "elapsed_sec": 2.49
+    },
+    {
+      "query": "بعد از مرگ پاپ، یک کاردینال مسئول انتخابات محرمانه جانشین او تو واتیکان میشه و کم کم رازهای نامزدها رو میفهمه",
+      "language": "fa",
+      "id": "974576",
+      "title": "Conclave",
+      "rank": 4,
+      "top_3": [
+        {
+          "id": 13448,
+          "title": "Angels & Demons"
+        },
+        {
+          "id": 242,
+          "title": "The Godfather: Part III"
+        },
+        {
+          "id": 9946,
+          "title": "End of Days"
+        }
+      ],
+      "interpretation": {
+        "language": "fa",
+        "translation": "offline",
+        "translated_query": "After the pope's death, a cardinal in charge of the secret election will succeed him in the Vatican and gradually unlock the secrets of the candidates."
+      },
+      "error": null,
+      "elapsed_sec": 23.52
+    },
+    {
+      "query": "a solitary black cat survives a devastating flood by sharing a small boat with other animals in a world without human dialogue",
+      "language": "en",
+      "id": "823219",
+      "title": "Flow",
+      "rank": 1,
+      "top_3": [
+        {
+          "id": 823219,
+          "title": "Flow"
+        },
+        {
+          "id": 50135,
+          "title": "Animals United"
+        },
+        {
+          "id": 9306,
+          "title": "The Island of Dr. Moreau"
+        }
+      ],
+      "interpretation": {
+        "language": "en",
+        "translation": "not_needed",
+        "translated_query": null
+      },
+      "error": null,
+      "elapsed_sec": 2.69
+    },
+    {
+      "query": "یه گربه سیاه تو یک سیل بزرگ برای زنده موندن سوار قایقی میشه و مجبور میشه با چند حیوان دیگه همراه بشه، فیلم هم دیالوگ انسانی نداره",
+      "language": "fa",
+      "id": "823219",
+      "title": "Flow",
+      "rank": 1,
+      "top_3": [
+        {
+          "id": 823219,
+          "title": "Flow"
+        },
+        {
+          "id": 9306,
+          "title": "The Island of Dr. Moreau"
+        },
+        {
+          "id": 50135,
+          "title": "Animals United"
+        }
+      ],
+      "interpretation": {
+        "language": "fa",
+        "translation": "offline",
+        "translated_query": "A black cat in a great flood gets on a boat to survive and has to go with a few other animals."
+      },
+      "error": null,
+      "elapsed_sec": 19.42
+    },
+    {
+      "query": "twin brothers return to Mississippi to open a music club in the 1930s, but vampires threaten the people gathered there that night",
+      "language": "en",
+      "id": "1233413",
+      "title": "Sinners",
+      "rank": 1,
+      "top_3": [
+        {
+          "id": 1233413,
+          "title": "Sinners"
+        },
+        {
+          "id": 9429,
+          "title": "A Night at the Roxbury"
+        },
+        {
+          "id": 276907,
+          "title": "Legend"
+        }
+      ],
+      "interpretation": {
+        "language": "en",
+        "translation": "not_needed",
+        "translated_query": null
+      },
+      "error": null,
+      "elapsed_sec": 2.95
+    },
+    {
+      "query": "دو برادر دوقلو تو دهه سی میلادی به میسیسیپی برمیگردن و یک باشگاه موسیقی راه میندازن ولی همون شب خون آشام ها سراغ مهمونا میان",
+      "language": "fa",
+      "id": "1233413",
+      "title": "Sinners",
+      "rank": 1,
+      "top_3": [
+        {
+          "id": 1233413,
+          "title": "Sinners"
+        },
+        {
+          "id": 9429,
+          "title": "A Night at the Roxbury"
+        },
+        {
+          "id": "public-series:e99de67d063adb9d",
+          "title": "Supernatural"
+        }
+      ],
+      "interpretation": {
+        "language": "fa",
+        "translation": "offline",
+        "translated_query": "Two twin brothers go back to Mississippi in the 1930s and start a music club, but that night, vampires come to our guests."
+      },
+      "error": null,
+      "elapsed_sec": 21.58
+    },
+    {
+      "query": "nearly every child in one school class runs out of their homes at the same time during the night, leaving a teacher and one remaining pupil under suspicion",
+      "language": "en",
+      "id": "1078605",
+      "title": "Weapons",
+      "rank": 1,
+      "top_3": [
+        {
+          "id": 1078605,
+          "title": "Weapons"
+        },
+        {
+          "id": 21334,
+          "title": "Children of Heaven"
+        },
+        {
+          "id": 19405,
+          "title": "Recess: School's Out"
+        }
+      ],
+      "interpretation": {
+        "language": "en",
+        "translation": "not_needed",
+        "translated_query": null
+      },
+      "error": null,
+      "elapsed_sec": 2.6
+    },
+    {
+      "query": "تقریبا همه بچه های یک کلاس مدرسه در یک ساعت مشخص شب از خونه هاشون فرار میکنن و فقط یک دانش آموز باقی میمونه، بعد همه به معلم شک میکنن",
+      "language": "fa",
+      "id": "1078605",
+      "title": "Weapons",
+      "rank": 1,
+      "top_3": [
+        {
+          "id": 1078605,
+          "title": "Weapons"
+        },
+        {
+          "id": 9276,
+          "title": "The Faculty"
+        },
+        {
+          "id": "tvmaze:118",
+          "title": "House"
+        }
+      ],
+      "interpretation": {
+        "language": "fa",
+        "translation": "offline",
+        "translated_query": "Almost all the kids in a classroom run away from home at a certain time of night, leaving only one student, and then everyone suspects the teacher."
+      },
+      "error": null,
+      "elapsed_sec": 23.11
+    },
+    {
+      "query": "a Hungarian Jewish architect emigrates to America after the war and a wealthy patron commissions a monumental building that transforms his life",
+      "language": "en",
+      "id": "549509",
+      "title": "The Brutalist",
+      "rank": 1,
+      "top_3": [
+        {
+          "id": 549509,
+          "title": "The Brutalist"
+        },
+        {
+          "id": 25784,
+          "title": "Journey from the Fall"
+        },
+        {
+          "id": 41508,
+          "title": "Fateless"
+        }
+      ],
+      "interpretation": {
+        "language": "en",
+        "translation": "not_needed",
+        "translated_query": null
+      },
+      "error": null,
+      "elapsed_sec": 2.7
+    },
+    {
+      "query": "یک معمار یهودی مجارستانی بعد از جنگ به آمریکا مهاجرت میکنه و یک سرمایه دار ثروتمند بهش سفارش ساخت بنای بزرگی میده که زندگیش رو عوض میکنه",
+      "language": "fa",
+      "id": "549509",
+      "title": "The Brutalist",
+      "rank": 1,
+      "top_3": [
+        {
+          "id": 549509,
+          "title": "The Brutalist"
+        },
+        {
+          "id": 25784,
+          "title": "Journey from the Fall"
+        },
+        {
+          "id": 41508,
+          "title": "Fateless"
+        }
+      ],
+      "interpretation": {
+        "language": "fa",
+        "translation": "offline",
+        "translated_query": "A Hungarian Jewish architect emigrates to America after the war and a wealthy capitalist orders him to build a massive building that will change his life."
+      },
+      "error": null,
+      "elapsed_sec": 22.86
+    },
+    {
+      "query": "a lone astronaut wakes aboard a spacecraft with no memory, gradually remembers a mission to save the dying sun and befriends an alien facing the same problem",
+      "language": "en",
+      "id": "687163",
+      "title": "Project Hail Mary",
+      "rank": 2,
+      "top_3": [
+        {
+          "id": 19898,
+          "title": "Pandorum"
+        },
+        {
+          "id": 687163,
+          "title": "Project Hail Mary"
+        },
+        {
+          "id": 1272,
+          "title": "Sunshine"
+        }
+      ],
+      "interpretation": {
+        "language": "en",
+        "translation": "not_needed",
+        "translated_query": null
+      },
+      "error": null,
+      "elapsed_sec": 2.51
+    },
+    {
+      "query": "یک فضانورد تنها بدون حافظه توی سفینه بیدار میشه، کم کم یادش میاد باید خورشید در حال مرگ رو نجات بده و با یک موجود فضایی که مشکل مشابهی داره دوست میشه",
+      "language": "fa",
+      "id": "687163",
+      "title": "Project Hail Mary",
+      "rank": null,
+      "top_3": [
+        {
+          "id": 19898,
+          "title": "Pandorum"
+        },
+        {
+          "id": 33155,
+          "title": "Galaxina"
+        },
+        {
+          "id": 8870,
+          "title": "Red Planet"
+        }
+      ],
+      "interpretation": {
+        "language": "fa",
+        "translation": "offline",
+        "translated_query": "An astronaut wakes up alone on a ship with no memory, slowly remembers he has to save the dying sun and makes love to an alien who has a similar problem."
+      },
+      "error": null,
+      "elapsed_sec": 24.27
+    },
+    {
+      "query": "after the Trojan War a Greek king struggles to return to his wife and son while facing a cyclops and other dangers at sea",
+      "language": "en",
+      "id": "1368337",
+      "title": "The Odyssey",
+      "rank": 2,
+      "top_3": [
+        {
+          "id": 652,
+          "title": "Troy"
+        },
+        {
+          "id": 1368337,
+          "title": "The Odyssey"
+        },
+        {
+          "id": 256917,
+          "title": "The Water Diviner"
+        }
+      ],
+      "interpretation": {
+        "language": "en",
+        "translation": "not_needed",
+        "translated_query": null
+      },
+      "error": null,
+      "elapsed_sec": 2.52
+    },
+    {
+      "query": "یک پادشاه یونانی بعد از جنگ تروا تلاش میکنه از راه دریا پیش همسر و پسرش برگرده ولی سر راه با غول یک چشم و خطرهای اسطوره ای روبرو میشه",
+      "language": "fa",
+      "id": "1368337",
+      "title": "The Odyssey",
+      "rank": 1,
+      "top_3": [
+        {
+          "id": 1368337,
+          "title": "The Odyssey"
+        },
+        {
+          "id": 652,
+          "title": "Troy"
+        },
+        {
+          "id": 256917,
+          "title": "The Water Diviner"
+        }
+      ],
+      "interpretation": {
+        "language": "fa",
+        "translation": "offline",
+        "translated_query": "A Greek king tries to return by sea to his wife and son after the Trojan War, but encounters a giant eye and legendary dangers along the way."
+      },
+      "error": null,
+      "elapsed_sec": 25.4
+    },
+    {
+      "query": "an officer that could raise to the life each time after he dies so he can fix the issues and keep soldiers alive and win the battle",
+      "language": "en",
+      "id": "137113",
+      "title": "Edge of Tomorrow",
+      "rank": 2,
+      "top_3": [
+        {
+          "id": 9665,
+          "title": "Glory"
+        },
+        {
+          "id": 137113,
+          "title": "Edge of Tomorrow"
+        },
+        {
+          "id": "tvmaze:118",
+          "title": "House"
+        }
+      ],
+      "interpretation": {
+        "language": "en",
+        "translation": "not_needed",
+        "translated_query": null
+      },
+      "error": null,
+      "elapsed_sec": 2.58
+    },
+    {
+      "query": "یه افسر هر بار که تو جنگ با موجودات بیگانه کشته میشه دوباره همون روز رو از اول زندگی میکنه تا اشتباهاتش رو درست کنه و سربازها رو نجات بده",
+      "language": "fa",
+      "id": "137113",
+      "title": "Edge of Tomorrow",
+      "rank": 1,
+      "top_3": [
+        {
+          "id": 137113,
+          "title": "Edge of Tomorrow"
+        },
+        {
+          "id": 146631,
+          "title": "U.F.O."
+        },
+        {
+          "id": 857,
+          "title": "Saving Private Ryan"
+        }
+      ],
+      "interpretation": {
+        "language": "fa",
+        "translation": "offline",
+        "translated_query": "Every time an officer is killed in a war with aliens, he lives that day again from the beginning to right his mistakes and save his soldiers."
+      },
+      "error": null,
+      "elapsed_sec": 22.71
+    }
+  ],
+  "hit_at_1": 0.6153846153846154,
+  "hit_at_5": 0.8461538461538461
+}

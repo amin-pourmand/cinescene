@@ -188,6 +188,8 @@ These are optional training commands, not evidence of a trained release checkpoi
 
 ## Validation
 
+The public runtime's [26-input real-model development check](benchmarks/pwa-semantic-v12.json) completed without technical errors: 16/26 first and 22/26 Top-5. This is not held-out accuracy, and several recent-film/Persian descriptions still fail. The complete ledger, including misses and English interpretations, is retained. Native and browser-WASM behavior require separate validation; a passing Node workflow is not proof of identical browser ranking or speed.
+
 ```powershell
 .\.venv\Scripts\python.exe .\scripts\smoke_test_final.py
 .\.venv\Scripts\python.exe .\scripts\retrieval_quality_benchmark.py

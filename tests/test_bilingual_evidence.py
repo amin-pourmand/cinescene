@@ -180,6 +180,7 @@ class WorkerProtocolTests(unittest.TestCase):
             self.assertFalse(api.SEARCH_ENGINE_LOADED)
             api.get_search_engine()
             self.assertEqual(budget.call_count, 2)
+            budget.assert_called_with(required_mb=1536)
 
 
 @unittest.skipUnless(importlib.util.find_spec("faiss"), "Optional FAISS runtime not installed")

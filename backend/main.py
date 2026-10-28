@@ -188,7 +188,8 @@ def get_search_engine():
         if SEARCH_ENGINE_LOADED:
             return SEARCH_ENGINE, SEARCH_ENGINE_ERROR
         try:
-            check_model_budget(required_mb=384)
+            # Leave room for an inference worker after loading resident indexes.
+            check_model_budget(required_mb=1536)
             enable_reranker = os.getenv("CINESCENE_ENABLE_RERANKER", "1") == "1"
             if os.getenv("CINESCENE_SEARCH_ENGINE", "hybrid") == "passages":
                 from core.passage_search import PassageSearchEngine

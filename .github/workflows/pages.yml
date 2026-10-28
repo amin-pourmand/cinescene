@@ -69,6 +69,6 @@ jobs:
         with:
           python-version: "3.11"
       - name: Install API and subtitle test dependencies
-        run: python -m pip install fastapi python-multipart httpx requests python-dotenv "pysubs2>=1.8,<2" numpy==1.26.4 faiss-cpu==1.10.0 rank-bm25==0.2.2
+        run: python -m pip install fastapi python-multipart httpx requests python-dotenv "pysubs2>=1.8,<2" numpy==1.26.4 faiss-cpu==1.10.0 rank-bm25==0.2.2 tqdm==4.67.1
       - name: Verify scene workflows without model downloads
         run: python -m unittest discover -s tests -v
