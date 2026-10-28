@@ -6,11 +6,16 @@ import argparse
 import json
 import time
 from pathlib import Path
+import os
+import sys
 
 import httpx
 
 
 ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT))
+from runtime_environment import configure_runtime
+configure_runtime()
 
 
 def require(condition, message):
@@ -21,7 +26,10 @@ def require(condition, message):
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--url", default="http://127.0.0.1:8000")
-    parser.add_argument("--upload", action="store_true", help="Reprocess the included six-second synthetic episode.")
+    parser.add_argument("--upload", action="store_true", help="Reprocess the included short synthetic episode.")
+    parser.add_argument("--real-media-id", help="Optionally check a local authorized film's full timeline.")
+    parser.add_argument("--real-dialogue-query", action="append", default=[], help="Optional private dialogue probe; retained only in the chosen local report.")
+    parser.add_argument("--output", default=str(Path(os.getenv("CINESCENE_STORAGE_ROOT", ROOT)) / "artifacts/runtime-acceptance.json"))
     args = parser.parse_args()
     client = httpx.Client(base_url=args.url, timeout=180, headers={"X-CineScene-Session": "runtime-acceptance-v2"})
 
@@ -68,7 +76,7 @@ def main():
 
     english = search("suspenseful detective mystery in a dark room")
     require(english and english[0]["title"] == "Benchmark Show", "English fixture was not the top result")
-    require(english[0].get("matched_scene", {}).get("transcript"), "Matched scene lost its transcript")
+    require((english[0].get("matched_scene") or {}).get("transcript"), "Matched scene lost its transcript")
     scene = english[0]["matched_scene"]
     response = client.get(scene["preview_url"], headers={"Range": "bytes=0-1023"})
     require(response.status_code in {200, 206} and len(response.content) > 0, "Browser preview unavailable")
@@ -85,26 +93,28 @@ def main():
         require(results and all(row["media_type"] == kind for row in results), f"{kind} filter leaked other media")
     report["checks"]["media_filters"] = True
 
-    media_id = "0a034829e524"
-    first = get(f"/api/media/{media_id}/scenes", params={"limit": 24})
-    rows = list(first["scenes"])
-    for offset in range(24, first["total"], 24):
-        rows.extend(get(f"/api/media/{media_id}/scenes", params={"limit": 24, "offset": offset})["scenes"])
-    require(len(rows) == first["total"] == 153, "Full real-film timeline is incomplete")
-    require(len({row["scene_number"] for row in rows}) == len(rows), "Pagination duplicated scenes")
-    report["real_film_quality"] = first["quality"]
     report["real_film_queries"] = []
-    for query in ("پاتریشیا پسرها کجان صدای گریه", "در رو ببند لطفاً اون بهمون صدمه میزنه"):
-        results = search(query)
-        rank = next((i for i, row in enumerate(results, 1) if row["id"] == f"offline:{media_id}"), None)
-        require(rank is not None, "Real-film subtitle evidence was absent from the top five")
-        match = results[rank - 1]
-        report["real_film_queries"].append({"query": query, "rank": rank,
-                                            "matched_scenes": [{key: value for key, value in item.items()
-                                                                if key in {"scene_number", "start_sec", "end_sec"}}
-                                                               for item in match.get("matched_scenes", [])]})
+    if args.real_media_id:
+        media_id = args.real_media_id
+        first = get(f"/api/media/{media_id}/scenes", params={"limit": 24})
+        rows = list(first["scenes"])
+        for offset in range(24, first["total"], 24):
+            rows.extend(get(f"/api/media/{media_id}/scenes", params={"limit": 24, "offset": offset})["scenes"])
+        require(len(rows) == first["total"] and bool(rows), "Full real-film timeline is incomplete")
+        require(len({row["scene_number"] for row in rows}) == len(rows), "Pagination duplicated scenes")
+        report["real_film_quality"] = first["quality"]
+        for query in args.real_dialogue_query:
+            results = search(query)
+            rank = next((i for i, row in enumerate(results, 1) if row["id"] == f"offline:{media_id}"), None)
+            require(rank is not None, "Real-film subtitle evidence was absent from the top five")
+            match = results[rank - 1]
+            report["real_film_queries"].append({"query": query, "rank": rank,
+                                              "matched_scenes": [{key: value for key, value in item.items()
+                                                                  if key in {"scene_number", "start_sec", "end_sec"}}
+                                                                 for item in match.get("matched_scenes", [])]})
     report["ok"] = True
-    path = ROOT / "artifacts/runtime-acceptance.json"
+    path = Path(args.output)
+    path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(report, ensure_ascii=False, indent=2), encoding="utf-8")
     print(json.dumps(report, ensure_ascii=True, indent=2))
 

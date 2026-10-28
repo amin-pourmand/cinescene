@@ -6,6 +6,7 @@ changed here; query-time filters use the authoritative parent series genres.
 from __future__ import annotations
 
 import json
+import argparse
 import pickle
 import sys
 from pathlib import Path
@@ -17,15 +18,19 @@ configure_runtime()
 
 
 def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--index-dir", default=str(ROOT / "data/index"))
+    parser.add_argument("--input", default=str(ROOT / "data/processed/tv_series_enriched.json"))
+    args = parser.parse_args()
     import faiss
     import numpy as np
     from build_index_v2 import IndexBuilderV2
     from core.onnx_models import OnnxEncoder
     from multilingual_index import record_key, title_passages
 
-    folder = ROOT / "data/index"
+    folder = Path(args.index_dir)
     metadata = pickle.loads((folder / "metadata_v2.pkl").read_bytes())
-    documents = json.loads((ROOT / "data/processed/tv_series_enriched.json").read_text(encoding="utf-8"))
+    documents = json.loads(Path(args.input).read_text(encoding="utf-8"))
     by_id = {str(row["id"]): row for row in documents if row.get("overview_source") == "tvmaze"}
     builder = IndexBuilderV2.__new__(IndexBuilderV2)
     changes = []

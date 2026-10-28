@@ -1,0 +1,20 @@
+{
+  "version": 1,
+  "titles": 7818,
+  "episode_records": 3416,
+  "scene_records": 5,
+  "index_generation": "2026-10-28T09:45:41.905409+00:00",
+  "fusion_version": "rrf-v11-resilient-bilingual",
+  "ranking_policy": "independent-evidence-v1",
+  "catalog_sha256": "0ebc138e3796daaa78944d1ffe4441ebfc4264cd600bb3c27766bfea4a575820",
+  "summary_sha256": "953ca38581c0c387d781b43a239d1fb8f8763f672c237ad0b690b109ab1ac83c",
+  "translation": {
+    "model": "Xenova/nllb-200-distilled-600M",
+    "revision": "261c31d1a5732c67cdd16d80e8d6088507c7ccea",
+    "license": "CC-BY-NC-4.0",
+    "download_bytes": 911957478,
+    "src_lang": "pes_Arab",
+    "tgt_lang": "eng_Latn",
+    "max_new_tokens": 320
+  }
+}

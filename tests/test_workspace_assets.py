@@ -54,3 +54,10 @@ class WorkspaceAssetTests(unittest.TestCase):
             query = next(attrs for _, attrs in page.elements if attrs.get("id") == "queryInput")
             self.assertEqual(query["dir"], "auto")
             self.assertEqual(query["maxlength"], "1000")
+
+    def test_native_translation_warning_is_accessible_and_hidden_until_needed(self):
+        page = Page(ROOT / "frontend/index.html")
+        warning = next(attrs for _, attrs in page.elements if attrs.get("id") == "searchWarning")
+        self.assertEqual(warning["role"], "status")
+        self.assertIn("hidden", warning)
+        self.assertIn("search-warning", warning["class"].split())

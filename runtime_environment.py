@@ -12,6 +12,12 @@ from dotenv import load_dotenv
 def configure_runtime():
     root = Path(__file__).resolve().parent
     load_dotenv(root / ".env", override=False)
+    # Set BLAS limits before NumPy/FAISS imports, not just ONNX session threads.
+    # OpenBLAS thread buffers can otherwise dwarf the model's own allocation.
+    threads = str(max(1, min(4, int(os.getenv("CINESCENE_CPU_THREADS", "2")))))
+    for name in ("OPENBLAS_NUM_THREADS", "OMP_NUM_THREADS", "MKL_NUM_THREADS", "NUMEXPR_NUM_THREADS"):
+        os.environ.setdefault(name, threads)
+    os.environ.setdefault("TOKENIZERS_PARALLELISM", "false")
     storage_root = os.getenv("CINESCENE_STORAGE_ROOT")
     if not storage_root:
         return

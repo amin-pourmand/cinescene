@@ -25,6 +25,8 @@ from pydantic import BaseModel, Field, model_validator
 
 from backend.storage import AppMemory
 from backend.scene_library import read_timeline, scene_quality
+from core.resource_budget import ResourceBudgetError, check_model_budget
+from core.model_worker import ModelWorkerError
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -69,6 +71,7 @@ class SearchRequest(BaseModel):
     query: str = Field(..., min_length=1, max_length=1000)
     top_k: int = Field(8, ge=1, le=20)
     use_reranking: bool = True
+    include_trace: bool = False
     media_type: Literal["all", "movie", "series"] = "all"
     scope: Literal["all", "scenes", "catalog"] = "all"
 
@@ -185,6 +188,8 @@ def get_search_engine():
         if SEARCH_ENGINE_LOADED:
             return SEARCH_ENGINE, SEARCH_ENGINE_ERROR
         try:
+            # Leave room for an inference worker after loading resident indexes.
+            check_model_budget(required_mb=1536)
             enable_reranker = os.getenv("CINESCENE_ENABLE_RERANKER", "1") == "1"
             if os.getenv("CINESCENE_SEARCH_ENGINE", "hybrid") == "passages":
                 from core.passage_search import PassageSearchEngine
@@ -198,6 +203,9 @@ def get_search_engine():
         except Exception as exc:
             SEARCH_ENGINE = None
             SEARCH_ENGINE_ERROR = str(exc)
+            # Low disk/RAM is transient; the next request must be able to retry.
+            if isinstance(exc, ResourceBudgetError):
+                return SEARCH_ENGINE, SEARCH_ENGINE_ERROR
         SEARCH_ENGINE_LOADED = True
         return SEARCH_ENGINE, SEARCH_ENGINE_ERROR
 
@@ -240,20 +248,18 @@ def rebuild_scene_index_safely(model_path: str, batch_size: int = 16) -> Dict:
         if error:
             raise RuntimeError(error)
         return engine.status()
-    from scene_index import build_scene_index
-
     with ENGINE_LOCK:
         release_runtime_models(include_media=True)
-        report = build_scene_index(model_path=model_path, batch_size=batch_size)
-        from multilingual_index import INDEX_PATH, build_multilingual_index
-
-        if INDEX_PATH.exists():
-            report["multilingual"] = build_multilingual_index(scene_only=True, batch_size=16)
+        from core.model_worker import run_worker
+        report = run_worker({"kind": "scene_refresh", "model": model_path},
+                            timeout=3600, required_mb=1536, memory_mb=2048)
         clear_search_engine()
         return report
 
 
 def rebuild_all_indexes_safely(payload: IndexBuildRequest, input_path: str, before_scene=None):
+    # Full Torch rebuilding needs more headroom than incremental scene workers.
+    check_model_budget(required_mb=4096)
     from build_index_v2 import IndexBuilderV2
     from scene_index import build_scene_index
 
@@ -401,12 +407,16 @@ def runtime_status():
         "index_report": index_report,
         "scene_index_report": scene_index_report,
         "multilingual_report": read_json(ROOT / "data/index/multilingual_report.json", {}),
+        "movie_catalog_report": {key: value for key, value in read_json(ROOT / "data/processed/movie_expansion_report.json", {}).items()
+                                 if key not in {"coverage", "discovery_lists", "active_index_modified"}},
         "offline_documents": len(offline_catalog) if isinstance(offline_catalog, list) else 0,
         "combined_documents": catalog_document_count(),
         "paths": {
-            "index_report": str(INDEX_REPORT_PATH),
-            "offline_catalog": str(OFFLINE_CATALOG_PATH),
-            "combined_catalog": str(COMBINED_CATALOG_PATH),
+            "workspace": str(ROOT.resolve()),
+            "storage_root": os.getenv("CINESCENE_STORAGE_ROOT"),
+            "index_report": str(INDEX_REPORT_PATH.resolve()),
+            "offline_catalog": str(OFFLINE_CATALOG_PATH.resolve()),
+            "combined_catalog": str(COMBINED_CATALOG_PATH.resolve()),
         },
     }
 
@@ -632,15 +642,29 @@ def reload_engine():
 
 @app.post("/api/search")
 def search(payload: SearchRequest, sid: str = Header(default="anonymous", alias="X-CineScene-Session")):
+    if PIPELINE_LOCK.locked():
+        raise HTTPException(status_code=503, detail="Video analysis is using the local models. Retry when processing finishes.")
     with ENGINE_LOCK:
         engine, error = get_search_engine()
         if error or engine is None:
             raise HTTPException(status_code=503, detail=f"Search engine is not ready: {error}")
-        results = decorate_search_media(
-            engine.search(payload.query, top_k=payload.top_k, use_reranking=payload.use_reranking, media_type=payload.media_type, scope=payload.scope)
-        )
+        try:
+            engine.capture_trace = payload.include_trace
+            results = decorate_search_media(
+                engine.search(payload.query, top_k=payload.top_k, use_reranking=payload.use_reranking, media_type=payload.media_type, scope=payload.scope)
+            )
+            trace = getattr(engine, "last_trace", None) if payload.include_trace else None
+        except (ResourceBudgetError, ModelWorkerError) as exc:
+            raise HTTPException(status_code=503, detail=str(exc)) from exc
+        finally:
+            engine.capture_trace = False
+        interpretation = dict(getattr(engine, "last_query", {}))
     memory.add_search(sid, payload.query, payload.top_k, payload.use_reranking, results)
-    return {"query": payload.query, "scope": payload.scope, "count": len(results), "results": results}
+    response = {"query": payload.query, "scope": payload.scope, "count": len(results), "results": results,
+                "interpretation": interpretation}
+    if payload.include_trace:
+        response["trace"] = trace
+    return response
 
 
 @app.get("/api/history")
@@ -687,7 +711,9 @@ def serialized_analysis(operation):
     @wraps(operation)
     def run(*args, **kwargs):
         with PIPELINE_LOCK:
-            return operation(*args, **kwargs)
+            with ENGINE_LOCK:
+                release_runtime_models(include_media=True)
+                return operation(*args, **kwargs)
     return run
 
 

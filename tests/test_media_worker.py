@@ -9,6 +9,14 @@ from backend.media_worker import PREFIX, crawl_in_worker
 
 
 class MediaWorkerTests(unittest.TestCase):
+    def setUp(self):
+        budget = patch("backend.media_worker.check_model_budget")
+        job = patch("backend.media_worker.WorkerJob")
+        self.budget = budget.start()
+        self.job = job.start()
+        self.addCleanup(budget.stop)
+        self.addCleanup(job.stop)
+
     def process(self, events, code=0):
         process = Mock()
         process.stdin = io.StringIO()
@@ -27,6 +35,8 @@ class MediaWorkerTests(unittest.TestCase):
         progress.assert_called_once_with({"stage": "vision", "overall_fraction": .5})
         process.wait.assert_called_once()
         self.assertTrue(process.stdout.closed)
+        self.budget.assert_called_once_with(required_mb=3072)
+        self.job.return_value.close.assert_called_once()
 
     def test_missing_report_is_not_success(self):
         process = self.process([], 2)
@@ -42,3 +52,11 @@ class MediaWorkerTests(unittest.TestCase):
                 crawl_in_worker("videos", progress_callback=Mock(side_effect=ValueError("callback failed")))
         process.terminate.assert_called_once()
         process.wait.assert_called_once_with(timeout=10)
+
+    def test_low_memory_refuses_a_media_worker_before_spawning(self):
+        from core.resource_budget import ResourceBudgetError
+        self.budget.side_effect = ResourceBudgetError("insufficient RAM")
+        with patch("backend.media_worker.subprocess.Popen") as spawn:
+            with self.assertRaises(ResourceBudgetError):
+                crawl_in_worker("videos", enable_vision=True)
+            spawn.assert_not_called()

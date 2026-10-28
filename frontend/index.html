@@ -8,7 +8,7 @@
     <link rel="icon" href="/assets/icon.svg?v=20261025-reel-v11" type="image/svg+xml" />
     <link rel="icon" href="/assets/favicon-32.png?v=20261025-reel-v11" sizes="32x32" type="image/png" />
     <link rel="apple-touch-icon" href="/assets/apple-touch-icon.png?v=20261025-reel-v11" sizes="180x180" />
-    <link rel="stylesheet" href="/assets/styles.css?v=20261025-reel-v11" />
+    <link rel="stylesheet" href="/assets/styles.css?v=20261028-notice-v12" />
     <link rel="stylesheet" href="/assets/workspace.css?v=20261025-semantic-v13" />
   </head>
   <body>
@@ -87,6 +87,8 @@
             <section class="recent-section" hidden><span>Recent searches</span><div id="recentSearches" class="recent-searches"></div></section>
 
             <section class="results-section">
+              <p id="searchWarning" class="notice search-warning" role="status" hidden></p>
+              <details id="queryInterpretation" class="story-evidence" hidden><summary>English interpretation</summary><p id="translatedQuery" dir="ltr"></p></details>
               <div class="section-header">
                 <div><span class="section-kicker">Ranked matches</span><h3>Results</h3></div>
                 <span class="count-label" id="resultCount">Ready</span>
@@ -136,8 +138,8 @@
                   <details class="analysis-options"><summary>Processing settings</summary><div class="analysis-mode">
                     <span>Analysis profile</span>
                     <div class="segmented-control" role="group">
-                      <button class="active" type="button" data-analysis-mode="balanced">Balanced</button>
-                      <button type="button" data-analysis-mode="deep">Deep vision</button>
+                      <button class="active" type="button" data-analysis-mode="balanced" aria-pressed="true">Subtitles</button>
+                      <button type="button" data-analysis-mode="deep" aria-pressed="false">Dialogue + vision</button>
                     </div>
                   </div>
 
@@ -233,7 +235,7 @@
               <div><h2>Settings</h2></div>
             </div>
             <div class="preference-row"><label for="topKInput">Results per search</label><input id="topKInput" type="number" min="1" max="20" value="8" /></div>
-            <div class="preference-row"><label for="rerankInput">Re-rank English results</label><input id="rerankInput" type="checkbox" checked /></div>
+            <div class="preference-row"><label for="rerankInput">Re-rank results</label><input id="rerankInput" type="checkbox" checked /></div>
             <details class="technical-details"><summary>Runtime diagnostics</summary>
             <button class="button secondary compact" id="rebuildIndexButton" type="button"><i data-lucide="database-backup"></i>Rebuild indexes</button>
             <p class="count-label"><span id="engineVectorCount">-</span> total vectors</p>
@@ -275,7 +277,7 @@
     <div class="toast-region" id="toastRegion" aria-live="polite"></div>
     <script src="/assets/lucide.min.js?v=0.468.0"></script>
     <script src="/assets/scene-explorer.js?v=20261025-reel-v11"></script>
-    <script src="/assets/workspace-ui.js?v=20261026-evidence-v20"></script>
-    <script src="/assets/app.js?v=20261026-evidence-v20"></script>
+    <script src="/assets/workspace-ui.js?v=20261028-sources-v23"></script>
+    <script src="/assets/app.js?v=20261028-resilience-v24"></script>
   </body>
 </html>

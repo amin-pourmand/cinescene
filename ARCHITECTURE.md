@@ -32,13 +32,16 @@ flowchart TD
     R --> O[Offline title document]
     R --> SI[Scene FAISS index]
     O --> MI[Movie FAISS index]
-    Q[User query] --> N[Normalize + Persian expansion]
+    Q[User query] --> N[Normalize; retain original Persian]
+    N --> TR[Optional offline sentence translation]
     N --> H[Hybrid retrieval]
     SI --> H
     MI --> H
     R --> ML[Multilingual E5 passage and scene index]
     ML --> H
-    H --> C[Collapse scenes by parent title]
+    TR --> H
+    H --> EV[Independent synopsis / episode / scene verification]
+    EV --> C[Max-pool evidence by parent title]
     C --> X[Ranked title + scene + timecode]
 ```
 
@@ -98,17 +101,23 @@ data/index/scene_metadata.pkl
 
 `hybrid_search.py` is the native engine; `docs/assets/semantic-worker.mjs` and `hybrid-ranking.mjs` implement its portable public counterpart. `scripts/build_browser_index.py` exports public-only normalized vectors, precomputed BM25 posting contributions, processor rules and evidence references. The manifest pins model revisions and hashes catalog/vector/posting files. Private source paths and unallowlisted local scenes are excluded.
 
-1. Normalize and expand the query in `query_processor.py`.
-2. English queries use BGE title/scene vectors, E5-base passages and BM25. Persian queries use E5-base passages; generic bilingual concept expansion may add BGE/BM25 recall when enough English concepts are available.
+1. Normalize the query in `query_processor.py`, preserving sentence meaning.
+2. English queries use BGE title/scene vectors, E5-base passages and BM25. Persian retains its original E5 query and a weak original-language lexical channel, then optionally adds full offline NLLB English translation for English retrieval/reranking. Literal transcript overlap is evaluated in the original language as well. Missing translation does not silently substitute a dictionary-derived keyword bag.
 3. Add lexical evidence from title, plot, scene transcript, captions, tags, and metadata.
 4. Prefer transcript overlap for dialogue-like scene queries.
-5. Collapse title, scene and episode evidence to one parent title using maximum score, not document-count bonuses.
-6. Preserve the best scene and a short list of additional matching scenes.
+5. Shortlist up to 40 parent titles while retaining alternative episode/scene records. Independently verify up to two evidence records/passages per parent, including the synopsis for catalog-title records. For offline ingestions with available scene candidates, use timed scenes instead of the generated aggregate overview. Do not repeat the aggregate's combined dialogue as context for every scene.
+6. Select the maximum-scored evidence per title, preserving the actual winning episode/scene. A story winner does not claim that a lower-scored video scene matched.
 7. Return a stable ranked response with title score, scene score, frame, and timecode.
 
-MiniLM cross-encoder reranking is enabled by default for 40 candidates, in batches of four. It scores English descriptions or expanded English concepts, never raw Persian with an English-only model. Raw logits and fusion values are never mixed as comparable scores. The unscored tail remains after the reranked shortlist. A rank-consensus ablation improved some broad queries but hurt the targeted identity suite and was not selected as the release policy. Scores are ranking signals, not calibrated confidence percentages.
+MiniLM cross-encoder reranking is enabled by default for the bounded evidence shortlist. It scores English descriptions or full English query translations, never a raw Persian query with an English-only model. Persian scene dialogue can also receive a bounded offline translation for verification; the original full transcript remains the returned evidence. These translations use separate small in-memory query/passage caches and never become invented source dialogue or timestamps. Raw logits and fusion values are never mixed as comparable scores. The unscored tail remains after the reranked shortlist. Scores are ranking signals, not calibrated confidence percentages. Translation errors and unsupported-language evidence remain limitations; this is not a universal multilingual-verification claim.
 
-Both runtimes use pinned int8 ONNX query inference. BGE uses CLS pooling and its query instruction; E5 uses masked mean pooling and query/passage prefixes. Encoders load sequentially and release their sessions; ONNX CPU memory arenas/patterns are disabled. The browser reports downloads, supports cancellation and verifies data checksums. Inference stays on-device, while model downloads contact Hugging Face. Optional BLIP/Whisper analysis runs in a child process with structured progress and exits before index refresh.
+If the optional query translator's worker fails, an available multilingual index can still retrieve the original Persian query. The response and Studio explicitly warn that English reranking was not used; benchmark reports count these reduced-capability results separately. Missing multilingual indexes and low-disk/low-memory guards still fail visibly. This routing change is availability handling, not a claim that untranslated retrieval has equivalent accuracy.
+
+Both runtimes use pinned int8 ONNX query inference. BGE uses CLS pooling and its query instruction; E5 uses masked mean pooling and query/passage prefixes. Native inference now exits its short-lived worker after each stage; Windows job objects cap worker commit and terminate descendants on timeout. BLAS/OMP thread limits are established before NumPy/FAISS imports. Disk, physical-memory and commit headroom are checked before inference. Optional NLLB translation uses a separate torch-free runtime, pinned int8 artifacts and no external query service; its CC-BY-NC-4.0 research license and translation limitations are documented in the README.
+
+The public browser build uses `search-runtime.mjs`, shared by its worker adapter and the real-model Node acceptance runner. The v3 manifest records the native generation, public-only file hashes, model revisions and independent-evidence policy. Original Persian queries retain E5 recall; optional NLLB sentence translation adds English retrieval and MiniLM verification after explicit download consent. Missing translation produces a visible warning, not dictionary-based English reranking. Independent passages are scored before selecting a winning parent/episode; story evidence cannot inherit an unrelated scene timestamp. Native and browser use different model conversions and may rank differently. Neither includes private media in the public export.
+
+The shell loads a small title summary and release fingerprint first; full plots and vectors load lazily. It reports downloads, supports cancellation and verifies data checksums. Browser cache storage follows the browser profile, independently of native storage-root settings. Optional native BLIP/Whisper analysis runs in a separate, budget-checked child process with structured progress and exits before index refresh. Video analysis and search do not run heavyweight model stages concurrently.
 
 TVmaze episode records have a unique record ID and a parent show ID. Their summaries and season/episode/source metadata remain distinct from recovered video scenes: no timestamp or transcript is fabricated. A matching episode is returned as `matched_episode`; its synopsis can be inspected independently of the series overview. See [Data sources](DATA_SOURCES.md).
 
@@ -162,6 +171,14 @@ The public `docs/` build shares the visual language and browser memory. GitHub P
 - Movie and scene indexes can be regenerated from catalog and scene records.
 - The crawler never requires access to a protected streaming player or DRM bypass.
 - Public catalog exports include only explicitly allowlisted local demo titles. Private uploaded media, transcripts, captions, and local paths are not published to GitHub Pages.
+
+## Film Coverage Refresh
+
+`expand_movie_dataset.py` stages a reproducible selection of annual box-office lists and explicit international/genre landmarks. MediaWiki extracts and Wikidata identities are cached on the data drive. Disambiguation pages, conflicting remake identities and unverified future releases are rejected. Historical year-only dates retain their original precision. Wikipedia plot text is paired with its exact revision attribution; older text is retained separately when replaced, never incorrectly attributed to a newer revision.
+
+`activate_movie_expansion.py` prepares a separate index generation with bounded ONNX workers. Changed/new BGE records and E5 story passages are refreshed together; unchanged episode and real-scene records survive. Passage counts, record membership and dimensions are validated before installation. Rollback retains the old indexes/catalogs. An interrupted generation can resume only when cryptographic fingerprints of its original active indexes still match. A literal title such as `Unknown` is a valid title, not an empty-field sentinel.
+
+Film synopsis/plot coverage is distinct from decoded scenes. A catalog with thousands of titles does not imply timestamp-level evidence for thousands of films. Actual scene coverage comes from the offline video/subtitle pipeline.
 
 ## Evaluation
 

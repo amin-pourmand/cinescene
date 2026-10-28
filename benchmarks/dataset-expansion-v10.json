@@ -1,0 +1,87 @@
+{
+  "generated_at": "2026-10-27T13:07:30.278899+00:00",
+  "new_shows": 0,
+  "series_documents": 2837,
+  "episode_documents": 3416,
+  "show_coverage": {
+    "Game of Thrones": 72,
+    "Prison Break": 88,
+    "House": 176,
+    "Lucifer": 93,
+    "Vikings": 88,
+    "Rick and Morty": 86,
+    "The Big Bang Theory": 278,
+    "How I Met Your Mother": 208,
+    "The Boys": 39,
+    "Wednesday": 16,
+    "Orange Is the New Black": 91,
+    "The Good Place": 49,
+    "The Haunting of Hill House": 10,
+    "Dexter": 96,
+    "The Wire": 60,
+    "The Sopranos": 86,
+    "Succession": 39,
+    "Peaky Blinders": 36,
+    "Hannibal": 39,
+    "Supernatural": 327,
+    "Mad Men": 92,
+    "Fargo": 48,
+    "True Detective": 30,
+    "Downton Abbey": 46,
+    "Breaking Bad": 61,
+    "Better Call Saul": 61,
+    "Dark": 26,
+    "Black Mirror": 32,
+    "Stranger Things": 42,
+    "Severance": 16,
+    "Silo": 30,
+    "Andor": 23,
+    "The Last of Us": 16,
+    "The Bear": 16,
+    "Fallout": 3,
+    "Shogun": 10,
+    "The Queen's Gambit": 7,
+    "Chernobyl": 5,
+    "Westworld": 32,
+    "Mr. Robot": 45,
+    "Sherlock": 12,
+    "Lost": 119,
+    "Friends": 236,
+    "House of Cards": 69,
+    "Narcos": 30,
+    "The Walking Dead": 175,
+    "The Mandalorian": 21,
+    "BoJack Horseman": 73,
+    "Squid Game": 22,
+    "La Casa de Papel": 41
+  },
+  "identity_aliases": {
+    "public-series:1faeb5bc77b6fc7e": [
+      "tvmaze:431"
+    ],
+    "public-series:4f4a313aa0fb17dc": [
+      "tvmaze:175"
+    ],
+    "public-series:e99de67d063adb9d": [
+      "tvmaze:19"
+    ]
+  },
+  "source": "https://www.tvmaze.com/api",
+  "license": "CC-BY-SA-4.0",
+  "staged": true,
+  "activation": {
+    "installed_at": "2026-10-27T13:10:49.804133+00:00",
+    "parent_titles": 7642,
+    "title_episode_vectors": 11058,
+    "episode_records": 3416,
+    "scene_records": 158,
+    "multilingual_vectors": 26269,
+    "note": "Collection was staged before activation. Three duplicate source identities were reconciled; no episode evidence was removed. Public PWA unchanged."
+  },
+  "identity_evidence": [
+    {"title": "Friends", "tvmaze": "431", "main_cast_matches": 6, "source": "https://api.tvmaze.com/shows/431/cast"},
+    {"title": "House of Cards", "tvmaze": "175", "main_cast_matches": 12, "source": "https://api.tvmaze.com/shows/175/cast"},
+    {"title": "Supernatural", "tvmaze": "19", "main_cast_matches": 6, "source": "https://api.tvmaze.com/shows/19/cast"}
+  ],
+  "limitations": "Episode summaries are not exhaustive scene annotations or recovered dialogue."
+}

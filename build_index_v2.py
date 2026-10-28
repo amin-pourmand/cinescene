@@ -46,6 +46,10 @@ def movie_title(movie: Dict) -> str:
     return clean_text(movie.get("title")) or clean_text(movie.get("original_title")) or "Unknown"
 
 
+def has_movie_title(movie: Dict) -> bool:
+    return bool(clean_text(movie.get("title")) or clean_text(movie.get("original_title")))
+
+
 def default_catalog_path() -> str:
     combined = Path("data/processed/cinescene_catalog.json")
     if combined.exists():
@@ -97,11 +101,22 @@ class IndexBuilderV2:
     def load_enriched_data(self, path: str) -> List[Dict]:
         with open(path, "r", encoding="utf-8") as f:
             movies = json.load(f)
-        usable = [movie for movie in movies if movie_title(movie) != "Unknown" and self._movie_document(movie)]
+        usable = [movie for movie in movies if has_movie_title(movie) and self._movie_document(movie)]
         print(f"Loaded {len(movies)} movies; indexing {len(usable)} usable movies")
         return usable
 
     def _movie_document(self, movie: Dict) -> str:
+        plot = clean_text(movie.get("wiki_plot")) or clean_text(movie.get("plot"))
+        if plot and movie.get("evidence_sources") and movie.get("record_type", "title") == "title":
+            # Encoder context is bounded. Narrative evidence must precede credits
+            # and production metadata, even when a legacy rich_text is present.
+            return " | ".join([
+                f"Title: {movie_title(movie)}", f"Plot: {plot}",
+                f"Type: {clean_text(movie.get('media_type')) or 'movie'}",
+                f"Year: {clean_text(movie.get('release_year'))}",
+                f"Genres: {', '.join(as_text_list(movie.get('genres', [])))}",
+                f"Director: {clean_text(movie.get('director'))}",
+            ])
         rich_text = clean_text(movie.get("rich_text"))
         if rich_text and "Title:" in rich_text:
             return rich_text
@@ -180,6 +195,12 @@ class IndexBuilderV2:
                     "director": clean_text(movie.get("director")) or "Unknown",
                     "cast": as_text_list(movie.get("cast", []))[:8],
                     "overview": clean_text(movie.get("overview")),
+                    "plot": clean_text(movie.get("wiki_plot")) or clean_text(movie.get("plot")) or clean_text(movie.get("cmu_plot")),
+                    "story_passages": as_text_list(movie.get("story_passages", [])),
+                    "evidence_sources": movie.get("evidence_sources", []),
+                    "external_wikidata": movie.get("external_wikidata"),
+                    "external_tmdb": movie.get("external_tmdb"),
+                    "wikipedia_revision": movie.get("wikipedia_revision"),
                     "rating": float(movie.get("vote_average") or 0.0),
                     "popularity": float(movie.get("popularity") or 0.0),
                     "scene_descriptions": as_text_list(movie.get("scene_descriptions", []))[:30],

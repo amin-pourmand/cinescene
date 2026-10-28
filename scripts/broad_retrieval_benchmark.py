@@ -10,6 +10,7 @@ from collections import Counter
 from datetime import datetime, timezone
 import hashlib
 import json
+import os
 from pathlib import Path
 import pickle
 import shutil
@@ -19,6 +20,8 @@ import time
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
+from runtime_environment import configure_runtime
+configure_runtime()
 from evaluation_metrics import expected_rank, normalize_title, summarize
 
 
@@ -49,6 +52,35 @@ def coverage_matches(case, catalog):
     # refer to a platform catalog, so do not infer series absence from that year.
     exact = [row for row in candidates if case["target_type"] != "movie" or str(row.get("year")) == case["year"]]
     return exact, candidates
+
+
+def select_cases(cases, kinds=None, categories=None):
+    selected = [case for case in cases if (not kinds or case["kind"] in kinds)
+                and (not categories or case.get("category") in categories)]
+    if not selected:
+        raise ValueError("The requested selection contains no cases")
+    return selected
+
+
+def resolve_case_identities(cases, aliases):
+    def canonical(identity):
+        seen = set()
+        identity = str(identity)
+        while identity in aliases:
+            if identity in seen:
+                raise ValueError("Canonical identity aliases contain a cycle")
+            seen.add(identity)
+            identity = str(aliases[identity])
+        return identity
+    resolved = []
+    for case in cases:
+        row = dict(case)
+        if case.get("expected_ids"):
+            row["expected_ids"] = [canonical(value) for value in case["expected_ids"]]
+            if row["expected_ids"] != list(map(str, case["expected_ids"])):
+                row["original_expected_ids"] = case["expected_ids"]
+        resolved.append(row)
+    return resolved
 
 
 def validate_targets(cases, catalog):
@@ -101,12 +133,14 @@ def execute_case(client, case, catalog):
         if case["target_type"] == "movie":
             payload["query"] += f" released in {case['year']}"
     started = time.perf_counter()
-    results, error, status = [], None, 0
+    results, error, status, interpretation = [], None, 0, {}
     try:
         response = client.post("/api/search", json=payload)
         status = response.status_code
         if status == 200:
-            results = [result_identity(item) for item in response.json()["results"]]
+            body = response.json()
+            results = [result_identity(item) for item in body["results"]]
+            interpretation = {key: body.get("interpretation", {}).get(key) for key in ("language", "translation", "translated_query", "warning")}
         elif status != 422:
             error = f"HTTP {status}"
     except Exception as exc:
@@ -115,8 +149,10 @@ def execute_case(client, case, catalog):
            "language": case.get("language"), "provenance": case.get("provenance"), "pair": case.get("pair"),
            "query": payload.get("query"), "expected": case.get("expected"),
            "expected_ids": case.get("expected_ids"), "status": status, "error": error,
+           "original_expected_ids": case.get("original_expected_ids"),
            "latency_sec": round(time.perf_counter() - started, 3),
            "results": results, "rank": None,
+           "interpretation": interpretation,
            "options": {key: payload[key] for key in ("media_type", "scope", "top_k") if key in payload}}
     if case["kind"] == "retrieval":
         row["rank"] = expected_rank(results, case)
@@ -159,13 +195,14 @@ def report_metrics(rows):
                               "passed": sum(row["passed"] for row in selected)}
                        for kind in ("negative", "ambiguous", "invalid")},
             "technical_errors": sum(bool(row["error"]) for row in rows),
+            "degraded_retrieval": sum(bool(row.get("interpretation", {}).get("warning")) for row in retrieval),
             "retrieval_non_200": sum(row["status"] != 200 for row in retrieval),
             "retrieval_p50_sec": round(statistics.median([row["latency_sec"] for row in retrieval]), 3) if retrieval else None,
             "retrieval_p95_sec": round(sorted(row["latency_sec"] for row in retrieval)[max(0, int(len(retrieval) * .95) - 1)], 3) if retrieval else None}
 
 
 def engine_fingerprint(status):
-    return {key: status.get(key) for key in ("fusion_version", "model", "precision", "embedding_dimension", "index_vectors", "multilingual_vectors", "reranker")}
+    return {key: status.get(key) for key in ("fusion_version", "index_generation", "model", "precision", "embedding_dimension", "index_vectors", "multilingual_vectors", "reranker", "reranker_model", "identity_aliases")}
 
 
 def check_system_space(min_free_gb, root=None):
@@ -178,6 +215,7 @@ def write_report(output, suite, digest, start_status, end_status, planned, rows)
               "suite_sha256": digest, "planned_inputs": planned, "completed_inputs": len(rows),
               "engine": start_status, "engine_unchanged": start_status == end_status if end_status is not None else None,
               "transport": "http; one request at a time; reranking enabled", "evaluation_version": "broad-v1",
+              "identity_resolution": suite.get("identity_resolution", {}),
               "limitations": "Manual diagnostic sample, not a population estimate or independent held-out dataset. Episode checks are source-informed. Coverage/probes are excluded from retrieval metrics. Timing reflects this host, not a controlled load test.",
               **report_metrics(rows), "rows": rows}
     output.write_text(json.dumps(report, ensure_ascii=False, indent=2), encoding="utf-8")
@@ -189,7 +227,9 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--cases", default="benchmarks/broad-scenarios.json")
     parser.add_argument("--api-url", default="http://127.0.0.1:8000")
-    parser.add_argument("--output", default="artifacts/broad-latest.json", help="Raw local output; use summarize_broad_benchmark.py --public-json before publication")
+    parser.add_argument("--output", default=str(Path(os.getenv("CINESCENE_STORAGE_ROOT", ROOT)) / "artifacts/broad-latest.json"), help="Raw local output; use summarize_broad_benchmark.py --public-json before publication")
+    parser.add_argument("--kinds", nargs="+", choices=("retrieval", "coverage", "negative", "ambiguous", "invalid"))
+    parser.add_argument("--categories", nargs="+", help="Select explicit retrieval categories for a focused regression run.")
     parser.add_argument("--resume", action="store_true")
     parser.add_argument("--preflight", action="store_true")
     parser.add_argument("--min-system-free-gb", type=float, default=2.0, help="Pause before the next request if system-drive space is low; 0 disables the guard.")
@@ -197,10 +237,17 @@ def main():
     case_file = Path(args.cases)
     suite = json.loads(case_file.read_text(encoding="utf-8"))
     digest = hashlib.sha256(case_file.read_bytes().replace(b"\r\n", b"\n")).hexdigest()
-    cases = expand_cases(suite)
+    cases = select_cases(expand_cases(suite), args.kinds, args.categories)
+    if args.kinds or args.categories:
+        selection = {"kinds": sorted(args.kinds or []), "categories": sorted(args.categories or [])}
+        digest = hashlib.sha256((digest + json.dumps(selection, sort_keys=True)).encode()).hexdigest()
+        suite["description"] += " Focused selection: " + json.dumps(selection, sort_keys=True) + "."
     with (ROOT / "data/index/metadata_v2.pkl").open("rb") as handle:
         catalog = [{key: row.get(key) for key in ("id", "title", "year", "media_type", "record_type", "parent_id", "season", "episode")}
                    for row in pickle.load(handle)]
+    aliases = json.loads((ROOT / "data/index/index_report.json").read_text(encoding="utf-8")).get("identity_aliases", {})
+    cases = resolve_case_identities(cases, aliases)
+    suite["identity_resolution"] = aliases
     validate_targets(cases, catalog)
     if args.preflight:
         missing = [case["title"] for case in cases if case["kind"] == "coverage" and not coverage_matches(case, catalog)[0]]

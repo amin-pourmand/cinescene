@@ -1,5 +1,21 @@
 # Retrieval Evaluation
 
+## Public Runtime Verification
+
+The `PWA Semantic Acceptance` workflow runs `scripts/pwa_semantic_acceptance.mjs` against the exact exported public catalog/index, using the same `docs/assets/search-runtime.mjs` as the browser worker. It records all 26 paired English/Persian retrieval inputs from `recent-movie-scenarios.json`, their ranks, interpreted sentences, top results and errors. This is an inspected development cohort, not a held-out accuracy claim. GitHub's CPU runtime is not a WASM latency measurement, and policy/data alignment does not guarantee numerically identical native/browser rankings.
+
+The [completed real-model run](https://github.com/amin-pourmand/cinescene/actions/runs/40694924629) is preserved in [`pwa-semantic-v12.json`](pwa-semantic-v12.json): **16/26 Hit@1 (61.54%), 22/26 Hit@5 (84.62%), no technical errors and no reduced-capability translations**. Dune: Part Two and Project Hail Mary still miss the Persian Top-10; their English versions rank sixth and second. Poor Things ranks eighth in English and third in Persian. The exact reported Edge of Tomorrow query ranks second in English and first in Persian. Passing workflow execution does not mean every retrieval is correct; these failures are part of the release evidence. No no-match probes ran in this JS cohort.
+
+[`recent-movies-v11.md`](recent-movies-v11.md) retains the complete preceding native run: 16/26 first (61.54%), 20/26 Top-5 (76.92%), one translation error, and neither unrelated probe correctly rejected. It precedes the narrative-first document rebuild. A later local 28-input attempt encountered 17 resource-guard errors while the host was busy; it is not a completed new ranking-quality estimate. Do not silently exclude availability failures or relabel historical metrics as the new public release.
+
+## Native v9 Language And Evidence Check
+
+[`broad-v9.md`](broad-v9.md) and [`broad-v9.json`](broad-v9.json) preserve the complete 196-input rerun on the original 8,163 title/episode records plus 158 scenes. The ranking policy stayed unchanged during evaluation. Overall intended-title Hit@1 was 107/160 (66.9%), Hit@5 130/160 (81.2%). Persian improved from 2/61 first to 35/61 first (57.4%); English remained 70/97 first (72.2%), with Top-5 increasing from 81 to 82. This is a development diagnostic comparison, not independent population accuracy or evidence of fine-tuning.
+
+The same 60 paired stories returned English first 47/60 and Persian first 34/60. Four unrelated inputs still received movie suggestions; calibrated no-match behavior remains unresolved. Scene-detail intended-title accuracy is 7/14, so this release must not be described as universal scene recognition. These measurements precede the separate 50-show expansion and cannot be relabeled as its results.
+
+[`bilingual-transfer-v8.md`](bilingual-transfer-v8.md) preserves an earlier 32-input transfer diagnostic across 16 different target titles: 25/32 first, 29/32 Top-5. English and Persian had 16 inputs each. The run spans a memory-configuration change and uses the preceding v8 passage policy; its latency is not a clean performance benchmark. It is not interchangeable with the v9 report. None of these questions trained model weights.
+
 ## Reproduce
 
 ```powershell
@@ -40,9 +56,9 @@ That historical GPU hybrid run averaged 0.234 seconds per warm HTTP query. The c
 
 These suites have different purposes and must not be pooled into a headline accuracy score. The episode examples are informed by source descriptions and are functional acceptance checks, not unseen human-authored evaluation. Dataset expansion does not automatically improve ranking; compare per-query failures as well as aggregate metrics.
 
-## Broad Diagnostic: 196 Inputs
+## Historical Broad v7 Diagnostic
 
-The production `rrf-v7-passage-evidence` engine was tested sequentially through the running HTTP API, with reranking enabled and no retrieval-policy changes during the run. Preflight checked all 160 retrieval cases against exact catalog IDs, including season/episode availability. The cases span 68 title/version identities. Checkpoints and runtime logs were saved on E. The complete engine fingerprint was unchanged at completion; there were no technical errors or non-200 retrieval responses.
+The earlier `rrf-v7-passage-evidence` engine was tested sequentially through the running HTTP API, with reranking enabled and no retrieval-policy changes during the run. [`broad-v7.md`](broad-v7.md) and [`broad-v7.json`](broad-v7.json) preserve this baseline. Preflight checked all 160 retrieval cases against exact catalog IDs, including season/episode availability. The cases span 68 title/version identities. Checkpoints and runtime logs were saved on E. The complete engine fingerprint was unchanged at completion; there were no technical errors or non-200 retrieval responses.
 
 | Retrieval group | Inputs | First | Top five |
 | --- | ---: | ---: | ---: |
@@ -95,9 +111,22 @@ To refresh the same sourced series metadata and its changed title vectors, stop 
 
 This suite has informed development and contains synthetic fixtures. It is **not held-out**, is too small for a reliable general accuracy estimate, and must not be presented as an independent academic test. A defensible final study requires unseen descriptions, human relevance judgments, larger authorized scene/episode coverage, per-language metrics, and separately labeled timestamp relevance.
 
+## Recent Film Coverage
+
+`dataset-expansion-v11.json` records the installed film expansion: 4,979 catalog films, 176 newly added catalog titles, 230 attributed film records and 229 full plot sections. The complete native index contains 7,819 parent titles, 3,416 episode summaries and 158 actual video scenes. Source selections include annual top-ten lists through 2026 and an explicit international/genre cohort. These are coverage counts, not a model accuracy result or a claim to include every famous movie.
+
+`recent-movie-scenarios.json` has 13 manual English/Persian target pairs and two unrelated-input probes. Exact sequel/version identities are checked. Related adaptations can still make a natural-language query ambiguous; do not revise labels or omit failed rows to improve a score. Run against the already started native Studio, with all artifacts on the data drive:
+
+```powershell
+.\.venv\Scripts\python.exe scripts/broad_retrieval_benchmark.py --cases benchmarks/recent-movie-scenarios.json --preflight
+.\.venv\Scripts\python.exe scripts/broad_retrieval_benchmark.py --cases benchmarks/recent-movie-scenarios.json --output E:/CineSceneCache/cinescene/artifacts/recent-movies-next.json
+```
+
+Cold-start availability and retrieval correctness are separate. A preliminary nine-input run during the storage migration encountered one 503 at the old 90-second translation deadline; its checkpoint is retained locally and is not a completed accuracy report. The bounded deadline is now configurable, without increasing worker memory caps. Avoid simultaneous large storage migrations and model benchmarks when measuring latency.
+
 ## Functional Evidence
 
-`scripts/runtime_acceptance.py --upload` tests a real multipart video/subtitle upload through the running API, completion, automatic index refresh, film/series filters, full 153-scene pagination, HTTP range playback, and two real-film dialogue queries. Its private report is saved to `artifacts/runtime-acceptance.json`; source paths and full subtitle text are not committed.
+`scripts/runtime_acceptance.py --upload` tests a real multipart synthetic video/subtitle upload through the running API, completion, automatic index refresh and film/series filters. Optional `--real-media-id` and repeatable `--real-dialogue-query` arguments enable private full-timeline pagination, HTTP range playback and real-film dialogue checks. There are no private film IDs or subtitle quotes in the default test source. Private reports are saved under `artifacts/`; source paths and full subtitle text are not committed.
 
 The real-film sample has 153 visual captions and 115 scenes containing timed text. Two inspected dialogue fragments retrieved the film and the corresponding starts at 348.22s and 540.08s at rank 1. These are acceptance examples derived from available evidence, not independent test queries. BLIP captions can be inaccurate, and recovered subtitle tracks can contain credits or other non-spoken text.
 

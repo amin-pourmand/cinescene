@@ -24,7 +24,8 @@ def parse_args():
     parser.add_argument("--mode", choices=["hybrid", "semantic", "lexical", "multilingual"], default="hybrid")
     parser.add_argument("--api-url", help="Reuse a running backend instead of loading another copy of the models.")
     parser.add_argument("--engine", choices=("hybrid", "passages", "legacy"), default="hybrid")
-    parser.add_argument("--trace", help="Save local candidate/evidence diagnostics (in-process hybrid only; may contain private upload text).")
+    parser.add_argument("--trace", help="Save opt-in candidate/evidence diagnostics on the data drive (may contain private upload text).")
+    parser.add_argument("--skip-warmup", action="store_true", help="Skip the generic model warmup for a focused diagnostic, not a controlled latency comparison.")
     return parser.parse_args()
 
 
@@ -35,23 +36,27 @@ def main():
     cases = suite["cases"]
     traces = []
     current_trace = {}
-    if args.trace and (args.api_url or args.engine != "hybrid"):
-        raise ValueError("--trace requires an in-process hybrid engine")
+    if args.trace and args.engine != "hybrid":
+        raise ValueError("--trace requires a hybrid engine")
     if args.api_url:
         if args.mode != "hybrid":
             raise ValueError("API evaluation currently supports hybrid mode only.")
         import httpx
 
-        client = httpx.Client(base_url=args.api_url, timeout=180, headers={"X-CineScene-Session": "quality-benchmark-v2"})
+        client = httpx.Client(base_url=args.api_url, timeout=300, headers={"X-CineScene-Session": "quality-benchmark-v2"})
         health = client.get("/api/health")
         health.raise_for_status()
         status = health.json()["engine"]
 
         def retrieve(query, count, case=None):
             options = {key: case[key] for key in ("media_type", "scope") if case and key in case}
-            response = client.post("/api/search", json={"query": query, "top_k": count, "use_reranking": args.reranker, **options})
+            response = client.post("/api/search", json={"query": query, "top_k": count, "use_reranking": args.reranker,
+                                                       "include_trace": bool(args.trace), **options})
             response.raise_for_status()
-            return response.json()["results"]
+            body = response.json()
+            if args.trace:
+                current_trace.update(body.get("trace") or {})
+            return body["results"]
     else:
         if args.engine == "passages":
             from core.passage_search import PassageSearchEngine
@@ -76,6 +81,17 @@ def main():
                 predict = engine.cross_encoder.predict
                 def traced_predict(pairs, **kwargs):
                     scores = predict(pairs, **kwargs)
+                    indices = getattr(engine, "rerank_pair_indices", [])
+                    if len(indices) != len(pairs):
+                        raise ValueError("Trace references do not align with evidence pairs")
+                    current_trace["trace_version"] = "evidence-pairs-v2"
+                    current_trace["candidates"] = [
+                        {"id": engine.metadata[i].get("parent_id") or engine.metadata[i].get("id"),
+                         "title": engine.metadata[i].get("title"),
+                         "kind": engine.metadata[i].get("record_type", "title"),
+                         "matched_episode": engine.metadata[i].get("matched_episode"),
+                         "overview": engine.metadata[i].get("overview")}
+                        for i in indices]
                     current_trace["pairs"] = [{"query": q, "text": text, "score": float(score)}
                                                for (q, text), score in zip(pairs, scores)]
                     return scores
@@ -85,7 +101,8 @@ def main():
             options = {key: case[key] for key in ("media_type", "scope") if case and key in case}
             return engine.search(query, top_k=count, use_reranking=args.reranker, mode=args.mode, **options)
 
-    retrieve("movie scene", 1)
+    if not args.skip_warmup:
+        retrieve("movie scene", 1)
     rows = []
     latencies = []
     for case in cases:
@@ -119,6 +136,7 @@ def main():
         "embedding_dimension": int(status["embedding_dimension"]),
         "reranker": args.reranker and status.get("reranker", False),
         "transport": "http" if args.api_url else "in_process",
+        "warmup": not args.skip_warmup,
         "multilingual": status.get("multilingual", False),
         "multilingual_model": status.get("multilingual_model"),
         "multilingual_vectors": status.get("multilingual_vectors"),

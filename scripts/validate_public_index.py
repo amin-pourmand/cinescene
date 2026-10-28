@@ -2,18 +2,37 @@
 import hashlib
 import json
 import struct
+import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT))
 
 
 def validate(directory=None):
     directory = Path(directory or ROOT / "docs/data")
     catalog = (directory / "catalog.sample.json").read_bytes()
     manifest = json.loads((directory / "hybrid-index.json").read_text(encoding="utf-8"))
+    if manifest.get("version") != 3 or manifest.get("ranking_policy") != "independent-evidence-v1":
+        raise ValueError("Public search needs the current independent-evidence policy")
     items = json.loads(catalog)["items"]
     if hashlib.sha256(catalog).hexdigest() != manifest["catalog_sha256"]:
         raise ValueError("Public catalog changed: rebuild its hybrid index before publishing.")
+    summary_bytes = (directory / "catalog-summary.json").read_bytes()
+    summary = json.loads(summary_bytes)["items"]
+    release = json.loads((directory / "release.json").read_text(encoding="utf-8"))
+    if release.get("catalog_sha256") != manifest["catalog_sha256"] or release.get("summary_sha256") != hashlib.sha256(summary_bytes).hexdigest():
+        raise ValueError("The lightweight catalog and full search release differ")
+    if release.get("index_generation") != manifest.get("index_generation"):
+        raise ValueError("The visible release and active search generation differ")
+    if len(summary) != len(items) or {str(row["id"]) for row in summary} != {str(row["id"]) for row in items}:
+        raise ValueError("The lightweight catalog lost titles")
+    private_path = ROOT / "data/processed/offline_media_enriched.json"
+    if private_path.exists():
+        from scripts.build_pwa_catalog import can_publish_media
+        private_ids = {str(row["id"]) for row in json.loads(private_path.read_text(encoding="utf-8")) if not can_publish_media(row)}
+        if private_ids & {str(row["id"]) for row in items}:
+            raise ValueError("Public catalog contains a non-allowlisted private upload")
     for name, info in manifest["files"].items():
         if Path(name).name != name:
             raise ValueError("Invalid artifact path")
@@ -59,6 +78,8 @@ def validate(directory=None):
     titles = len({record["item"] for record in records})
     if titles != manifest["titles"]:
         raise ValueError("Indexed title counts differ")
+    if release.get("titles") != titles or release.get("episode_records") != sum(row["kind"] == "episode" for row in records):
+        raise ValueError("The visible release has stale coverage counts")
     return {"catalog_titles": len(items), "searchable_titles": titles, "records": len(records),
             "episode_records": sum(row["kind"] == "episode" for row in records),
             "scene_records": manifest["scene_records"], "multilingual_passages": len(mapping)}

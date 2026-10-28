@@ -1,0 +1,31 @@
+{
+  "description": "Annual worldwide box-office top ten from 2016 through the current year, plus explicit cross-genre and international landmarks. This is a reproducible coverage target, not a claim to include every famous film. Only released, source-verified film articles are imported.",
+  "pages": [
+    "The Shawshank Redemption", "The Godfather", "The Godfather Part II", "12 Angry Men (1957 film)",
+    "Schindler's List", "Pulp Fiction", "Fight Club", "Forrest Gump", "The Green Mile (film)",
+    "The Matrix", "Inception", "Interstellar (film)", "The Dark Knight", "Memento (film)",
+    "The Prestige (film)", "Shutter Island (film)", "Se7en", "The Sixth Sense", "The Truman Show",
+    "Eternal Sunshine of the Spotless Mind", "Arrival (film)", "Blade Runner", "Blade Runner 2049",
+    "Edge of Tomorrow", "Source Code", "Groundhog Day (film)", "Donnie Darko", "The Butterfly Effect",
+    "The Terminator", "Terminator 2: Judgment Day", "Alien (film)", "Aliens (film)", "The Thing (1982 film)",
+    "The Silence of the Lambs (film)", "The Shining (film)", "Get Out", "Hereditary (film)", "Midsommar",
+    "The Conjuring", "A Quiet Place (film)", "The Substance", "Nosferatu (2024 film)",
+    "Parasite (2019 film)", "Oldboy (2003 film)", "Memories of Murder", "Train to Busan", "Spirited Away",
+    "Your Name", "Princess Mononoke", "Grave of the Fireflies", "Akira (1988 film)", "Perfect Blue",
+    "Everything Everywhere All at Once", "The Banshees of Inisherin", "The Fabelmans", "The Whale (2022 film)",
+    "Past Lives (film)", "Poor Things (film)", "Anatomy of a Fall", "The Zone of Interest (film)", "Killers of the Flower Moon",
+    "The Holdovers", "American Fiction (film)", "The Boy and the Heron", "Godzilla Minus One",
+    "Anora", "The Brutalist", "Conclave (film)", "A Real Pain", "Flow (2024 film)", "Sing Sing (2023 film)",
+    "Challengers (film)", "Civil War (film)", "Longlegs", "Love Lies Bleeding (2024 film)",
+    "A Separation", "The Salesman (2016 film)", "Children of Heaven (1997 film)", "Taste of Cherry", "The White Balloon",
+    "About Elly", "A Hero", "The Seed of the Sacred Fig", "The Wailing (2016 film)", "Burning (2018 film)",
+    "The Handmaiden", "Decision to Leave", "RRR", "Dangal (2016 film)", "3 Idiots", "Lagaan", "The Lunchbox",
+    "Amélie", "Intouchables", "Pan's Labyrinth", "City of God (2002 film)", "Life Is Beautiful",
+    "Cinema Paradiso", "The Lives of Others", "The Hunt (2012 film)", "Portrait of a Lady on Fire",
+    "Sinners (2025 film)", "Weapons (2025 film)", "One Battle After Another", "Sentimental Value",
+    "It Was Just an Accident", "Frankenstein (2025 film)", "Marty Supreme", "The Secret Agent (2025 film)",
+    "Hamnet (film)", "The Life of Chuck (film)", "28 Years Later", "The Fantastic Four: First Steps",
+    "Thunderbolts*", "Mission: Impossible – The Final Reckoning", "Black Bag (film)",
+    "Companion (film)", "The Ballad of Wallis Island", "Wake Up Dead Man", "Unknown (2011 film)"
+  ]
+}
