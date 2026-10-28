@@ -129,6 +129,8 @@ def to_pwa_item(movie: Dict) -> Dict:
         "cast": as_list(movie.get("cast"))[:8],
         "overview": clean_text(movie.get("overview")),
         "plot": clean_text(movie.get("wiki_plot")) or clean_text(movie.get("cmu_plot")) or clean_text(movie.get("plot")),
+        "evidence_sources": [{key: source[key] for key in ("revision_id", "revision_url", "source_url", "license", "title") if key in source}
+                             for source in as_list(movie.get("evidence_sources")) if isinstance(source, dict)],
         "rating": rating_for(movie),
         "popularity": float(movie.get("popularity") or 0),
         "scenes": scenes,
@@ -149,8 +151,6 @@ def to_pwa_item(movie: Dict) -> Dict:
             "duration_sec": max((float(scene.get("end_sec") or 0) for scene in timeline), default=0),
         },
     }
-    item["score_hint"] = 3000 if item["source"] == "offline_video_ingestion" else 0
-    item["search_text"] = search_text_for(item)
     return item
 
 
@@ -172,7 +172,7 @@ def main():
     tmdb.sort(key=lambda movie: float(movie.get("popularity") or 0), reverse=True)
     series.sort(key=lambda movie: clean_text(movie.get("title")).casefold())
     selected = [movie for movie in offline + series + tmdb
-                if (clean_text(movie.get("title")) or clean_text(movie.get("original_title"))).casefold() not in {"", "unknown"}]
+                if clean_text(movie.get("title")) or clean_text(movie.get("original_title"))]
     items = [to_pwa_item(movie) for movie in selected]
     by_id = {str(item["id"]): item for item in items}
     for episode in episodes:
@@ -198,6 +198,10 @@ def main():
     }
     OUTPUT_PATH.parent.mkdir(parents=True, exist_ok=True)
     OUTPUT_PATH.write_text(json.dumps(payload, separators=(",", ":"), ensure_ascii=False, allow_nan=False), encoding="utf-8")
+    summary_keys = ("id", "title", "media_type", "year", "source", "poster")
+    summary = [{key: item.get(key) for key in summary_keys} if item["source"] != "offline_video_ingestion" else item for item in items]
+    OUTPUT_PATH.with_name("catalog-summary.json").write_text(
+        json.dumps({"count": len(items), "items": summary}, separators=(",", ":"), ensure_ascii=False, allow_nan=False), encoding="utf-8")
     print(json.dumps({"output": str(OUTPUT_PATH), "count": len(items), "offline": payload["offline_count"]}, indent=2))
 
 

@@ -48,6 +48,7 @@ const els = Object.fromEntries(
     "playerTimecode", "playerCaption", "closePlayerButton", "toastRegion",
     "coverageCatalog", "coverageScenes", "coverageDialogue", "coverageVision",
     "recentSearches", "shareSearchButton", "clearHistoryButton", "addMediaPanel", "retryJobButton",
+    "queryInterpretation", "translatedQuery", "searchWarning",
   ].map((id) => [id, document.getElementById(id)])
 );
 
@@ -140,7 +141,7 @@ function chips(items, limit = 6) {
 }
 
 function sourceLabel(movie) {
-  return movie.source === "offline_video_ingestion" ? "Scene match" : "Story match";
+  return matchedScene(movie) ? "Scene evidence" : movie.matched_episode ? "Episode evidence" : "Story evidence";
 }
 
 function mediaLabel(movie) {
@@ -156,7 +157,7 @@ function matchedScene(movie) {
 
 function renderResults(results) {
   state.results = results || [];
-  els.resultCount.textContent = state.results.length ? `${state.results.length} semantic matches` : "No matches";
+  els.resultCount.textContent = state.results.length ? `${state.results.length} ranked titles` : "No matches";
   if (!state.results.length) {
     els.results.className = "results-grid empty-results";
     els.results.innerHTML = `<div class="empty-visual"><i data-lucide="circle-slash-2"></i></div><strong>No close matches found.</strong><span>Try dialogue fragments, a visible action, a location, or the mood of the scene.</span>`;
@@ -178,9 +179,9 @@ function renderResults(results) {
       <div class="result-body">
         <div class="result-title-row"><div><button class="title-link" data-action="details" data-index="${index}" type="button">${escapeHtml(movie.title)}</button><small>${escapeHtml(mediaLabel(movie))}${ui.known(movie.year) ? ` · ${escapeHtml(movie.year)}` : ""}${movie.director && movie.director !== "Unknown" ? ` · ${escapeHtml(movie.director)}` : ""}</small></div></div>
         ${movie.source === "offline_video_ingestion" ? "" : `<p class="result-overview">${escapeHtml(movie.overview || "")}</p>`}
-        ${scene ? `<div class="matched-scene"><div class="scene-label"><span>Best matching scene</span><time>${timecode(scene.start_sec)} - ${timecode(scene.end_sec)}</time></div><p dir="auto">${escapeHtml(text)}</p></div>` : ""}
-        ${!scene && movie.evidence ? `<details class="story-evidence"><summary>${movie.matched_episode ? `Episode S${String(movie.matched_episode.season).padStart(2, "0")}E${String(movie.matched_episode.episode).padStart(2, "0")} · ${escapeHtml(movie.matched_episode.name)}` : "Matching story passage"}</summary><p dir="auto">${escapeHtml(movie.evidence)}</p>${movie.matched_episode?.source_url ? `<a href="${escapeHtml(movie.matched_episode.source_url)}" target="_blank" rel="noopener">Episode summary: TVmaze · CC BY-SA</a>` : ""}</details>` : ""}
-        <div class="result-evidence"><i data-lucide="${scene ? "captions" : "book-open"}"></i><span>${scene?.transcript ? "Dialogue match" : scene ? "Visual match" : "Story match"}</span></div>
+        ${scene ? `<div class="matched-scene"><div class="scene-label"><span>Retrieved scene</span><time>${timecode(scene.start_sec)} - ${timecode(scene.end_sec)}</time></div><p dir="auto">${escapeHtml(text)}</p></div>` : ""}
+        ${!scene && movie.evidence ? `<details class="story-evidence"><summary>${movie.matched_episode ? `Episode S${String(movie.matched_episode.season).padStart(2, "0")}E${String(movie.matched_episode.episode).padStart(2, "0")} · ${escapeHtml(movie.matched_episode.name)}` : "Matching story passage"}</summary><p dir="auto">${escapeHtml(movie.evidence)}</p>${movie.matched_episode?.source_url ? `<a href="${escapeHtml(movie.matched_episode.source_url)}" target="_blank" rel="noopener">Episode summary: TVmaze · CC BY-SA</a>` : ui.storyAttribution(movie)}</details>` : ""}
+        <div class="result-evidence"><i data-lucide="${scene ? "captions" : "book-open"}"></i><span>${scene?.transcript ? "Dialogue excerpt" : scene ? "Visual description" : movie.matched_episode ? "Episode summary" : "Story passage"}</span></div>
         <div class="chip-row">${chips(tags, 3)}</div>
         <div class="result-actions">
           <button class="button secondary" type="button" data-action="details" data-index="${index}"><i data-lucide="info"></i>Details</button>
@@ -217,12 +218,21 @@ async function runSearch(queryOverride) {
   els.shareSearchButton.disabled = false;
   setView("discover");
   setBusy(true);
+  els.queryInterpretation.hidden = true;
+  els.searchWarning.hidden = true;
+  els.searchWarning.textContent = "";
   renderSearchLoading();
   try {
     const payload = await api("/api/search", {
       method: "POST",
       body: JSON.stringify({ query, top_k: Number(els.topKInput.value || 8), use_reranking: els.rerankInput.checked, media_type: els.mediaTypeInput.value }),
     });
+    const translated = payload.interpretation?.translated_query;
+    const warning = els.searchWarning;
+    warning.textContent = payload.interpretation?.warning || "";
+    warning.hidden = !warning.textContent;
+    els.queryInterpretation.hidden = !translated;
+    els.translatedQuery.textContent = translated || "";
     renderResults(payload.results || []);
     loadMemory();
   } catch (error) {
@@ -250,8 +260,9 @@ function updateHealth(payload) {
   els.metricOffline.textContent = compactNumber(runtime.offline_documents || 0);
   els.metricCuda.textContent = cuda.available ? (cuda.device || "CUDA") : "CPU";
   els.systemSearchState.textContent = ok ? "Online" : "Unavailable";
-  els.systemSearchDetail.textContent = `${engine.movie_vectors || 0} title vectors + ${engine.scene_vectors || 0} scene vectors`;
-  els.coverageCatalog.textContent = compactNumber(engine.movie_vectors || 0);
+  els.systemSearchDetail.textContent = `${engine.movies || 0} titles / ${engine.episode_vectors || 0} episode summaries / ${engine.scene_vectors || 0} video scenes`;
+  els.coverageCatalog.textContent = compactNumber(engine.movies || 0);
+  syncSaved();
   renderRuntimeReport();
 }
 
@@ -469,6 +480,17 @@ function uploadFormData(formData, onProgress) {
   });
 }
 
+function showIngestionSummary(report) {
+  const processed = report.videos_processed || 0;
+  const failed = report.videos_failed || 0;
+  const limited = (report.jobs || []).filter((job) => job.status === "completed" && !job.transcript_found && !job.vision_enriched).length;
+  const warnings = [failed ? `${failed} video(s) failed.` : "", limited ? `${limited} video(s) have no recovered dialogue or visual captions.` : ""].filter(Boolean);
+  setCrawlerNotice(`${report.scenes_created || 0} scenes indexed from ${processed} video(s). ${warnings.join(" ")}`.trim(), warnings.length ? "info" : "ok");
+  toast(warnings.length ? "Import completed with limited evidence." : "Video import completed.");
+  els.pipelineSummary.textContent = warnings.length ? "Completed with limited evidence" : "Search index updated";
+  return warnings.length > 0;
+}
+
 async function ingestVideo(event) {
   event.preventDefault();
   if (!state.selectedVideo || state.processing) return;
@@ -498,11 +520,10 @@ async function ingestVideo(event) {
     });
     await pollJob(payload.job, async (result) => {
       const report = result.report || {};
-      setCrawlerNotice(`${report.scenes_created || 0} scenes indexed from ${report.videos_processed || 0} video.`, "ok");
-      toast("Video analyzed. Scene search is ready.");
+      const limited = showIngestionSummary(report);
       updateCrawlerDashboard(result.crawler || {});
       await Promise.all([loadHealth(), loadMemory(), loadCrawlerStatus()]);
-      els.addMediaPanel.open = false;
+      els.addMediaPanel.open = limited;
     });
   } catch (error) {
     jobError(error);
@@ -541,11 +562,10 @@ async function crawlOfflineFolder(event) {
     });
     await pollJob(payload.job, async (result) => {
       updateCrawlerDashboard(result.crawler || {});
-      setCrawlerNotice(`${result.report?.scenes_created || 0} scenes indexed.`, "ok");
-      toast("Folder crawl completed.");
+      const limited = showIngestionSummary(result.report || {});
       await loadHealth();
       await loadMemory();
-      els.addMediaPanel.open = false;
+      els.addMediaPanel.open = limited;
     });
   } catch (error) {
     jobError(error);
@@ -607,28 +627,34 @@ async function loadMemory() {
   }
 }
 
-function isSaved(movie) { return state.favorites.some((item) => ui.key(item) === ui.key(movie)); }
+function savedKey(movie) { return ui.canonicalIdentity(ui.key(movie), state.health?.engine?.identity_aliases); }
+function isSaved(movie) { return state.favorites.some((item) => savedKey(item) === savedKey(movie)); }
 
 function syncSaved() {
-  const saved = new Set(state.favorites.map(ui.key));
+  const saved = new Set(state.favorites.map(savedKey));
   document.querySelectorAll("[data-save-key]").forEach((button) => {
-    const active = saved.has(button.dataset.saveKey);
+    const active = saved.has(ui.canonicalIdentity(button.dataset.saveKey, state.health?.engine?.identity_aliases));
     button.setAttribute("aria-pressed", String(active));
     button.title = button.ariaLabel = active ? "Remove from saved" : "Save title";
   });
 }
 
 async function toggleFavorite(movie) {
-  if (!movie || state.favoritePending.has(ui.key(movie))) return;
-  const saved = isSaved(movie);
-  state.favoritePending.add(ui.key(movie));
+  if (!movie) return;
+  const key = savedKey(movie);
+  if (state.favoritePending.has(key)) return;
+  const existing = state.favorites.filter((item) => savedKey(item) === key);
+  const saved = existing.length > 0;
+  state.favoritePending.add(key);
   try {
-    await api("/api/favorites", { method: saved ? "DELETE" : "POST", body: JSON.stringify({ movie }) });
-    state.favorites = saved ? state.favorites.filter((item) => ui.key(item) !== ui.key(movie)) : [movie, ...state.favorites];
+    for (const target of saved ? existing : [movie]) {
+      await api("/api/favorites", { method: saved ? "DELETE" : "POST", body: JSON.stringify({ movie: target }) });
+    }
+    state.favorites = saved ? state.favorites.filter((item) => savedKey(item) !== key) : [movie, ...state.favorites];
     syncSaved();
     await loadMemory();
     toast(saved ? `${movie.title} removed from saved.` : `${movie.title} saved.`);
-  } finally { state.favoritePending.delete(ui.key(movie)); }
+  } finally { state.favoritePending.delete(key); }
 }
 
 async function sendFeedback(movie, signal = "relevant") {
@@ -711,6 +737,10 @@ function syncAnalysisProfile() {
 els.searchButton.addEventListener("click", () => runSearch());
 els.reloadButton.addEventListener("click", reloadEngine);
 els.clearButton.addEventListener("click", () => {
+  els.queryInterpretation.hidden = true;
+  els.translatedQuery.textContent = "";
+  els.searchWarning.hidden = true;
+  els.searchWarning.textContent = "";
   els.queryInput.value = "";
   state.query = "";
   state.results = [];

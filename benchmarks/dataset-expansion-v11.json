@@ -1,0 +1,1798 @@
+{
+  "version": "film-expansion-v11",
+  "created_at": "2026-10-28T11:40:55.658465+03:30",
+  "installed_at": "2026-10-28T11:45:53.485554+03:30",
+  "selection_policy": "Annual worldwide box-office top ten from 2016 through the current year, plus explicit cross-genre and international landmarks. This is a reproducible coverage target, not a claim to include every famous film. Only released, source-verified film articles are imported.",
+  "selected_pages": 230,
+  "verified_films": 230,
+  "new_movies": 176,
+  "updated_movies": 230,
+  "total_catalog_movies": 4979,
+  "with_sourced_plot": 229,
+  "synopsis_only": 1,
+  "indexes": {
+    "title_episode_vectors": 11235,
+    "multilingual_vectors": 28473,
+    "parent_titles": 7819,
+    "episode_records": 3416,
+    "scene_records": 158
+  },
+  "by_year": [
+    {
+      "year": "1957",
+      "films": 1
+    },
+    {
+      "year": "1972",
+      "films": 1
+    },
+    {
+      "year": "1974",
+      "films": 1
+    },
+    {
+      "year": "1979",
+      "films": 1
+    },
+    {
+      "year": "1980",
+      "films": 1
+    },
+    {
+      "year": "1982",
+      "films": 2
+    },
+    {
+      "year": "1984",
+      "films": 1
+    },
+    {
+      "year": "1986",
+      "films": 1
+    },
+    {
+      "year": "1988",
+      "films": 3
+    },
+    {
+      "year": "1991",
+      "films": 2
+    },
+    {
+      "year": "1993",
+      "films": 2
+    },
+    {
+      "year": "1994",
+      "films": 4
+    },
+    {
+      "year": "1995",
+      "films": 1
+    },
+    {
+      "year": "1997",
+      "films": 5
+    },
+    {
+      "year": "1998",
+      "films": 1
+    },
+    {
+      "year": "1999",
+      "films": 4
+    },
+    {
+      "year": "2000",
+      "films": 1
+    },
+    {
+      "year": "2001",
+      "films": 4
+    },
+    {
+      "year": "2002",
+      "films": 1
+    },
+    {
+      "year": "2003",
+      "films": 2
+    },
+    {
+      "year": "2004",
+      "films": 2
+    },
+    {
+      "year": "2006",
+      "films": 3
+    },
+    {
+      "year": "2008",
+      "films": 1
+    },
+    {
+      "year": "2009",
+      "films": 2
+    },
+    {
+      "year": "2010",
+      "films": 2
+    },
+    {
+      "year": "2011",
+      "films": 4
+    },
+    {
+      "year": "2012",
+      "films": 1
+    },
+    {
+      "year": "2013",
+      "films": 2
+    },
+    {
+      "year": "2014",
+      "films": 2
+    },
+    {
+      "year": "2016",
+      "films": 17
+    },
+    {
+      "year": "2017",
+      "films": 12
+    },
+    {
+      "year": "2018",
+      "films": 13
+    },
+    {
+      "year": "2019",
+      "films": 13
+    },
+    {
+      "year": "2020",
+      "films": 10
+    },
+    {
+      "year": "2021",
+      "films": 11
+    },
+    {
+      "year": "2022",
+      "films": 16
+    },
+    {
+      "year": "2023",
+      "films": 20
+    },
+    {
+      "year": "2024",
+      "films": 23
+    },
+    {
+      "year": "2025",
+      "films": 28
+    },
+    {
+      "year": "2026",
+      "films": 9
+    }
+  ],
+  "skipped": [],
+  "source_failures": [],
+  "coverage": [
+    {
+      "id": 603,
+      "title": "The Matrix",
+      "year": "1999",
+      "plot_words": 594,
+      "source_url": "https://en.wikipedia.org/wiki/The_Matrix"
+    },
+    {
+      "id": 745,
+      "title": "The Sixth Sense",
+      "year": "1999",
+      "plot_words": 564,
+      "source_url": "https://en.wikipedia.org/wiki/The_Sixth_Sense"
+    },
+    {
+      "id": 278,
+      "title": "The Shawshank Redemption",
+      "year": "1994",
+      "plot_words": 657,
+      "source_url": "https://en.wikipedia.org/wiki/The_Shawshank_Redemption"
+    },
+    {
+      "id": 13,
+      "title": "Forrest Gump",
+      "year": "1994",
+      "plot_words": 663,
+      "source_url": "https://en.wikipedia.org/wiki/Forrest_Gump"
+    },
+    {
+      "id": 680,
+      "title": "Pulp Fiction",
+      "year": "1994",
+      "plot_words": 619,
+      "source_url": "https://en.wikipedia.org/wiki/Pulp_Fiction"
+    },
+    {
+      "id": 424,
+      "title": "Schindler's List",
+      "year": "1993",
+      "plot_words": 652,
+      "source_url": "https://en.wikipedia.org/wiki/Schindler%27s_List"
+    },
+    {
+      "id": 240,
+      "title": "The Godfather: Part II",
+      "year": "1974",
+      "plot_words": 838,
+      "source_url": "https://en.wikipedia.org/wiki/The_Godfather_Part_II"
+    },
+    {
+      "id": 389,
+      "title": "12 Angry Men",
+      "year": "1957",
+      "plot_words": 699,
+      "source_url": "https://en.wikipedia.org/wiki/12_Angry_Men"
+    },
+    {
+      "id": 807,
+      "title": "Se7en",
+      "year": "1995",
+      "plot_words": 665,
+      "source_url": "https://en.wikipedia.org/wiki/Seven_(1995_film)"
+    },
+    {
+      "id": 37165,
+      "title": "The Truman Show",
+      "year": "1998",
+      "plot_words": 631,
+      "source_url": "https://en.wikipedia.org/wiki/The_Truman_Show"
+    },
+    {
+      "id": 38,
+      "title": "Eternal Sunshine of the Spotless Mind",
+      "year": "2004",
+      "plot_words": 416,
+      "source_url": "https://en.wikipedia.org/wiki/Eternal_Sunshine_of_the_Spotless_Mind"
+    },
+    {
+      "id": 497,
+      "title": "The Green Mile",
+      "year": "1999",
+      "plot_words": 629,
+      "source_url": "https://en.wikipedia.org/wiki/The_Green_Mile_(film)"
+    },
+    {
+      "id": 550,
+      "title": "Fight Club",
+      "year": "1999",
+      "plot_words": 540,
+      "source_url": "https://en.wikipedia.org/wiki/Fight_Club"
+    },
+    {
+      "id": 238,
+      "title": "The Godfather",
+      "year": "1972",
+      "plot_words": 911,
+      "source_url": "https://en.wikipedia.org/wiki/The_Godfather"
+    },
+    {
+      "id": 77,
+      "title": "Memento",
+      "year": "2000",
+      "plot_words": 682,
+      "source_url": "https://en.wikipedia.org/wiki/Memento_(film)"
+    },
+    {
+      "id": 1124,
+      "title": "The Prestige",
+      "year": "2006",
+      "plot_words": 665,
+      "source_url": "https://en.wikipedia.org/wiki/The_Prestige"
+    },
+    {
+      "id": 155,
+      "title": "The Dark Knight",
+      "year": "2008",
+      "plot_words": 632,
+      "source_url": "https://en.wikipedia.org/wiki/The_Dark_Knight"
+    },
+    {
+      "id": 157336,
+      "title": "Interstellar",
+      "year": "2014",
+      "plot_words": 697,
+      "source_url": "https://en.wikipedia.org/wiki/Interstellar_(film)"
+    },
+    {
+      "id": 11324,
+      "title": "Shutter Island",
+      "year": "2010",
+      "plot_words": 618,
+      "source_url": "https://en.wikipedia.org/wiki/Shutter_Island_(film)"
+    },
+    {
+      "id": 27205,
+      "title": "Inception",
+      "year": "2010",
+      "plot_words": 677,
+      "source_url": "https://en.wikipedia.org/wiki/Inception"
+    },
+    {
+      "id": 78,
+      "title": "Blade Runner",
+      "year": "1982",
+      "plot_words": 703,
+      "source_url": "https://en.wikipedia.org/wiki/Blade_Runner"
+    },
+    {
+      "id": 274,
+      "title": "The Silence of the Lambs",
+      "year": "1991",
+      "plot_words": 693,
+      "source_url": "https://en.wikipedia.org/wiki/The_Silence_of_the_Lambs_(film)"
+    },
+    {
+      "id": 218,
+      "title": "The Terminator",
+      "year": "1984",
+      "plot_words": 642,
+      "source_url": "https://en.wikipedia.org/wiki/The_Terminator"
+    },
+    {
+      "id": 1091,
+      "title": "The Thing",
+      "year": "1982",
+      "plot_words": 699,
+      "source_url": "https://en.wikipedia.org/wiki/The_Thing_(1982_film)"
+    },
+    {
+      "id": 141,
+      "title": "Donnie Darko",
+      "year": "2001",
+      "plot_words": 696,
+      "source_url": "https://en.wikipedia.org/wiki/Donnie_Darko"
+    },
+    {
+      "id": 137,
+      "title": "Groundhog Day",
+      "year": "1993",
+      "plot_words": 665,
+      "source_url": "https://en.wikipedia.org/wiki/Groundhog_Day_(film)"
+    },
+    {
+      "id": 679,
+      "title": "Aliens",
+      "year": "1986",
+      "plot_words": 609,
+      "source_url": "https://en.wikipedia.org/wiki/Aliens_(film)"
+    },
+    {
+      "id": 1954,
+      "title": "The Butterfly Effect",
+      "year": "2004",
+      "plot_words": 618,
+      "source_url": "https://en.wikipedia.org/wiki/The_Butterfly_Effect"
+    },
+    {
+      "id": 694,
+      "title": "The Shining",
+      "year": "1980",
+      "plot_words": 585,
+      "source_url": "https://en.wikipedia.org/wiki/The_Shining_(film)"
+    },
+    {
+      "id": 348,
+      "title": "Alien",
+      "year": "1979",
+      "plot_words": 679,
+      "source_url": "https://en.wikipedia.org/wiki/Alien_(film)"
+    },
+    {
+      "id": 45612,
+      "title": "Source Code",
+      "year": "2011",
+      "plot_words": 676,
+      "source_url": "https://en.wikipedia.org/wiki/Source_Code"
+    },
+    {
+      "id": 280,
+      "title": "Terminator 2: Judgment Day",
+      "year": "1991",
+      "plot_words": 586,
+      "source_url": "https://en.wikipedia.org/wiki/Terminator_2:_Judgment_Day"
+    },
+    {
+      "id": 137113,
+      "title": "Edge of Tomorrow",
+      "year": "2014",
+      "plot_words": 724,
+      "source_url": "https://en.wikipedia.org/wiki/Edge_of_Tomorrow"
+    },
+    {
+      "id": 138843,
+      "title": "The Conjuring",
+      "year": "2013",
+      "plot_words": 476,
+      "source_url": "https://en.wikipedia.org/wiki/The_Conjuring"
+    },
+    {
+      "id": 335984,
+      "title": "Blade Runner 2049",
+      "year": "2017",
+      "plot_words": 675,
+      "source_url": "https://en.wikipedia.org/wiki/Blade_Runner_2049"
+    },
+    {
+      "id": 329865,
+      "title": "Arrival",
+      "year": "2016",
+      "plot_words": 728,
+      "source_url": "https://en.wikipedia.org/wiki/Arrival_(film)"
+    },
+    {
+      "id": 419430,
+      "title": "Get Out",
+      "year": "2017",
+      "plot_words": 668,
+      "source_url": "https://en.wikipedia.org/wiki/Get_Out"
+    },
+    {
+      "id": 447332,
+      "title": "A Quiet Place",
+      "year": "2018",
+      "plot_words": 728,
+      "source_url": "https://en.wikipedia.org/wiki/A_Quiet_Place"
+    },
+    {
+      "id": 493922,
+      "title": "Hereditary",
+      "year": "2018",
+      "plot_words": 741,
+      "source_url": "https://en.wikipedia.org/wiki/Hereditary_(film)"
+    },
+    {
+      "id": 530385,
+      "title": "Midsommar",
+      "year": "2019",
+      "plot_words": 666,
+      "source_url": "https://en.wikipedia.org/wiki/Midsommar"
+    },
+    {
+      "id": 128,
+      "title": "Princess Mononoke",
+      "year": "1997",
+      "plot_words": 632,
+      "source_url": "https://en.wikipedia.org/wiki/Princess_Mononoke"
+    },
+    {
+      "id": 129,
+      "title": "Spirited Away",
+      "year": "2001",
+      "plot_words": 654,
+      "source_url": "https://en.wikipedia.org/wiki/Spirited_Away"
+    },
+    {
+      "id": 12477,
+      "title": "Grave of the Fireflies",
+      "year": "1988",
+      "plot_words": 486,
+      "source_url": "https://en.wikipedia.org/wiki/Grave_of_the_Fireflies"
+    },
+    {
+      "id": 10494,
+      "title": "Perfect Blue",
+      "year": "1997",
+      "plot_words": 701,
+      "source_url": "https://en.wikipedia.org/wiki/Perfect_Blue"
+    },
+    {
+      "id": 149,
+      "title": "Akira",
+      "year": "1988",
+      "plot_words": 697,
+      "source_url": "https://en.wikipedia.org/wiki/Akira_(1988_film)"
+    },
+    {
+      "id": 670,
+      "title": "Oldboy",
+      "year": "2003",
+      "plot_words": 658,
+      "source_url": "https://en.wikipedia.org/wiki/Oldboy_(2003_film)"
+    },
+    {
+      "id": 11423,
+      "title": "Memories of Murder",
+      "year": "2003",
+      "plot_words": 544,
+      "source_url": "https://en.wikipedia.org/wiki/Memories_of_Murder"
+    },
+    {
+      "id": 372058,
+      "title": "Your Name",
+      "year": "2016",
+      "plot_words": 632,
+      "source_url": "https://en.wikipedia.org/wiki/Your_Name"
+    },
+    {
+      "id": 396535,
+      "title": "Train to Busan",
+      "year": "2016",
+      "plot_words": 727,
+      "source_url": "https://en.wikipedia.org/wiki/Train_to_Busan"
+    },
+    {
+      "id": 496243,
+      "title": "Parasite",
+      "year": "2019",
+      "plot_words": 689,
+      "source_url": "https://en.wikipedia.org/wiki/Parasite_(2019_film)"
+    },
+    {
+      "id": 545611,
+      "title": "Everything Everywhere All at Once",
+      "year": "2022",
+      "plot_words": 711,
+      "source_url": "https://en.wikipedia.org/wiki/Everything_Everywhere_All_at_Once"
+    },
+    {
+      "id": 674324,
+      "title": "The Banshees of Inisherin",
+      "year": "2022",
+      "plot_words": 695,
+      "source_url": "https://en.wikipedia.org/wiki/The_Banshees_of_Inisherin"
+    },
+    {
+      "id": 426063,
+      "title": "Nosferatu",
+      "year": "2024",
+      "plot_words": 557,
+      "source_url": "https://en.wikipedia.org/wiki/Nosferatu_(2024_film)"
+    },
+    {
+      "id": 785084,
+      "title": "The Whale",
+      "year": "2022",
+      "plot_words": 534,
+      "source_url": "https://en.wikipedia.org/wiki/The_Whale_(2022_film)"
+    },
+    {
+      "id": 804095,
+      "title": "The Fabelmans",
+      "year": "2022",
+      "plot_words": 678,
+      "source_url": "https://en.wikipedia.org/wiki/The_Fabelmans"
+    },
+    {
+      "id": 792307,
+      "title": "Poor Things",
+      "year": "2023",
+      "plot_words": 486,
+      "source_url": "https://en.wikipedia.org/wiki/Poor_Things_(film)"
+    },
+    {
+      "id": 933260,
+      "title": "The Substance",
+      "year": "2024",
+      "plot_words": 556,
+      "source_url": "https://en.wikipedia.org/wiki/The_Substance"
+    },
+    {
+      "id": 467244,
+      "title": "The Zone of Interest",
+      "year": "2023",
+      "plot_words": 433,
+      "source_url": "https://en.wikipedia.org/wiki/The_Zone_of_Interest_(film)"
+    },
+    {
+      "id": 666277,
+      "title": "Past Lives",
+      "year": "2023",
+      "plot_words": 476,
+      "source_url": "https://en.wikipedia.org/wiki/Past_Lives_(film)"
+    },
+    {
+      "id": 915935,
+      "title": "Anatomy of a Fall",
+      "year": "2023",
+      "plot_words": 618,
+      "source_url": "https://en.wikipedia.org/wiki/Anatomy_of_a_Fall"
+    },
+    {
+      "id": 21334,
+      "title": "Children of Heaven",
+      "year": "1997",
+      "plot_words": 387,
+      "source_url": "https://en.wikipedia.org/wiki/Children_of_Heaven_(1997_film)"
+    },
+    {
+      "id": 30020,
+      "title": "Taste of Cherry",
+      "year": "1997",
+      "plot_words": 325,
+      "source_url": "https://en.wikipedia.org/wiki/Taste_of_Cherry"
+    },
+    {
+      "id": 46785,
+      "title": "The White Balloon",
+      "year": "1994",
+      "plot_words": 567,
+      "source_url": "https://en.wikipedia.org/wiki/The_White_Balloon"
+    },
+    {
+      "id": 60243,
+      "title": "A Separation",
+      "year": "2011",
+      "plot_words": 582,
+      "source_url": "https://en.wikipedia.org/wiki/A_Separation"
+    },
+    {
+      "id": 375315,
+      "title": "The Salesman",
+      "year": "2016",
+      "plot_words": 563,
+      "source_url": "https://en.wikipedia.org/wiki/The_Salesman_(2016_film)"
+    },
+    {
+      "id": 466420,
+      "title": "Killers of the Flower Moon",
+      "year": "2023",
+      "plot_words": 572,
+      "source_url": "https://en.wikipedia.org/wiki/Killers_of_the_Flower_Moon"
+    },
+    {
+      "id": 508883,
+      "title": "The Boy and the Heron",
+      "year": "2023",
+      "plot_words": 640,
+      "source_url": "https://en.wikipedia.org/wiki/The_Boy_and_the_Heron"
+    },
+    {
+      "id": 929590,
+      "title": "Civil War",
+      "year": "2024",
+      "plot_words": 554,
+      "source_url": "https://en.wikipedia.org/wiki/Civil_War_(film)"
+    },
+    {
+      "id": 937287,
+      "title": "Challengers",
+      "year": "2024",
+      "plot_words": 780,
+      "source_url": "https://en.wikipedia.org/wiki/Challengers_(film)"
+    },
+    {
+      "id": 840430,
+      "title": "The Holdovers",
+      "year": "2023",
+      "plot_words": 758,
+      "source_url": "https://en.wikipedia.org/wiki/The_Holdovers"
+    },
+    {
+      "id": 948549,
+      "title": "Love Lies Bleeding",
+      "year": "2024",
+      "plot_words": 640,
+      "source_url": "https://en.wikipedia.org/wiki/Love_Lies_Bleeding_(2024_film)"
+    },
+    {
+      "id": 974576,
+      "title": "Conclave",
+      "year": "2024",
+      "plot_words": 528,
+      "source_url": "https://en.wikipedia.org/wiki/Conclave_(film)"
+    },
+    {
+      "id": 940721,
+      "title": "Godzilla Minus One",
+      "year": "2023",
+      "plot_words": 677,
+      "source_url": "https://en.wikipedia.org/wiki/Godzilla_Minus_One"
+    },
+    {
+      "id": 1056360,
+      "title": "American Fiction",
+      "year": "2023",
+      "plot_words": 714,
+      "source_url": "https://en.wikipedia.org/wiki/American_Fiction_(film)"
+    },
+    {
+      "id": 1226578,
+      "title": "Longlegs",
+      "year": "2024",
+      "plot_words": 600,
+      "source_url": "https://en.wikipedia.org/wiki/Longlegs"
+    },
+    {
+      "id": 549509,
+      "title": "The Brutalist",
+      "year": "2024",
+      "plot_words": 747,
+      "source_url": "https://en.wikipedia.org/wiki/The_Brutalist"
+    },
+    {
+      "id": 1155828,
+      "title": "Sing Sing",
+      "year": "2023",
+      "plot_words": 634,
+      "source_url": "https://en.wikipedia.org/wiki/Sing_Sing_(2023_film)"
+    },
+    {
+      "id": 1064213,
+      "title": "Anora",
+      "year": "2024",
+      "plot_words": 650,
+      "source_url": "https://en.wikipedia.org/wiki/Anora"
+    },
+    {
+      "id": 1013850,
+      "title": "A Real Pain",
+      "year": "2024",
+      "plot_words": 713,
+      "source_url": "https://en.wikipedia.org/wiki/A_Real_Pain"
+    },
+    {
+      "id": 823219,
+      "title": "Flow",
+      "year": "2024",
+      "plot_words": 756,
+      "source_url": "https://en.wikipedia.org/wiki/Flow_(2024_film)"
+    },
+    {
+      "id": 194,
+      "title": "Amélie",
+      "year": "2001",
+      "plot_words": 677,
+      "source_url": "https://en.wikipedia.org/wiki/Am%C3%A9lie"
+    },
+    {
+      "id": 637,
+      "title": "Life Is Beautiful",
+      "year": "1997",
+      "plot_words": 679,
+      "source_url": "https://en.wikipedia.org/wiki/Life_Is_Beautiful"
+    },
+    {
+      "id": 19666,
+      "title": "Lagaan",
+      "year": "2001",
+      "plot_words": 583,
+      "source_url": "https://en.wikipedia.org/wiki/Lagaan"
+    },
+    {
+      "id": 598,
+      "title": "City of God",
+      "year": "2002",
+      "plot_words": 856,
+      "source_url": "https://en.wikipedia.org/wiki/City_of_God_(2002_film)"
+    },
+    {
+      "id": 11216,
+      "title": "Cinema Paradiso",
+      "year": "1988",
+      "plot_words": 691,
+      "source_url": "https://en.wikipedia.org/wiki/Cinema_Paradiso"
+    },
+    {
+      "id": 1417,
+      "title": "Pan's Labyrinth",
+      "year": "2006",
+      "plot_words": 1006,
+      "source_url": "https://en.wikipedia.org/wiki/Pan%27s_Labyrinth"
+    },
+    {
+      "id": 582,
+      "title": "The Lives of Others",
+      "year": "2006",
+      "plot_words": 697,
+      "source_url": "https://en.wikipedia.org/wiki/The_Lives_of_Others"
+    },
+    {
+      "id": 20453,
+      "title": "3 Idiots",
+      "year": "2009",
+      "plot_words": 504,
+      "source_url": "https://en.wikipedia.org/wiki/3_Idiots"
+    },
+    {
+      "id": 37181,
+      "title": "About Elly",
+      "year": "2009",
+      "plot_words": 422,
+      "source_url": "https://en.wikipedia.org/wiki/About_Elly"
+    },
+    {
+      "id": 77338,
+      "title": "The Intouchables",
+      "year": "2011",
+      "plot_words": 733,
+      "source_url": "https://en.wikipedia.org/wiki/The_Intouchables"
+    },
+    {
+      "id": 103663,
+      "title": "The Hunt",
+      "year": "2012",
+      "plot_words": 727,
+      "source_url": "https://en.wikipedia.org/wiki/The_Hunt_(2012_film)"
+    },
+    {
+      "id": 191714,
+      "title": "The Lunchbox",
+      "year": "2013",
+      "plot_words": 518,
+      "source_url": "https://en.wikipedia.org/wiki/The_Lunchbox"
+    },
+    {
+      "id": 360814,
+      "title": "Dangal",
+      "year": "2016",
+      "plot_words": 503,
+      "source_url": "https://en.wikipedia.org/wiki/Dangal_(2016_film)"
+    },
+    {
+      "id": 290098,
+      "title": "The Handmaiden",
+      "year": "2016",
+      "plot_words": 806,
+      "source_url": "https://en.wikipedia.org/wiki/The_Handmaiden"
+    },
+    {
+      "id": 293670,
+      "title": "The Wailing",
+      "year": "2016",
+      "plot_words": 638,
+      "source_url": "https://en.wikipedia.org/wiki/The_Wailing_(2016_film)"
+    },
+    {
+      "id": 491584,
+      "title": "Burning",
+      "year": "2018",
+      "plot_words": 687,
+      "source_url": "https://en.wikipedia.org/wiki/Burning_(2018_film)"
+    },
+    {
+      "id": 579974,
+      "title": "RRR",
+      "year": "2022",
+      "plot_words": 636,
+      "source_url": "https://en.wikipedia.org/wiki/RRR"
+    },
+    {
+      "id": 672208,
+      "title": "A Hero",
+      "year": "2021",
+      "plot_words": 639,
+      "source_url": "https://en.wikipedia.org/wiki/A_Hero"
+    },
+    {
+      "id": 705996,
+      "title": "Decision to Leave",
+      "year": "2022",
+      "plot_words": 890,
+      "source_url": "https://en.wikipedia.org/wiki/Decision_to_Leave"
+    },
+    {
+      "id": 1278263,
+      "title": "The Seed of the Sacred Fig",
+      "year": "2024",
+      "plot_words": 677,
+      "source_url": "https://en.wikipedia.org/wiki/The_Seed_of_the_Sacred_Fig"
+    },
+    {
+      "id": 48138,
+      "title": "Unknown",
+      "year": "2011",
+      "plot_words": 689,
+      "source_url": "https://en.wikipedia.org/wiki/Unknown_(2011_film)"
+    },
+    {
+      "id": 531428,
+      "title": "Portrait of a Lady on Fire",
+      "year": "2019",
+      "plot_words": 536,
+      "source_url": "https://en.wikipedia.org/wiki/Portrait_of_a_Lady_on_Fire"
+    },
+    {
+      "id": 1124566,
+      "title": "Sentimental Value",
+      "year": "2025",
+      "plot_words": 561,
+      "source_url": "https://en.wikipedia.org/wiki/Sentimental_Value"
+    },
+    {
+      "id": 617126,
+      "title": "The Fantastic Four: First Steps",
+      "year": "2025",
+      "plot_words": 697,
+      "source_url": "https://en.wikipedia.org/wiki/The_Fantastic_Four:_First_Steps"
+    },
+    {
+      "id": 575265,
+      "title": "Mission: Impossible – The Final Reckoning",
+      "year": "2025",
+      "plot_words": 722,
+      "source_url": "https://en.wikipedia.org/wiki/Mission:_Impossible_%E2%80%93_The_Final_Reckoning"
+    },
+    {
+      "id": 812583,
+      "title": "Wake Up Dead Man",
+      "year": "2025",
+      "plot_words": 686,
+      "source_url": "https://en.wikipedia.org/wiki/Wake_Up_Dead_Man"
+    },
+    {
+      "id": 986056,
+      "title": "Thunderbolts*",
+      "year": "2025",
+      "plot_words": 688,
+      "source_url": "https://en.wikipedia.org/wiki/Thunderbolts%2A"
+    },
+    {
+      "id": 1078605,
+      "title": "Weapons",
+      "year": "2025",
+      "plot_words": 698,
+      "source_url": "https://en.wikipedia.org/wiki/Weapons_(2025_film)"
+    },
+    {
+      "id": 1054867,
+      "title": "One Battle After Another",
+      "year": "2025",
+      "plot_words": 704,
+      "source_url": "https://en.wikipedia.org/wiki/One_Battle_After_Another"
+    },
+    {
+      "id": 1062722,
+      "title": "Frankenstein",
+      "year": "2025",
+      "plot_words": 706,
+      "source_url": "https://en.wikipedia.org/wiki/Frankenstein_(2025_film)"
+    },
+    {
+      "id": 858024,
+      "title": "Hamnet",
+      "year": "2025",
+      "plot_words": 694,
+      "source_url": "https://en.wikipedia.org/wiki/Hamnet_(film)"
+    },
+    {
+      "id": 842924,
+      "title": "The Life of Chuck",
+      "year": "2024",
+      "plot_words": 756,
+      "source_url": "https://en.wikipedia.org/wiki/The_Life_of_Chuck"
+    },
+    {
+      "id": 1122099,
+      "title": "The Ballad of Wallis Island",
+      "year": "2025",
+      "plot_words": 752,
+      "source_url": "https://en.wikipedia.org/wiki/The_Ballad_of_Wallis_Island"
+    },
+    {
+      "id": 1100988,
+      "title": "28 Years Later",
+      "year": "2025",
+      "plot_words": 702,
+      "source_url": "https://en.wikipedia.org/wiki/28_Years_Later"
+    },
+    {
+      "id": 1233575,
+      "title": "Black Bag",
+      "year": "2025",
+      "plot_words": 644,
+      "source_url": "https://en.wikipedia.org/wiki/Black_Bag"
+    },
+    {
+      "id": 1233413,
+      "title": "Sinners",
+      "year": "2025",
+      "plot_words": 645,
+      "source_url": "https://en.wikipedia.org/wiki/Sinners_(2025_film)"
+    },
+    {
+      "id": 1084199,
+      "title": "Companion",
+      "year": "2025",
+      "plot_words": 556,
+      "source_url": "https://en.wikipedia.org/wiki/Companion_(film)"
+    },
+    {
+      "id": 1317288,
+      "title": "Marty Supreme",
+      "year": "2025",
+      "plot_words": 781,
+      "source_url": "https://en.wikipedia.org/wiki/Marty_Supreme"
+    },
+    {
+      "id": 1220564,
+      "title": "The Secret Agent",
+      "year": "2025",
+      "plot_words": 512,
+      "source_url": "https://en.wikipedia.org/wiki/The_Secret_Agent_(2025_film)"
+    },
+    {
+      "id": 1456349,
+      "title": "It Was Just an Accident",
+      "year": "2025",
+      "plot_words": 526,
+      "source_url": "https://en.wikipedia.org/wiki/It_Was_Just_an_Accident"
+    },
+    {
+      "id": 83533,
+      "title": "Avatar: Fire and Ash",
+      "year": "2025",
+      "plot_words": 615,
+      "source_url": "https://en.wikipedia.org/wiki/Avatar:_Fire_and_Ash"
+    },
+    {
+      "id": 950387,
+      "title": "A Minecraft Movie",
+      "year": "2025",
+      "plot_words": 685,
+      "source_url": "https://en.wikipedia.org/wiki/A_Minecraft_Movie"
+    },
+    {
+      "id": 1061474,
+      "title": "Superman",
+      "year": "2025",
+      "plot_words": 691,
+      "source_url": "https://en.wikipedia.org/wiki/Superman_(2025_film)"
+    },
+    {
+      "id": 552524,
+      "title": "Lilo & Stitch",
+      "year": "2025",
+      "plot_words": 680,
+      "source_url": "https://en.wikipedia.org/wiki/Lilo_%26_Stitch_(2025_film)"
+    },
+    {
+      "id": 969681,
+      "title": "Spider-Man: Brand New Day",
+      "year": "2026",
+      "plot_words": 678,
+      "source_url": "https://en.wikipedia.org/wiki/Spider-Man:_Brand_New_Day"
+    },
+    {
+      "id": 1084244,
+      "title": "Toy Story 5",
+      "year": "2026",
+      "plot_words": 624,
+      "source_url": "https://en.wikipedia.org/wiki/Toy_Story_5"
+    },
+    {
+      "id": 687163,
+      "title": "Project Hail Mary",
+      "year": "2026",
+      "plot_words": 643,
+      "source_url": "https://en.wikipedia.org/wiki/Project_Hail_Mary_(film)"
+    },
+    {
+      "id": 911430,
+      "title": "F1",
+      "year": "2025",
+      "plot_words": 659,
+      "source_url": "https://en.wikipedia.org/wiki/F1_(film)"
+    },
+    {
+      "id": 936075,
+      "title": "Michael",
+      "year": "2026",
+      "plot_words": 439,
+      "source_url": "https://en.wikipedia.org/wiki/Michael_(2026_film)"
+    },
+    {
+      "id": 1084242,
+      "title": "Zootopia 2",
+      "year": "2025",
+      "plot_words": 695,
+      "source_url": "https://en.wikipedia.org/wiki/Zootopia_2"
+    },
+    {
+      "id": 1087192,
+      "title": "How to Train Your Dragon",
+      "year": "2025",
+      "plot_words": 582,
+      "source_url": "https://en.wikipedia.org/wiki/How_to_Train_Your_Dragon_(2025_film)"
+    },
+    {
+      "id": 1226863,
+      "title": "The Super Mario Galaxy Movie",
+      "year": "2026",
+      "plot_words": 562,
+      "source_url": "https://en.wikipedia.org/wiki/The_Super_Mario_Galaxy_Movie"
+    },
+    {
+      "id": 1234821,
+      "title": "Jurassic World Rebirth",
+      "year": "2025",
+      "plot_words": 598,
+      "source_url": "https://en.wikipedia.org/wiki/Jurassic_World_Rebirth"
+    },
+    {
+      "id": 1314481,
+      "title": "The Devil Wears Prada 2",
+      "year": "2026",
+      "plot_words": 588,
+      "source_url": "https://en.wikipedia.org/wiki/The_Devil_Wears_Prada_2"
+    },
+    {
+      "id": 1315772,
+      "title": "Minions & Monsters",
+      "year": "2026",
+      "plot_words": 841,
+      "source_url": "https://en.wikipedia.org/wiki/Minions_%26_Monsters"
+    },
+    {
+      "id": 1368337,
+      "title": "The Odyssey",
+      "year": "2026",
+      "plot_words": 710,
+      "source_url": "https://en.wikipedia.org/wiki/The_Odyssey_(2026_film)"
+    },
+    {
+      "id": 980477,
+      "title": "Ne Zha 2",
+      "year": "2025",
+      "plot_words": 667,
+      "source_url": "https://en.wikipedia.org/wiki/Ne_Zha_2"
+    },
+    {
+      "id": 1311031,
+      "title": "Demon Slayer: Kimetsu no Yaiba – Infinity Castle",
+      "year": "2025",
+      "plot_words": 580,
+      "source_url": "https://en.wikipedia.org/wiki/Demon_Slayer:_Kimetsu_no_Yaiba_%E2%80%93_The_Movie:_Infinity_Castle"
+    },
+    {
+      "id": 1339713,
+      "title": "Obsession",
+      "year": "2025",
+      "plot_words": 669,
+      "source_url": "https://en.wikipedia.org/wiki/Obsession_(2025_film)"
+    },
+    {
+      "id": 1462229,
+      "title": "Pegasus 3",
+      "year": "2026",
+      "plot_words": 131,
+      "source_url": "https://en.wikipedia.org/wiki/Pegasus_3_(film)"
+    },
+    {
+      "id": 447365,
+      "title": "Guardians of the Galaxy Vol. 3",
+      "year": "2023",
+      "plot_words": 696,
+      "source_url": "https://en.wikipedia.org/wiki/Guardians_of_the_Galaxy_Vol._3"
+    },
+    {
+      "id": 533535,
+      "title": "Deadpool & Wolverine",
+      "year": "2024",
+      "plot_words": 650,
+      "source_url": "https://en.wikipedia.org/wiki/Deadpool_%26_Wolverine"
+    },
+    {
+      "id": 569094,
+      "title": "Spider-Man: Across the Spider-Verse",
+      "year": "2023",
+      "plot_words": 688,
+      "source_url": "https://en.wikipedia.org/wiki/Spider-Man:_Across_the_Spider-Verse"
+    },
+    {
+      "id": 402431,
+      "title": "Wicked",
+      "year": "2024",
+      "plot_words": 667,
+      "source_url": "https://en.wikipedia.org/wiki/Wicked_(2024_film)"
+    },
+    {
+      "id": 385687,
+      "title": "Fast X",
+      "year": "2023",
+      "plot_words": 523,
+      "source_url": "https://en.wikipedia.org/wiki/Fast_X"
+    },
+    {
+      "id": 575264,
+      "title": "Mission: Impossible – Dead Reckoning Part One",
+      "year": "2023",
+      "plot_words": 671,
+      "source_url": "https://en.wikipedia.org/wiki/Mission:_Impossible_%E2%80%93_Dead_Reckoning_Part_One"
+    },
+    {
+      "id": 519182,
+      "title": "Despicable Me 4",
+      "year": "2024",
+      "plot_words": 598,
+      "source_url": "https://en.wikipedia.org/wiki/Despicable_Me_4"
+    },
+    {
+      "id": 693134,
+      "title": "Dune: Part Two",
+      "year": "2024",
+      "plot_words": 644,
+      "source_url": "https://en.wikipedia.org/wiki/Dune:_Part_Two"
+    },
+    {
+      "id": 1241982,
+      "title": "Moana 2",
+      "year": "2024",
+      "plot_words": 568,
+      "source_url": "https://en.wikipedia.org/wiki/Moana_2"
+    },
+    {
+      "id": 762509,
+      "title": "Mufasa: The Lion King",
+      "year": "2024",
+      "plot_words": 584,
+      "source_url": "https://en.wikipedia.org/wiki/Mufasa:_The_Lion_King"
+    },
+    {
+      "id": 787699,
+      "title": "Wonka",
+      "year": "2023",
+      "plot_words": 488,
+      "source_url": "https://en.wikipedia.org/wiki/Wonka_(film)"
+    },
+    {
+      "id": 872585,
+      "title": "Oppenheimer",
+      "year": "2023",
+      "plot_words": 583,
+      "source_url": "https://en.wikipedia.org/wiki/Oppenheimer_(film)"
+    },
+    {
+      "id": 502356,
+      "title": "The Super Mario Bros. Movie",
+      "year": "2023",
+      "plot_words": 573,
+      "source_url": "https://en.wikipedia.org/wiki/The_Super_Mario_Bros._Movie"
+    },
+    {
+      "id": 346698,
+      "title": "Barbie",
+      "year": "2023",
+      "plot_words": 590,
+      "source_url": "https://en.wikipedia.org/wiki/Barbie_(film)"
+    },
+    {
+      "id": 842675,
+      "title": "The Wandering Earth 2",
+      "year": "2023",
+      "plot_words": 677,
+      "source_url": "https://en.wikipedia.org/wiki/The_Wandering_Earth_2"
+    },
+    {
+      "id": 939243,
+      "title": "Sonic the Hedgehog 3",
+      "year": "2024",
+      "plot_words": 681,
+      "source_url": "https://en.wikipedia.org/wiki/Sonic_the_Hedgehog_3_(film)"
+    },
+    {
+      "id": 823464,
+      "title": "Godzilla x Kong: The New Empire",
+      "year": "2024",
+      "plot_words": 680,
+      "source_url": "https://en.wikipedia.org/wiki/Godzilla_x_Kong:_The_New_Empire"
+    },
+    {
+      "id": 1022789,
+      "title": "Inside Out 2",
+      "year": "2024",
+      "plot_words": 655,
+      "source_url": "https://en.wikipedia.org/wiki/Inside_Out_2"
+    },
+    {
+      "id": 1066298,
+      "title": "Full River Red",
+      "year": "2023",
+      "plot_words": 955,
+      "source_url": "https://en.wikipedia.org/wiki/Full_River_Red"
+    },
+    {
+      "id": 1011985,
+      "title": "Kung Fu Panda 4",
+      "year": "2024",
+      "plot_words": 587,
+      "source_url": "https://en.wikipedia.org/wiki/Kung_Fu_Panda_4"
+    },
+    {
+      "id": 76600,
+      "title": "Avatar: The Way of Water",
+      "year": "2022",
+      "plot_words": 660,
+      "source_url": "https://en.wikipedia.org/wiki/Avatar:_The_Way_of_Water"
+    },
+    {
+      "id": 370172,
+      "title": "No Time to Die",
+      "year": "2021",
+      "plot_words": 701,
+      "source_url": "https://en.wikipedia.org/wiki/No_Time_to_Die"
+    },
+    {
+      "id": 385128,
+      "title": "F9",
+      "year": "2021",
+      "plot_words": 747,
+      "source_url": "https://en.wikipedia.org/wiki/F9_(film)"
+    },
+    {
+      "id": 414906,
+      "title": "The Batman",
+      "year": "2022",
+      "plot_words": 653,
+      "source_url": "https://en.wikipedia.org/wiki/The_Batman_(film)"
+    },
+    {
+      "id": 399566,
+      "title": "Godzilla vs. Kong",
+      "year": "2021",
+      "plot_words": 629,
+      "source_url": "https://en.wikipedia.org/wiki/Godzilla_vs._Kong"
+    },
+    {
+      "id": 361743,
+      "title": "Top Gun: Maverick",
+      "year": "2022",
+      "plot_words": 664,
+      "source_url": "https://en.wikipedia.org/wiki/Top_Gun:_Maverick"
+    },
+    {
+      "id": 634649,
+      "title": "Spider-Man: No Way Home",
+      "year": "2021",
+      "plot_words": 651,
+      "source_url": "https://en.wikipedia.org/wiki/Spider-Man:_No_Way_Home"
+    },
+    {
+      "id": 438631,
+      "title": "Dune",
+      "year": "2021",
+      "plot_words": 601,
+      "source_url": "https://en.wikipedia.org/wiki/Dune_(2021_film)"
+    },
+    {
+      "id": 507086,
+      "title": "Jurassic World Dominion",
+      "year": "2022",
+      "plot_words": 743,
+      "source_url": "https://en.wikipedia.org/wiki/Jurassic_World_Dominion"
+    },
+    {
+      "id": 505642,
+      "title": "Black Panther: Wakanda Forever",
+      "year": "2022",
+      "plot_words": 638,
+      "source_url": "https://en.wikipedia.org/wiki/Black_Panther:_Wakanda_Forever"
+    },
+    {
+      "id": 580489,
+      "title": "Venom: Let There Be Carnage",
+      "year": "2021",
+      "plot_words": 477,
+      "source_url": "https://en.wikipedia.org/wiki/Venom:_Let_There_Be_Carnage"
+    },
+    {
+      "id": 566525,
+      "title": "Shang-Chi and the Legend of the Ten Rings",
+      "year": "2021",
+      "plot_words": 681,
+      "source_url": "https://en.wikipedia.org/wiki/Shang-Chi_and_the_Legend_of_the_Ten_Rings"
+    },
+    {
+      "id": 453395,
+      "title": "Doctor Strange in the Multiverse of Madness",
+      "year": "2022",
+      "plot_words": 576,
+      "source_url": "https://en.wikipedia.org/wiki/Doctor_Strange_in_the_Multiverse_of_Madness"
+    },
+    {
+      "id": 616037,
+      "title": "Thor: Love and Thunder",
+      "year": "2022",
+      "plot_words": 676,
+      "source_url": "https://en.wikipedia.org/wiki/Thor:_Love_and_Thunder"
+    },
+    {
+      "id": 438148,
+      "title": "Minions: The Rise of Gru",
+      "year": "2022",
+      "plot_words": 612,
+      "source_url": "https://en.wikipedia.org/wiki/Minions:_The_Rise_of_Gru"
+    },
+    {
+      "id": 315162,
+      "title": "Puss in Boots: The Last Wish",
+      "year": "2022",
+      "plot_words": 706,
+      "source_url": "https://en.wikipedia.org/wiki/Puss_in_Boots:_The_Last_Wish"
+    },
+    {
+      "id": 602666,
+      "title": "Detective Chinatown 3",
+      "year": "2021",
+      "plot_words": 1907,
+      "source_url": "https://en.wikipedia.org/wiki/Detective_Chinatown_3"
+    },
+    {
+      "id": 758891,
+      "title": "Hi, Mom",
+      "year": "2021",
+      "plot_words": 98,
+      "source_url": "https://en.wikipedia.org/wiki/Hi,_Mom_(2021_film)"
+    },
+    {
+      "id": 779029,
+      "title": "The Battle at Lake Changjin",
+      "year": "2021",
+      "plot_words": 530,
+      "source_url": "https://en.wikipedia.org/wiki/The_Battle_at_Lake_Changjin"
+    },
+    {
+      "id": 928123,
+      "title": "The Battle at Lake Changjin II",
+      "year": "2022",
+      "plot_words": 2590,
+      "source_url": "https://en.wikipedia.org/wiki/The_Battle_at_Lake_Changjin_II"
+    },
+    {
+      "id": 299537,
+      "title": "Captain Marvel",
+      "year": "2019",
+      "plot_words": 547,
+      "source_url": "https://en.wikipedia.org/wiki/Captain_Marvel_(film)"
+    },
+    {
+      "id": 181812,
+      "title": "Star Wars: Episode IX – The Rise of Skywalker",
+      "year": "2019",
+      "plot_words": 669,
+      "source_url": "https://en.wikipedia.org/wiki/Star_Wars:_The_Rise_of_Skywalker"
+    },
+    {
+      "id": 299534,
+      "title": "Avengers: Endgame",
+      "year": "2019",
+      "plot_words": 662,
+      "source_url": "https://en.wikipedia.org/wiki/Avengers:_Endgame"
+    },
+    {
+      "id": 330457,
+      "title": "Frozen 2",
+      "year": "2019",
+      "plot_words": 603,
+      "source_url": "https://en.wikipedia.org/wiki/Frozen_2"
+    },
+    {
+      "id": 420818,
+      "title": "The Lion King",
+      "year": "2019",
+      "plot_words": 643,
+      "source_url": "https://en.wikipedia.org/wiki/The_Lion_King_(2019_film)"
+    },
+    {
+      "id": 429617,
+      "title": "Spider-Man: Far From Home",
+      "year": "2019",
+      "plot_words": 641,
+      "source_url": "https://en.wikipedia.org/wiki/Spider-Man:_Far_From_Home"
+    },
+    {
+      "id": 448119,
+      "title": "Dolittle",
+      "year": "2020",
+      "plot_words": 492,
+      "source_url": "https://en.wikipedia.org/wiki/Dolittle_(film)"
+    },
+    {
+      "id": 420817,
+      "title": "Aladdin",
+      "year": "2019",
+      "plot_words": 693,
+      "source_url": "https://en.wikipedia.org/wiki/Aladdin_(2019_film)"
+    },
+    {
+      "id": 512200,
+      "title": "Jumanji: The Next Level",
+      "year": "2019",
+      "plot_words": 515,
+      "source_url": "https://en.wikipedia.org/wiki/Jumanji:_The_Next_Level"
+    },
+    {
+      "id": 475557,
+      "title": "Joker",
+      "year": "2019",
+      "plot_words": 663,
+      "source_url": "https://en.wikipedia.org/wiki/Joker_(2019_film)"
+    },
+    {
+      "id": 301528,
+      "title": "Toy Story 4",
+      "year": "2019",
+      "plot_words": 570,
+      "source_url": "https://en.wikipedia.org/wiki/Toy_Story_4"
+    },
+    {
+      "id": 454626,
+      "title": "Sonic the Hedgehog",
+      "year": "2020",
+      "plot_words": 677,
+      "source_url": "https://en.wikipedia.org/wiki/Sonic_the_Hedgehog_(film)"
+    },
+    {
+      "id": 38700,
+      "title": "Bad Boys for Life",
+      "year": "2020",
+      "plot_words": 651,
+      "source_url": "https://en.wikipedia.org/wiki/Bad_Boys_for_Life"
+    },
+    {
+      "id": 577922,
+      "title": "Tenet",
+      "year": "2020",
+      "plot_words": 732,
+      "source_url": "https://en.wikipedia.org/wiki/Tenet"
+    },
+    {
+      "id": 559974,
+      "title": "Shock Wave 2",
+      "year": "2020",
+      "plot_words": 885,
+      "source_url": "https://en.wikipedia.org/wiki/Shock_Wave_2"
+    },
+    {
+      "id": 635389,
+      "title": "Jiang Ziya",
+      "year": "2020",
+      "plot_words": 657,
+      "source_url": "https://en.wikipedia.org/wiki/Jiang_Ziya_(film)"
+    },
+    {
+      "id": 635302,
+      "title": "Demon Slayer: Kimetsu no Yaiba the Movie: Mugen Train",
+      "year": "2020",
+      "plot_words": 598,
+      "source_url": "https://en.wikipedia.org/wiki/Demon_Slayer:_Kimetsu_no_Yaiba_%E2%80%93_The_Movie:_Mugen_Train"
+    },
+    {
+      "id": 508935,
+      "title": "The Eight Hundred",
+      "year": "2020",
+      "plot_words": 164,
+      "source_url": "https://en.wikipedia.org/wiki/The_Eight_Hundred"
+    },
+    {
+      "id": 734778,
+      "title": "My People, My Homeland",
+      "year": "2020",
+      "plot_words": 209,
+      "source_url": "https://en.wikipedia.org/wiki/My_People,_My_Homeland"
+    },
+    {
+      "id": 716815,
+      "title": "A Little Red Flower",
+      "year": "2020",
+      "plot_words": 329,
+      "source_url": "https://en.wikipedia.org/wiki/A_Little_Red_Flower"
+    },
+    {
+      "id": 324852,
+      "title": "Despicable Me 3",
+      "year": "2017",
+      "plot_words": 555,
+      "source_url": "https://en.wikipedia.org/wiki/Despicable_Me_3"
+    },
+    {
+      "id": 260513,
+      "title": "Incredibles 2",
+      "year": "2018",
+      "plot_words": 637,
+      "source_url": "https://en.wikipedia.org/wiki/Incredibles_2"
+    },
+    {
+      "id": 284054,
+      "title": "Black Panther",
+      "year": "2018",
+      "plot_words": 673,
+      "source_url": "https://en.wikipedia.org/wiki/Black_Panther_(film)"
+    },
+    {
+      "id": 284053,
+      "title": "Thor: Ragnarok",
+      "year": "2017",
+      "plot_words": 606,
+      "source_url": "https://en.wikipedia.org/wiki/Thor:_Ragnarok"
+    },
+    {
+      "id": 283995,
+      "title": "Guardians of the Galaxy Vol. 2",
+      "year": "2017",
+      "plot_words": 688,
+      "source_url": "https://en.wikipedia.org/wiki/Guardians_of_the_Galaxy_Vol._2"
+    },
+    {
+      "id": 297802,
+      "title": "Aquaman",
+      "year": "2018",
+      "plot_words": 655,
+      "source_url": "https://en.wikipedia.org/wiki/Aquaman_(film)"
+    },
+    {
+      "id": 181808,
+      "title": "Star Wars: Episode VIII – The Last Jedi",
+      "year": "2017",
+      "plot_words": 669,
+      "source_url": "https://en.wikipedia.org/wiki/Star_Wars:_The_Last_Jedi"
+    },
+    {
+      "id": 338952,
+      "title": "Fantastic Beasts: The Crimes of Grindelwald",
+      "year": "2018",
+      "plot_words": 685,
+      "source_url": "https://en.wikipedia.org/wiki/Fantastic_Beasts:_The_Crimes_of_Grindelwald"
+    },
+    {
+      "id": 299536,
+      "title": "Avengers: Infinity War",
+      "year": "2018",
+      "plot_words": 683,
+      "source_url": "https://en.wikipedia.org/wiki/Avengers:_Infinity_War"
+    },
+    {
+      "id": 337339,
+      "title": "The Fate of the Furious",
+      "year": "2017",
+      "plot_words": 571,
+      "source_url": "https://en.wikipedia.org/wiki/The_Fate_of_the_Furious"
+    },
+    {
+      "id": 321612,
+      "title": "Beauty and the Beast",
+      "year": "2017",
+      "plot_words": 0,
+      "source_url": "https://en.wikipedia.org/wiki/Beauty_and_the_Beast_(2017_film)"
+    },
+    {
+      "id": 315635,
+      "title": "Spider-Man: Homecoming",
+      "year": "2017",
+      "plot_words": 607,
+      "source_url": "https://en.wikipedia.org/wiki/Spider-Man:_Homecoming"
+    },
+    {
+      "id": 351286,
+      "title": "Jurassic World: Fallen Kingdom",
+      "year": "2018",
+      "plot_words": 706,
+      "source_url": "https://en.wikipedia.org/wiki/Jurassic_World:_Fallen_Kingdom"
+    },
+    {
+      "id": 353081,
+      "title": "Mission: Impossible – Fallout",
+      "year": "2018",
+      "plot_words": 672,
+      "source_url": "https://en.wikipedia.org/wiki/Mission:_Impossible_%E2%80%93_Fallout"
+    },
+    {
+      "id": 383498,
+      "title": "Deadpool 2",
+      "year": "2018",
+      "plot_words": 646,
+      "source_url": "https://en.wikipedia.org/wiki/Deadpool_2"
+    },
+    {
+      "id": 353486,
+      "title": "Jumanji: Welcome to the Jungle",
+      "year": "2017",
+      "plot_words": 515,
+      "source_url": "https://en.wikipedia.org/wiki/Jumanji:_Welcome_to_the_Jungle"
+    },
+    {
+      "id": 297762,
+      "title": "Wonder Woman",
+      "year": "2017",
+      "plot_words": 679,
+      "source_url": "https://en.wikipedia.org/wiki/Wonder_Woman_(2017_film)"
+    },
+    {
+      "id": 452557,
+      "title": "Wolf Warrior 2",
+      "year": "2017",
+      "plot_words": 815,
+      "source_url": "https://en.wikipedia.org/wiki/Wolf_Warrior_2"
+    },
+    {
+      "id": 424694,
+      "title": "Bohemian Rhapsody",
+      "year": "2018",
+      "plot_words": 599,
+      "source_url": "https://en.wikipedia.org/wiki/Bohemian_Rhapsody_(film)"
+    },
+    {
+      "id": 335983,
+      "title": "Venom",
+      "year": "2018",
+      "plot_words": 535,
+      "source_url": "https://en.wikipedia.org/wiki/Venom_(2018_film)"
+    },
+    {
+      "id": 209112,
+      "title": "Batman v Superman: Dawn of Justice",
+      "year": "2016",
+      "plot_words": 574,
+      "source_url": "https://en.wikipedia.org/wiki/Batman_v_Superman:_Dawn_of_Justice"
+    },
+    {
+      "id": 127380,
+      "title": "Finding Dory",
+      "year": "2016",
+      "plot_words": 544,
+      "source_url": "https://en.wikipedia.org/wiki/Finding_Dory"
+    },
+    {
+      "id": 271110,
+      "title": "Captain America: Civil War",
+      "year": "2016",
+      "plot_words": 650,
+      "source_url": "https://en.wikipedia.org/wiki/Captain_America:_Civil_War"
+    },
+    {
+      "id": 269149,
+      "title": "Zootopia",
+      "year": "2016",
+      "plot_words": 693,
+      "source_url": "https://en.wikipedia.org/wiki/Zootopia"
+    },
+    {
+      "id": 278927,
+      "title": "The Jungle Book",
+      "year": "2016",
+      "plot_words": 604,
+      "source_url": "https://en.wikipedia.org/wiki/The_Jungle_Book_(2016_film)"
+    },
+    {
+      "id": 293660,
+      "title": "Deadpool",
+      "year": "2016",
+      "plot_words": 555,
+      "source_url": "https://en.wikipedia.org/wiki/Deadpool_(film)"
+    },
+    {
+      "id": 297761,
+      "title": "Suicide Squad",
+      "year": "2016",
+      "plot_words": 615,
+      "source_url": "https://en.wikipedia.org/wiki/Suicide_Squad_(2016_film)"
+    },
+    {
+      "id": 330459,
+      "title": "Rogue One: A Star Wars Story",
+      "year": "2016",
+      "plot_words": 700,
+      "source_url": "https://en.wikipedia.org/wiki/Rogue_One"
+    },
+    {
+      "id": 328111,
+      "title": "The Secret Life of Pets",
+      "year": "2016",
+      "plot_words": 598,
+      "source_url": "https://en.wikipedia.org/wiki/The_Secret_Life_of_Pets"
+    },
+    {
+      "id": 259316,
+      "title": "Fantastic Beasts and Where to Find Them",
+      "year": "2016",
+      "plot_words": 769,
+      "source_url": "https://en.wikipedia.org/wiki/Fantastic_Beasts_and_Where_to_Find_Them_(film)"
+    }
+  ],
+  "evidence_limit": "Wikipedia plot prose, not decoded scenes or timed subtitles",
+  "limitations": "Reproducible annual top-ten plus explicit landmarks, not every famous film. Metadata/plot expansion is not new decoded-scene coverage or a model accuracy score. No model fine-tuning was performed."
+}

@@ -46,6 +46,10 @@ def retrieval_text(item):
 def title_passages(item):
     overview = str(item.get("overview") or "").strip()
     sentences = [overview] if overview else []
+    for description in item.get("story_passages", []) or []:
+        text = str(description).strip()
+        if text and text not in overview and text not in sentences:
+            sentences.append(text)
     for description in item.get("scene_descriptions", []) or []:
         text = str(description).strip()
         if text and text not in overview and text not in sentences:

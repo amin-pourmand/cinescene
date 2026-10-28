@@ -5,7 +5,7 @@ from types import SimpleNamespace
 from unittest.mock import patch
 
 from scripts.broad_retrieval_benchmark import (
-    check_system_space, coverage_matches, execute_case, expand_cases, judge_probe, report_metrics, result_identity, validate_targets,
+    check_system_space, coverage_matches, engine_fingerprint, execute_case, expand_cases, judge_probe, report_metrics, resolve_case_identities, result_identity, select_cases, validate_targets,
 )
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -29,6 +29,39 @@ class FakeClient:
 
 
 class BroadBenchmarkTests(unittest.TestCase):
+    def test_retrospective_regrading_does_not_sort_or_deduplicate_the_original_positions(self):
+        from scripts.summarize_broad_benchmark import regrade_identities
+        base = {"kind": "retrieval", "category": "movie_plot", "provenance": "manual", "language": "en", "pair": None,
+                "error": None, "status": 200, "latency_sec": 1}
+        rows = [dict(base, id="one", expected=["Example"], expected_ids=["canonical"], rank=None,
+                     results=[{"id": "alias", "title": "Example"}]),
+                dict(base, id="two", expected=["Other"], expected_ids=["other"], rank=3,
+                     results=[{"id": "alias", "title": "Example"}, {"id": "canonical", "title": "Example"}, {"id": "other", "title": "Other"}])]
+        source = {"retrieval": {"hit_at_1": 0}, "rows": rows}
+        updated = regrade_identities(source, {"alias": "canonical"})
+        self.assertEqual([row["rank"] for row in updated["rows"]], [1, 3])
+        self.assertEqual(len(updated["rows"][1]["results"]), 3)
+        self.assertEqual(updated["canonical_regrading"]["changed_retrieval_ranks"], 1)
+        self.assertIsNone(source["rows"][0]["rank"])
+        self.assertEqual(source["rows"][0]["results"][0]["id"], "alias")
+
+    def test_verified_identity_aliases_preserve_original_labels_and_cannot_cycle(self):
+        case = {"id": "one", "expected_ids": ["old"], "expected": ["Example"]}
+        resolved = resolve_case_identities([case], {"old": "canonical"})[0]
+        self.assertEqual(resolved["expected_ids"], ["canonical"])
+        self.assertEqual(resolved["original_expected_ids"], ["old"])
+        self.assertEqual(case["expected_ids"], ["old"])
+        self.assertEqual(resolved["expected"], case["expected"])
+        with self.assertRaisesRegex(ValueError, "cycle"):
+            resolve_case_identities([case], {"old": "canonical", "canonical": "old"})
+    def test_focused_runs_keep_every_selected_case_without_tuning_by_result(self):
+        suite = json.loads((ROOT / "benchmarks/broad-scenarios.json").read_text(encoding="utf-8"))
+        cases = expand_cases(suite)
+        self.assertEqual(len(select_cases(cases, kinds=["coverage"])), 20)
+        self.assertEqual(len(select_cases(cases, categories=["scene_detail", "explicit_filter", "episode_identity"])), 32)
+        with self.assertRaisesRegex(ValueError, "no cases"):
+            select_cases(cases, categories=["does-not-exist"])
+
     def test_suite_counts_and_ids_are_stable(self):
         suite = json.loads((ROOT / "benchmarks/broad-scenarios.json").read_text(encoding="utf-8"))
         cases = expand_cases(suite)
@@ -112,6 +145,19 @@ class BroadBenchmarkTests(unittest.TestCase):
                 check_system_space(2, "/")
             check_system_space(0, "/")
 
+    def test_same_size_index_generations_have_distinct_checkpoint_fingerprints(self):
+        status = {"index_vectors": 100, "index_generation": "first"}
+        self.assertNotEqual(engine_fingerprint(status), engine_fingerprint({**status, "index_generation": "second"}))
+
+    def test_degraded_success_is_counted_without_erasing_its_actual_rank(self):
+        base = {"kind": "retrieval", "category": "movie_plot", "provenance": "manual", "pair": None,
+                "language": "fa", "error": None, "status": 200, "latency_sec": 1, "rank": 1,
+                "interpretation": {"translation": "failed", "warning": "Multilingual retrieval only"}}
+        metrics = report_metrics([base])
+        self.assertEqual(metrics["degraded_retrieval"], 1)
+        self.assertEqual(metrics["technical_errors"], 0)
+        self.assertEqual(metrics["retrieval"]["hit_at_1"], 1)
+
     def test_report_table_escapes_user_supplied_separators(self):
         from scripts.summarize_broad_benchmark import cell, counts, table
         self.assertEqual(cell("a|b\nc"), "a\\|b c")
@@ -127,11 +173,14 @@ class BroadBenchmarkTests(unittest.TestCase):
         self.assertEqual(public["rows"][0]["rank"], 2)
         self.assertNotIn("A personal title", json.dumps(public))
         self.assertEqual(raw["rows"][0]["results"][0]["id"], "secret")
+        self.assertEqual(redact_private_results(public, {"secret"})["publication_redaction"]["private_result_identities"], 1)
 
     def test_private_targets_cannot_be_silently_published(self):
         from scripts.summarize_broad_benchmark import redact_private_results
         with self.assertRaisesRegex(ValueError, "target is private"):
             redact_private_results({"rows": [{"expected_ids": ["secret"]}]}, {"secret"})
+        with self.assertRaisesRegex(ValueError, "target is private"):
+            redact_private_results({"rows": [{"expected_ids": ["public"], "original_expected_ids": ["secret"]}]}, {"secret"})
 
 
 if __name__ == "__main__":

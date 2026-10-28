@@ -68,13 +68,18 @@ class OnnxEncoder(OnnxModel):
         rows = [sentences] if single else list(sentences)
         chunks = []
         for offset in range(0, len(rows), batch_size):
+            if len(rows) > batch_size * 64 and offset % (batch_size * 64) == 0:
+                from core.resource_budget import check_model_budget
+                check_model_budget(required_mb=0)
             hidden, mask = self.forward(rows[offset:offset + batch_size])
             if self.pooling == "cls":
                 vectors = hidden[:, 0]
             else:
                 weights = mask.astype(np.float32)[..., None]
                 vectors = (hidden * weights).sum(axis=1) / np.maximum(weights.sum(axis=1), 1)
-            vectors = np.asarray(vectors, dtype=np.float32)
+            # CLS slicing is a view of every token's hidden state. Detach the
+            # pooled rows so a long index build does not retain those tensors.
+            vectors = np.array(vectors, dtype=np.float32, copy=True)
             if normalize_embeddings:
                 vectors /= np.maximum(np.linalg.norm(vectors, axis=1, keepdims=True), 1e-12)
             chunks.append(vectors)
@@ -103,8 +108,25 @@ class LazyOnnxEncoder:
         return int(self.config["hidden_size"])
 
     def encode(self, sentences, **kwargs):
+        if os.getenv("CINESCENE_ISOLATE_INFERENCE", "1") == "1":
+            from core.model_worker import run_worker
+            result = run_worker({"kind": "embed", "model": str(self.reference),
+                                 "max_length": self.max_seq_length, "texts": sentences})
+            return np.asarray(result, dtype=np.float32)
         model = OnnxEncoder(self.reference, self.max_seq_length)
         try:
             return model.encode(sentences, **kwargs)
         finally:
             del model
+
+
+class IsolatedOnnxReranker:
+    def __init__(self, reference, max_length=384):
+        if not available(reference):
+            raise FileNotFoundError("The local reranker artifacts are missing.")
+        self.reference, self.max_length = str(reference), max_length
+
+    def predict(self, pairs, **kwargs):
+        from core.model_worker import run_worker
+        return np.asarray(run_worker({"kind": "rerank", "model": self.reference,
+                                      "max_length": self.max_length, "pairs": pairs}), dtype=np.float32)

@@ -9,14 +9,14 @@ import time
 from datetime import datetime, timezone
 from pathlib import Path
 
-import faiss
-
-
 ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-from build_index_v2 import IndexBuilderV2, movie_title
+from runtime_environment import configure_runtime
+configure_runtime()
+import faiss
+from build_index_v2 import IndexBuilderV2, has_movie_title
 
 
 def write_index_atomic(index: faiss.Index, path: Path):
@@ -39,12 +39,14 @@ def main():
     parser.add_argument("--input", required=True)
     parser.add_argument("--batch-size", type=int, default=16)
     parser.add_argument("--runtime", choices=["onnx", "torch"], default="onnx")
+    parser.add_argument("--index-dir", default=str(ROOT / "data/index"))
     args = parser.parse_args()
 
-    report_path = ROOT / "data" / "index" / "index_report.json"
+    folder = Path(args.index_dir)
+    report_path = folder / "index_report.json"
     report = json.loads(report_path.read_text(encoding="utf-8"))
-    index_path = ROOT / str(report.get("index_path") or "data/index/faiss_index_v2.bin")
-    metadata_path = ROOT / str(report.get("metadata_path") or "data/index/metadata_v2.pkl")
+    index_path = folder / "faiss_index_v2.bin"
+    metadata_path = folder / "metadata_v2.pkl"
     if not index_path.exists() or not metadata_path.exists():
         raise FileNotFoundError("Build the main movie index before appending documents")
 
@@ -58,7 +60,7 @@ def main():
     with open(metadata_path, "rb") as handle:
         metadata = pickle.load(handle)
     known_ids = {str(item.get("id")) for item in metadata}
-    additions = [item for item in documents if str(item.get("id")) not in known_ids and movie_title(item) != "Unknown"]
+    additions = [item for item in documents if str(item.get("id")) not in known_ids and has_movie_title(item)]
     if not additions:
         print(json.dumps({"appended": 0, "index_vectors": len(metadata)}, indent=2))
         return
@@ -87,7 +89,7 @@ def main():
 
     report["movies_indexed"] = len(metadata)
     report["incremental_updates"] = int(report.get("incremental_updates") or 0) + 1
-    report["last_incremental_source"] = str(input_path.relative_to(ROOT))
+    report["last_incremental_source"] = str(input_path)
     report["last_incremental_count"] = len(additions)
     report["updated_at"] = datetime.now(timezone.utc).isoformat()
     report_path.write_text(json.dumps(report, indent=2, ensure_ascii=False), encoding="utf-8")

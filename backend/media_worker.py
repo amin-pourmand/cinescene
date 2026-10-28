@@ -9,23 +9,30 @@ import sys
 from pathlib import Path
 from uuid import uuid4
 
+from core.model_worker import WorkerJob, worker_launch
+from core.resource_budget import check_model_budget
+
 
 ROOT = Path(__file__).resolve().parents[1]
 PREFIX = "CINESCENE_EVENT:"
 
 
 def crawl_in_worker(root, progress_callback=None, **options):
+    heavy = options.get("enable_vision") or options.get("transcribe_audio")
+    limit = int(os.getenv("CINESCENE_MEDIA_WORKER_MEMORY_MB", "3072")) if heavy else 1024
+    check_model_budget(required_mb=limit if heavy else 384)
     log_dir = ROOT / "data/processed/worker_logs"
     log_dir.mkdir(parents=True, exist_ok=True)
     log = log_dir / f"analysis-{uuid4().hex}.log"
-    environment = {**os.environ, "PYTHONUTF8": "1", "PYTHONUNBUFFERED": "1"}
+    command, environment = worker_launch("backend.media_worker")
     with log.open("w", encoding="utf-8") as errors:
-        process = subprocess.Popen([sys.executable, "-m", "backend.media_worker"], cwd=str(ROOT),
+        process = subprocess.Popen(command, cwd=str(ROOT),
                                    stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=errors,
                                    text=True, encoding="utf-8", env=environment,
                                    creationflags=subprocess.CREATE_NO_WINDOW if os.name == "nt" else 0)
-        report = None
+        report, job = None, None
         try:
+            job = WorkerJob(process, memory_mb=limit)
             process.stdin.write(json.dumps({"root": str(root), "options": options}) + "\n")
             process.stdin.close()
             for line in process.stdout:
@@ -38,6 +45,8 @@ def crawl_in_worker(root, progress_callback=None, **options):
                     progress_callback(event["value"])
             code = process.wait()
         finally:
+            if job:
+                job.close()
             if process.poll() is None:
                 process.terminate()
                 try:

@@ -1,0 +1,46 @@
+name: PWA Semantic Acceptance
+
+on:
+  push:
+    branches: ["codex/pwa-parity"]
+  workflow_dispatch:
+    inputs:
+      limit:
+        description: Number of paired development inputs (maximum 26)
+        required: true
+        default: "26"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pwa-semantic-acceptance
+  cancel-in-progress: true
+
+jobs:
+  models:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Install the pinned inference runtime outside the checkout
+        run: npm install --prefix "$RUNNER_TEMP/cinescene-js" --no-package-lock --no-save @huggingface/transformers@3.8.1
+      - name: Validate the exact public catalog and index
+        run: python scripts/validate_public_index.py
+      - name: Run the production JS search runtime with real models
+        env:
+          INPUT_LIMIT: ${{ inputs.limit || '26' }}
+        run: |
+          export CINESCENE_TRANSFORMERS_MODULE="$RUNNER_TEMP/cinescene-js/node_modules/@huggingface/transformers/src/transformers.js"
+          export CINESCENE_MODEL_CACHE="$RUNNER_TEMP/cinescene-models"
+          node scripts/pwa_semantic_acceptance.mjs --limit "$INPUT_LIMIT" --output "$RUNNER_TEMP/pwa-semantic-acceptance.json"
+      - name: Retain the complete diagnostic ledger, including failures
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pwa-semantic-acceptance
+          path: ${{ runner.temp }}/pwa-semantic-acceptance.json
+          if-no-files-found: warn

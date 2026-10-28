@@ -1336,6 +1336,7 @@ input[type="range"] {
 
 .notice[data-mode="ok"] { border-color: var(--success); }
 .notice[data-mode="error"] { border-color: var(--danger); color: #f2aaa5; }
+.notice.search-warning { font-size: 13px; }
 
 .timeline-section,
 .folder-section {

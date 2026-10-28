@@ -8,6 +8,12 @@ from runtime_environment import configure_runtime
 
 
 class RuntimeStorageTests(unittest.TestCase):
+    def test_blas_threads_are_limited_even_without_storage_configuration(self):
+        with patch.dict(os.environ, {"CINESCENE_CPU_THREADS": "2"}, clear=True), patch("runtime_environment.load_dotenv"):
+            configure_runtime()
+            for name in ("OPENBLAS_NUM_THREADS", "OMP_NUM_THREADS", "MKL_NUM_THREADS", "NUMEXPR_NUM_THREADS"):
+                self.assertEqual(os.environ[name], "2")
+
     def test_model_gpu_and_upload_caches_stay_under_storage_root(self):
         with tempfile.TemporaryDirectory() as folder:
             with patch.dict(os.environ, {"CINESCENE_STORAGE_ROOT": folder}, clear=True), \

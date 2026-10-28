@@ -22,6 +22,7 @@ MODELS = {
     "browser": "Xenova/multilingual-e5-small",
     "strong-reranker": "Xenova/bge-reranker-base",
     "compact-reranker": "mixedbread-ai/mxbai-rerank-xsmall-v1",
+    "translation": "Xenova/nllb-200-distilled-600M",
 }
 REVISIONS = {
     "bge": "dfeef6070b90658e1b391a6940efdb0925c1de6f",
@@ -30,8 +31,11 @@ REVISIONS = {
     "browser": "761b726dd34fb83930e26aab4e9ac3899aa1fa78",
     "strong-reranker": "280bcc27a84e0b898c251e06fddb25171bd9b101",
     "compact-reranker": "b5c6e9da73abc3711f593f705371cdbe9e0fe422",
+    "translation": "261c31d1a5732c67cdd16d80e8d6088507c7ccea",
 }
 FILES = {"config.json", "tokenizer.json", "tokenizer_config.json", "special_tokens_map.json", "onnx/model_quantized.onnx"}
+TRANSLATION_FILES = {"config.json", "generation_config.json", "tokenizer.json", "tokenizer_config.json", "special_tokens_map.json",
+                     "onnx/encoder_model_quantized.onnx", "onnx/decoder_model_merged_quantized.onnx"}
 
 
 def request(url):
@@ -56,7 +60,8 @@ def prepare(name: str):
     destination.mkdir(parents=True, exist_ok=True)
     downloads = []
     available = {item["rfilename"]: item for item in metadata["siblings"]}
-    for filename in sorted(FILES & available.keys()):
+    selected_files = TRANSLATION_FILES if name == "translation" else FILES
+    for filename in sorted(selected_files & available.keys()):
         details = available[filename]
         expected_hash = details.get("lfs", {}).get("sha256")
         expected_size = details.get("lfs", {}).get("size") or details.get("size")

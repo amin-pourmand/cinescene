@@ -2,6 +2,22 @@
   const html = (value) => String(value ?? "").replace(/[&<>"']/g, (char) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[char]));
   const known = (value) => value != null && !["", "n/a", "unknown", "none", "nan"].includes(String(value).trim().toLowerCase());
   const key = (movie) => String(movie.id ?? movie.title);
+  function storyAttribution(movie) {
+    return (Array.isArray(movie.evidence_sources) ? movie.evidence_sources : [])
+      .filter((source) => source.license === "CC-BY-SA-4.0" && /^https:\/\/en\.wikipedia\.org\/w\/index\.php\?oldid=\d+$/.test(source.revision_url || ""))
+      .map((source) => `<p class="story-attribution"><a href="${html(source.revision_url)}" target="_blank" rel="noopener noreferrer">Wikipedia contributors · CC BY-SA 4.0</a></p>`).join("");
+  }
+  function canonicalIdentity(value, aliases = {}) {
+    const original = String(value);
+    let current = original;
+    const seen = new Set();
+    while (Object.prototype.hasOwnProperty.call(aliases || {}, current)) {
+      if (seen.has(current)) return original;
+      seen.add(current);
+      current = String(aliases[current]);
+    }
+    return current;
+  }
   const icons = () => window.lucide?.createIcons();
 
   function formatDate(value) {
@@ -129,7 +145,7 @@
       this.dialog.innerHTML = `<header class="title-dialog-heading"><div><span class="evidence-label">${scene ? "Scene evidence" : "Story match"}</span><h2 id="titleDetailsHeading">${html(movie.title)}</h2></div><button class="icon-button ghost" data-close type="button" aria-label="Close details" title="Close details"><i data-lucide="x"></i></button></header>
         <div class="title-dialog-body">${image ? `<img class="title-detail-frame" src="${html(image)}" alt="Scene from ${html(movie.title)}" />` : ""}<dl class="title-metadata">${fields.map(([label, value]) => `<div><dt>${label}</dt><dd>${html(value)}</dd></div>`).join("")}</dl>
         ${movie.overview && movie.source !== "offline_video_ingestion" ? `<section><h3>Story</h3><p dir="auto">${html(movie.overview)}</p></section>` : ""}
-        ${movie.plot && movie.plot !== movie.overview ? `<details class="story-evidence"><summary>Full plot</summary><p dir="auto">${html(movie.plot)}</p></details>` : ""}
+        ${movie.plot && movie.plot !== movie.overview ? `<details class="story-evidence"><summary>Full plot</summary><p dir="auto">${html(movie.plot)}</p>${storyAttribution(movie)}</details>` : storyAttribution(movie)}
         ${episode ? `<section><h3>Matched episode · S${String(episode.season).padStart(2, "0")}E${String(episode.episode).padStart(2, "0")}</h3><strong>${html(episode.name)}</strong><p dir="auto">${html(episode.summary)}</p>${sourceUrl ? `<a href="${html(sourceUrl)}" target="_blank" rel="noopener">TVmaze · CC BY-SA</a>` : ""}</section>` : ""}
         ${scene ? `<section><h3>Matched scene <time>${time(scene.start_sec)} - ${time(scene.end_sec)}</time></h3>${scene.transcript ? `<span class="evidence-label">Dialogue</span><p dir="auto">${html(scene.transcript)}</p>` : ""}${scene.visual_caption ? `<span class="evidence-label">${String(scene.caption_source || "").includes("blip") ? "Visual description" : "Visual signals"}</span><p dir="auto">${html(scene.visual_caption)}</p>` : ""}</section>` : ""}
         <p class="dialog-error" role="alert" hidden></p></div><footer class="title-dialog-actions"><button class="button secondary" data-save type="button"></button>${movie.video_url && scene && this.options.play ? `<button class="button primary" data-play type="button"><i data-lucide="play"></i>Play scene</button>` : ""}${movie.source === "offline_video_ingestion" && this.options.timeline ? `<button class="button secondary" data-timeline type="button"><i data-lucide="list-video"></i>All scenes</button>` : ""}</footer>`;
@@ -163,5 +179,5 @@
     return result;
   }
 
-  window.CineSceneUI = { html, key, known, formatDate, navigation, recent, searchState, readSearch, memoryTabs, TitleDetails, confirmAction };
+  window.CineSceneUI = { html, key, storyAttribution, canonicalIdentity, known, formatDate, navigation, recent, searchState, readSearch, memoryTabs, TitleDetails, confirmAction };
 })();

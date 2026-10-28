@@ -1,5 +1,6 @@
 """Append only new record keys to the existing E5 index, preserving old vectors."""
 import json
+import argparse
 import pickle
 import sys
 from pathlib import Path
@@ -11,10 +12,14 @@ configure_runtime()
 
 
 def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--index-dir", default=str(ROOT / "data/index"))
+    args = parser.parse_args()
     import faiss
     from core.onnx_models import OnnxEncoder
+    from core.resource_budget import check_model_budget
     from multilingual_index import record_key, title_passages
-    folder = ROOT / "data/index"
+    folder = Path(args.index_dir)
     report_path = folder / "multilingual_report.json"
     report = json.loads(report_path.read_text(encoding="utf-8"))
     path = folder / "multilingual.index"
@@ -34,6 +39,8 @@ def main():
     if index.d != model.get_sentence_embedding_dimension():
         raise ValueError("The active E5 model and index dimensions differ")
     for offset in range(0, len(pending), 4):
+        if offset % 40 == 0:
+            check_model_budget(required_mb=0)
         batch = pending[offset:offset + 4]
         index.add(model.encode([text for _, text in batch], batch_size=4))
         keys.extend(key for key, _ in batch)
@@ -45,7 +52,9 @@ def main():
     temporary_keys = keys_path.with_suffix(".tmp")
     temporary_keys.write_text(json.dumps(keys), encoding="utf-8")
     temporary_keys.replace(keys_path)
-    report.update({"vectors": index.ntotal, "titles": len(metadata), "incremental_vectors": len(pending),
+    scene_vectors = sum(key.startswith("scene:") for key in keys)
+    report.update({"vectors": index.ntotal, "titles": len(metadata), "title_vectors": index.ntotal - scene_vectors,
+                   "scene_vectors": scene_vectors, "incremental_vectors": len(pending),
                    "incremental_precision": "int8 ONNX documents"})
     report_path.write_text(json.dumps(report, indent=2), encoding="utf-8")
     print(json.dumps({"appended": len(pending), "vectors": index.ntotal}))

@@ -15,6 +15,7 @@ Show the installable PWA, browser memory, matched story/episode evidence and syn
 ## 2. Start The Full Runtime
 
 ```powershell
+Set-Location E:\CineScene
 .\.venv\Scripts\python.exe app.py
 ```
 
@@ -27,6 +28,8 @@ The sidebar status should become **Engine online**. Under **Settings > Runtime d
 - CPU int8 ONNX for search, with sequential encoder loading. Optional vision/transcription can use CUDA separately.
 
 Expand the runtime diagnostics and briefly show that scene detection, FFmpeg subtitles, faster-whisper, BLIP vision, the movie index, and the scene index are independently observable. They are intentionally kept off the main Search screen.
+
+The installed October 28 film generation has 4,979 catalog films, 7,819 parent titles, 3,416 episode summaries and 158 video scene records. It adds 176 films and refreshes 230 source-verified films, with full plot prose for 229 of them. The explicit source selection includes recent releases through 2026; it is not exhaustive coverage of every famous film. Inspect the pinned Wikipedia revision links in story details. Plot prose does not provide a video timestamp.
 
 ## 3. Prove Scene Retrieval
 
@@ -42,7 +45,7 @@ a lonely detective enters a dark room and investigates a mystery
 
 Open **Details** to inspect the matched keyframe, transcript, timestamp and source label. Raw ranking scores are not confidence percentages. Save the title, open it from **Saved & history**, then demonstrate removal. Copy the search link to reproduce the query and filter. Report the actual result rather than assuming every Persian query ranks first.
 
-For a real local-film example, search `پاتریشیا پسرها کجان صدای گریه`. The verified result is *The Curse of La Llorona*, scene 11, starting at 348.22 seconds. `در رو ببند لطفاً اون بهمون صدمه میزنه` matches scene 13 at 540.08 seconds. These are inspected acceptance examples from the ingested subtitle, not held-out research queries.
+For a real local-film example, choose an authorized video from **Your videos**, open its recovered dialogue, and search a distinctive fragment. Verify the returned title, frame and timecode against the timeline. Keep private film names, dialogue and source paths out of screenshots/reports intended for public distribution. Source-informed examples demonstrate the pipeline, not held-out recognition accuracy.
 
 Then try catalog-oriented queries:
 
@@ -76,7 +79,7 @@ Upload
   -> Search ready
 ```
 
-When complete, choose **Explore scenes** to paginate the full timeline, search recovered text, filter dialogue/vision, and play a selected scene. The local feature film has 153 scenes, all with visual captions, and 115 with recovered timed text. Return to Search and search for evidence from one scene. No manual full-index rebuild is needed after upload. Progress survives a page refresh; use **Reconnect to processing** if polling loses its connection. A server restart requires retrying interrupted work.
+When complete, choose **Explore scenes** to paginate the full timeline, search recovered text, filter dialogue/vision, and play a selected scene. Inspect the actual dialogue/vision counts rather than assuming full coverage. Return to Search and search for evidence from one scene. No manual full-index rebuild is needed after upload. Progress survives a page refresh; use **Reconnect to processing** if polling loses its connection. A server restart requires retrying interrupted work. Search is temporarily unavailable while video/index models are processing; memory preflight can refuse heavy analysis on a busy host.
 
 ## 5. Demonstrate Subtitle Fallbacks
 
@@ -142,7 +145,7 @@ Mean query  0.234 s
 
 The latest upload regression completed in about 49 seconds including CUDA index refresh, created three timestamped scenes and keyframes, attached the supplied SRT, and returned the English `Benchmark Show` query at rank 1. Its H.264 preview was verified through an HTTP range response and decoded playback in Chrome. Reproduce with `python scripts/runtime_acceptance.py --upload` while the backend runs.
 
-Use `benchmarks/hybrid-quality-latest.json` for the current 27-query result and `benchmarks/scene-identity-latest.json` for the 12 targeted acceptance queries, including the exact Edge of Tomorrow failure and independent paraphrases. These are development queries, not held-out accuracy estimates. Failed queries remain in the reports. The old ten-query 90% claim used permissive substring matching and is superseded.
+`benchmarks/hybrid-quality-latest.json` and `benchmarks/scene-identity-latest.json` retain historical development results, including the original Edge of Tomorrow failure and paraphrases. They do not establish the accuracy of a newer index generation. The current film expansion's manual bilingual cohort is `benchmarks/recent-movie-scenarios.json`; its source-coverage ledger is `benchmarks/dataset-expansion-v11.json`. Keep failed queries and technical errors in any new report. Neither this small diagnostic cohort nor the historical development sets is an independent population accuracy estimate. The old ten-query 90% claim used permissive substring matching and is superseded.
 
 ## 8. Explain The Engineering Decisions
 

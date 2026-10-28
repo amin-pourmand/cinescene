@@ -13,6 +13,18 @@ configure_runtime()
 from evaluation_metrics import expected_rank, summarize
 
 
+def rank_distinct_candidates(scores, candidates):
+    if len(scores) != len(candidates):
+        raise ValueError("Reranker scores and trace candidates are misaligned")
+    seen, ordered = set(), []
+    for score, candidate in sorted(zip(scores, candidates), key=lambda pair: -float(pair[0])):
+        identity = str(candidate.get("id") or candidate["title"])
+        if identity not in seen:
+            ordered.append(candidate)
+            seen.add(identity)
+    return ordered
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--trace", required=True)
@@ -33,6 +45,8 @@ def main():
     for trace in traces:
         candidates, pairs = trace.get("candidates", []), trace.get("pairs", [])
         if pairs:
+            if len(pairs) != len(candidates):
+                raise ValueError("This trace predates passage-aligned candidates; regenerate it before comparison")
             if plots:
                 for candidate, pair in zip(candidates, pairs):
                     plot = plots.get(str(candidate["id"])) if candidate.get("kind") not in {"episode", "scene"} else None
@@ -41,7 +55,7 @@ def main():
                         if snippet:
                             pair["text"] = pair["text"].split(" Story evidence:")[0] + " Story evidence: " + snippet
             scores = model.predict([[pair["query"], pair["text"]] for pair in pairs], batch_size=4)
-            ordered = [row for _, row in sorted(zip(scores, candidates), key=lambda pair: -float(pair[0]))]
+            ordered = rank_distinct_candidates(scores, candidates)
             rank = expected_rank(ordered[:10], trace)
         else:
             ordered, rank = candidates, trace["rank"]
