@@ -7,7 +7,9 @@ configure_runtime()
 import gc
 import os
 import json
+import logging
 import re
+import sqlite3
 import threading
 import time
 import traceback
@@ -659,9 +661,16 @@ def search(payload: SearchRequest, sid: str = Header(default="anonymous", alias=
         finally:
             engine.capture_trace = False
         interpretation = dict(getattr(engine, "last_query", {}))
-    memory.add_search(sid, payload.query, payload.top_k, payload.use_reranking, results)
+    history_warning = None
+    try:
+        memory.add_search(sid, payload.query, payload.top_k, payload.use_reranking, results)
+    except sqlite3.Error as exc:
+        logging.getLogger(__name__).warning("Search completed but history write failed (%s)", type(exc).__name__)
+        history_warning = "These results could not be saved to history."
     response = {"query": payload.query, "scope": payload.scope, "count": len(results), "results": results,
-                "interpretation": interpretation}
+                "interpretation": interpretation, "history_saved": history_warning is None}
+    if history_warning:
+        response["history_warning"] = history_warning
     if payload.include_trace:
         response["trace"] = trace
     return response

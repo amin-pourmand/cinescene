@@ -229,7 +229,7 @@ async function runSearch(queryOverride) {
     });
     const translated = payload.interpretation?.translated_query;
     const warning = els.searchWarning;
-    warning.textContent = payload.interpretation?.warning || "";
+    warning.textContent = [payload.interpretation?.warning, payload.history_warning].filter(Boolean).join(" ");
     warning.hidden = !warning.textContent;
     els.queryInterpretation.hidden = !translated;
     els.translatedQuery.textContent = translated || "";
