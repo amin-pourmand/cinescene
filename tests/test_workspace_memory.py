@@ -3,7 +3,7 @@ import sqlite3
 import json
 import unittest
 from pathlib import Path
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 
 from fastapi.testclient import TestClient
 from backend.main import app
@@ -11,6 +11,32 @@ from backend.storage import AppMemory
 
 
 class WorkspaceMemoryTests(unittest.TestCase):
+    def test_open_history_reader_does_not_block_a_new_search_commit(self):
+        with tempfile.TemporaryDirectory() as folder:
+            memory = AppMemory(Path(folder) / "test.sqlite")
+            memory.add_search("first", "earlier scene", 5, True, [])
+            with memory.connect() as reader:
+                self.assertEqual(reader.execute("PRAGMA journal_mode").fetchone()[0], "wal")
+                reader.execute("BEGIN")
+                self.assertEqual(reader.execute("SELECT COUNT(*) FROM searches").fetchone()[0], 1)
+                memory.add_search("first", "another scene", 5, True, [])
+                self.assertEqual(reader.execute("SELECT COUNT(*) FROM searches").fetchone()[0], 1)
+            self.assertEqual(len(memory.recent_searches("first")), 2)
+
+    def test_history_write_failure_does_not_discard_completed_results(self):
+        result = {"id": "movie:1", "title": "A movie"}
+        engine = Mock(last_query={})
+        engine.search.return_value = [result]
+        with patch("backend.main.get_search_engine", return_value=(engine, None)), \
+             patch("backend.main.memory.add_search", side_effect=sqlite3.OperationalError("database is locked")):
+            response = TestClient(app).post("/api/search", json={"query": "a remembered scene"})
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json()["count"], 1)
+        self.assertEqual(response.json()["results"][0]["id"], result["id"])
+        self.assertEqual(response.json()["results"][0]["title"], result["title"])
+        self.assertFalse(response.json()["history_saved"])
+        self.assertIn("could not be saved", response.json()["history_warning"])
+
     def test_identically_named_movies_and_episodes_are_saved_separately(self):
         with tempfile.TemporaryDirectory() as folder:
             memory = AppMemory(Path(folder) / "test.sqlite")

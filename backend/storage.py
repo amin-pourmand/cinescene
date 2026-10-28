@@ -18,7 +18,7 @@ class AppMemory:
 
     @contextmanager
     def connect(self):
-        conn = sqlite3.connect(self.db_path)
+        conn = sqlite3.connect(self.db_path, timeout=10)
         conn.row_factory = sqlite3.Row
         try:
             yield conn
@@ -28,6 +28,8 @@ class AppMemory:
 
     def _init_schema(self):
         with self.connect() as conn:
+            # History readers must not block completed searches from committing.
+            conn.execute("PRAGMA journal_mode=WAL")
             conn.executescript(
                 """
                 CREATE TABLE IF NOT EXISTS searches (
