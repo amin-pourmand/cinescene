@@ -22,6 +22,7 @@ const ids = [
   "previewVideoButton", "playerDialog", "scenePlayer", "playerTitle", "playerTimecode", "playerCaption",
   "closePlayerButton", "toastRegion",
   "recentSearches", "shareSearchButton", "clearHistoryButton",
+  "searchWarning", "queryInterpretation", "translatedQuery", "translationInput",
 ];
 const els = Object.fromEntries(ids.map((id) => [id, document.getElementById(id)]));
 const ui = window.CineSceneUI;
@@ -154,7 +155,7 @@ function renderResults(entries, query, elapsedMs) {
         <div class="result-title-row"><div><button class="title-link" data-details="${index}" type="button">${escapeHtml(item.title)}</button><small>${escapeHtml(mediaLabel(item))}${ui.known(item.year) ? ` &middot; ${escapeHtml(item.year)}` : ""}${item.director && item.director !== "Unknown" ? ` &middot; ${escapeHtml(item.director)}` : ""}</small></div></div>
         ${item.source === "offline_video_ingestion" ? "" : `<p class="result-overview">${escapeHtml(item.overview || "")}</p>`}
         ${scene ? `<div class="matched-scene"><div class="scene-label"><span>Best matching scene</span><time>${timecode(scene.start_sec)} - ${timecode(scene.end_sec)}</time></div><p dir="auto">${escapeHtml(sceneCopy)}</p></div>` : ""}
-        ${!scene && evidence ? `<details class="story-evidence"><summary>${episode ? `Episode S${String(episode.season).padStart(2, "0")}E${String(episode.episode).padStart(2, "0")} · ${escapeHtml(episode.name)}` : "Matching story passage"}</summary><p dir="auto">${escapeHtml(evidence)}</p>${episode?.source_url ? `<a href="${escapeHtml(episode.source_url)}" target="_blank" rel="noopener">Episode summary: TVmaze · CC BY-SA</a>` : ""}</details>` : ""}
+        ${!scene && evidence ? `<details class="story-evidence"><summary>${episode ? `Episode S${String(episode.season).padStart(2, "0")}E${String(episode.episode).padStart(2, "0")} · ${escapeHtml(episode.name)}` : "Matching story passage"}</summary><p dir="auto">${escapeHtml(evidence)}</p>${episode?.source_url ? `<a href="${escapeHtml(episode.source_url)}" target="_blank" rel="noopener">Episode summary: TVmaze · CC BY-SA</a>` : ui.storyAttribution(item)}</details>` : ""}
         <div class="chip-row">${chips(tags)}</div>
         <div class="result-actions">
           <button class="button secondary" type="button" data-details="${index}"><i data-lucide="info"></i>Details</button>
@@ -176,12 +177,20 @@ async function runSearch(queryOverride) {
     els.queryInput.focus();
     return;
   }
+  const translatePersian = /[\u0600-\u06ff]/u.test(query) && els.translationInput.checked;
+  if (translatePersian && localStorage.getItem("cinescene-pwa-translation-consent") !== "1") {
+    const accepted = await ui.confirmAction("The Persian model adds about 870 MB to this browser's storage. CC BY-NC 4.0: research/non-commercial use. Download it?", "Download model");
+    if (!accepted) return;
+    localStorage.setItem("cinescene-pwa-translation-consent", "1");
+  }
   setView("discover");
   state.query = query;
   ui.searchState(query, els.sourceFilter.value, els.topKInput.value);
   els.shareSearchButton.disabled = false;
   els.queryInput.value = query;
   state.searching = true;
+  els.searchWarning.hidden = true;
+  els.queryInterpretation.hidden = true;
   els.searchButton.innerHTML = '<i data-lucide="square"></i><span>Cancel</span>';
   els.sourceFilter.disabled = true;
   els.results.setAttribute("aria-busy", "true");
@@ -195,7 +204,12 @@ async function runSearch(queryOverride) {
     const entries = await state.semantic.search(query, els.sourceFilter.value, Number(els.topKInput.value || 8), (message) => {
       status.textContent = message;
       els.resultMeta.textContent = "Searching";
-    });
+    }, { translatePersian });
+    const interpretation = state.semantic.interpretation;
+    els.searchWarning.textContent = interpretation.warning || "";
+    els.searchWarning.hidden = !interpretation.warning;
+    els.translatedQuery.textContent = interpretation.translated_query || "";
+    els.queryInterpretation.hidden = !interpretation.translated_query;
     renderResults(entries, query, performance.now() - start);
     setStatus("Semantic search ready", true);
   } catch (error) {
@@ -282,17 +296,23 @@ function previewVideo() {
 
 async function loadCatalog() {
   try {
-    const response = await fetch("./data/catalog.sample.json", { cache: "no-cache" });
+    const response = await fetch("./data/catalog-summary.json", { cache: "no-cache" });
     if (!response.ok) throw new Error(`Catalog HTTP ${response.status}`);
-    const payload = await response.json();
+    const bytes = await response.arrayBuffer();
+    const releaseResponse = await fetch("./data/release.json", { cache: "no-cache" });
+    if (!releaseResponse.ok) throw new Error(`Release HTTP ${releaseResponse.status}`);
+    const manifest = await releaseResponse.json();
+    const digest = [...new Uint8Array(await crypto.subtle.digest("SHA-256", bytes))].map((n) => n.toString(16).padStart(2, "0")).join("");
+    if (digest !== manifest.summary_sha256) throw new Error("Catalog release changed. Reload the app.");
+    const payload = JSON.parse(new TextDecoder().decode(bytes));
     state.catalog = payload.items || [];
     const offline = state.catalog.filter((item) => item.source === "offline_video_ingestion");
     const seriesCount = state.catalog.filter((item) => item.media_type === "series").length;
     const sceneCount = offline.reduce((sum, item) => sum + Number(item.scene_count || (item.scene_timeline || []).length), 0);
     els.metricCatalog.textContent = state.catalog.length.toLocaleString();
-    const manifest = await (await fetch("./data/hybrid-index.json")).json();
     els.metricIndexed.textContent = manifest.titles.toLocaleString();
-    document.getElementById("metricEpisodes").textContent = manifest.records.filter((record) => record.kind === "episode").length.toLocaleString();
+    document.getElementById("metricEpisodes").textContent = manifest.episode_records.toLocaleString();
+    document.getElementById("metricRelease").textContent = manifest.index_generation ? manifest.index_generation.replace("T", " ").slice(0, 19) + " UTC" : manifest.fusion_version;
     els.metricOffline.textContent = seriesCount.toLocaleString();
     els.metricScenes.textContent = sceneCount.toLocaleString();
     els.sidebarModel.textContent = "BGE + BM25 · E5 Persian · reranker";
@@ -327,7 +347,8 @@ document.addEventListener("click", (event) => {
   if (queryLink) runSearch(queryLink.dataset.query);
   if (details) { const entry = state.results[Number(details.dataset.details)]; if (entry) state.details.open(asMovie(entry.item, entry.scene, entry.episode)); }
   if (favorite) {
-    const item = state.catalog.find((entry) => String(entry.id) === favorite.dataset.favorite);
+    const item = state.results.find((entry) => String(entry.item.id) === favorite.dataset.favorite)?.item
+      || state.catalog.find((entry) => String(entry.id) === favorite.dataset.favorite);
     if (item) { try { toggleFavorite(item); } catch (error) { toast(error.message, "error"); } }
   }
   const saved = event.target.closest("[data-open-saved]");
@@ -351,6 +372,8 @@ document.getElementById("clearModelsButton").addEventListener("click", async () 
 document.addEventListener("visibilitychange", () => { if (document.hidden) state.semantic.release(); });
 els.clearButton.addEventListener("click", () => {
   state.semantic.cancel();
+  els.searchWarning.hidden = true;
+  els.queryInterpretation.hidden = true;
   els.queryInput.value = "";
   state.query = "";
   state.results = [];
@@ -364,6 +387,8 @@ els.clearButton.addEventListener("click", () => {
 });
 els.sourceFilter.addEventListener("change", () => { if (state.query) runSearch(state.query); });
 els.topKInput.addEventListener("change", () => { els.topKInput.value = Math.min(20, Math.max(1, Number(els.topKInput.value) || 8)); localStorage.setItem("cinescene-pwa-results-count", els.topKInput.value); });
+els.translationInput.checked = localStorage.getItem("cinescene-pwa-translation") !== "0";
+els.translationInput.addEventListener("change", () => localStorage.setItem("cinescene-pwa-translation", els.translationInput.checked ? "1" : "0"));
 els.shareSearchButton.addEventListener("click", async () => { try { await navigator.clipboard.writeText(location.href); toast("Search link copied."); } catch (_) { toast("The search URL is available in the address bar.", "error"); } });
 els.clearHistoryButton.addEventListener("click", async () => { if (await ui.confirmAction("Clear your search history?", "Clear history")) { state.history = []; saveMemory(); renderMemory(); toast("Search history cleared."); } });
 els.queryInput.addEventListener("keydown", (event) => {

@@ -47,8 +47,7 @@ export function processQuery(value, processor) {
   }
   const expanded = [...new Set([cleaned, ...additions])].join(" ");
   const persian = /[\u0600-\u06ff]/u.test(cleaned);
-  const concepts = persian ? expanded.split(/\s+/).filter((word) => /^[\x00-\x7F]+$/.test(word)).join(" ") : "";
-  return { cleaned, expanded, filters, persian, concepts, translated: persian && tokens(concepts, processor).length >= 3 };
+  return { cleaned, expanded, filters, persian, english: null, translated: false };
 }
 export function similarities(query, vectors, dimension) {
   if (query.length !== dimension || vectors.length % dimension) throw new Error("The query model and index dimensions differ.");
@@ -91,14 +90,16 @@ export function lexicalScores(query, manifest, ids, weights) {
   }
   return { ranks: ranked(scores, 100).filter(([, score]) => score > 0), overlap };
 }
-export function fuseAndCollapse(query, manifest, catalog, vectors, lexical, multilingual, source) {
+export function fuseRecords(query, manifest, catalog, vectors, lexical, multilingual, source, originalLexical = null) {
   const totals = new Map();
   const add = (list, weight = 1) => list.forEach(([index], i) => totals.set(index, (totals.get(index) || 0) + weight / (61 + i)));
   add(vectors);
   add(lexical.ranks, query.persian && !query.translated ? .15 : 1);
   add(multilingual);
-  const queryTerms = new Set(tokens(query.cleaned, manifest.processor));
-  const collapsed = new Map();
+  if (query.translated && originalLexical) add(originalLexical.ranks, .15);
+  const queryTerms = new Set(tokens(query.english || query.cleaned, manifest.processor));
+  const originalTerms = new Set(tokens(query.cleaned, manifest.processor));
+  const results = [];
   for (const [index, value] of totals) {
     const record = manifest.records[index], item = catalog[record.item];
     if (source === "offline" && item.source !== "offline_video_ingestion") continue;
@@ -113,16 +114,70 @@ export function fuseAndCollapse(query, manifest, catalog, vectors, lexical, mult
     const titleOverlap = record.title_tokens.filter((word) => queryTerms.has(word)).length;
     const transcriptOverlap = record.transcript_tokens.filter((word) => queryTerms.has(word)).length;
     let score = value + .008 * titleOverlap / size;
-    if (!query.persian) score += .008 * lexical.overlap[index] / size;
+    if (!query.persian || query.translated) score += .008 * lexical.overlap[index] / size;
     if (record.kind === "scene" && transcriptOverlap >= 2 && transcriptOverlap / size >= .65) score += .018 * transcriptOverlap / size;
-    const previous = collapsed.get(record.item);
+    if (query.translated) {
+      const originalSize = Math.max(1, originalTerms.size);
+      score += .008 * record.title_tokens.filter((word) => originalTerms.has(word)).length / originalSize;
+      const overlap = record.transcript_tokens.filter((word) => originalTerms.has(word)).length;
+      if (record.kind === "scene" && overlap >= 2 && overlap / originalSize >= .65) score += .018 * overlap / originalSize;
+    }
+    results.push({ index, item: record.item, score, scene: record.scene });
+  }
+  return results.sort((a, b) => b.score - a.score || a.index - b.index);
+}
+export function collapseRecords(results) {
+  const collapsed = new Map();
+  for (const entry of results) {
+    const { index, item, score } = entry;
+    const record = entry;
+    const previous = collapsed.get(item);
     const bestScene = record.scene !== null && score > (previous?.sceneScore ?? -Infinity);
     const scene = bestScene ? record.scene : previous?.scene ?? null;
     const sceneScore = bestScene ? score : previous?.sceneScore ?? -Infinity;
-    if (!previous || score > previous.score) collapsed.set(record.item, { index, item: record.item, score, scene, sceneScore });
+    if (!previous || score > previous.score) collapsed.set(item, { ...entry, index, item, score, scene, sceneScore });
     else if (bestScene) Object.assign(previous, { scene, sceneScore });
   }
   return [...collapsed.values()].sort((a, b) => b.score - a.score || a.index - b.index);
+}
+export function fuseAndCollapse(...args) { return collapseRecords(fuseRecords(...args)); }
+
+export function evidencePairs(query, candidates, records, manifest, catalog, limit = 40) {
+  const parents = new Map(candidates.slice(0, limit).map((row) => [row.item, []]));
+  const sceneParents = new Set(records.filter((row) => manifest.records[row.index].kind === "scene").map((row) => row.item));
+  for (const row of records) {
+    const record = manifest.records[row.index], item = catalog[row.item];
+    if (sceneParents.has(row.item) && item.source === "offline_video_ingestion" && record.kind !== "scene") continue;
+    const selected = parents.get(row.item);
+    if (selected && selected.length < 2) selected.push(row);
+  }
+  const pairs = [];
+  for (const rows of parents.values()) {
+    const options = rows.map((row) => {
+      const record = manifest.records[row.index], item = catalog[row.item];
+      const scene = record.kind === "scene" ? item.scene_timeline[record.scene] : null;
+      const story = selectStoryEvidence(query, record.kind === "title" ? storyWindows(item.plot) : [], row.passage || "", manifest.processor, manifest.lexical);
+      const passages = scene ? [[scene.visual_caption, scene.transcript].filter(Boolean).join(" ")]
+        : record.kind === "episode" ? [record.overview || ""] : [...new Set([record.overview || "", story].filter(Boolean))].slice(0, 2);
+      return passages.map((passage) => {
+        let text = `${item.title}. Evidence: ${passage || record.overview || ""}`;
+        if (record.kind === "episode" && item.overview) text += ` Series context: ${item.overview}`;
+        return { ...row, scene: scene ? record.scene : null, passage, text };
+      });
+    });
+    const bounded = options.filter((group) => group.length).map((group) => group[0]);
+    if (bounded.length < 2) bounded.push(...options.flatMap((group) => group.slice(1, 2)));
+    pairs.push(...bounded.slice(0, 2));
+  }
+  return pairs;
+}
+export function rankEvidence(candidates, pairs, scores, limit = 40) {
+  if (scores.length !== pairs.length || scores.some((score) => !Number.isFinite(score))) throw new Error("The relevance model returned invalid scores.");
+  const winners = new Map();
+  pairs.forEach((row, index) => {
+    if (!winners.has(row.item) || scores[index] > winners.get(row.item).score) winners.set(row.item, { ...row, score: scores[index] });
+  });
+  return [...winners.values()].sort((a, b) => b.score - a.score).concat(candidates.slice(limit));
 }
 export function storyWindows(plot) {
   const chunks = [];
