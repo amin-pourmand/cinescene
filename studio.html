@@ -1,0 +1,206 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#f4f6f4" />
+    <meta name="description" content="CineScene retrieves movies and series from a remembered scene." />
+    <title>CineScene Retrieval Studio</title>
+    <link rel="manifest" href="./manifest.webmanifest" />
+    <meta property="og:title" content="CineScene" />
+    <meta property="og:description" content="Discover movies by their scenes." />
+    <meta property="og:image" content="https://amin-pourmand.github.io/cinescene/assets/brand-lockup.jpg" />
+    <meta property="og:image:width" content="1024" />
+    <meta property="og:image:height" content="1024" />
+    <link rel="icon" href="./assets/icon.svg?v=20261025-reel-v11" type="image/svg+xml" />
+    <link rel="icon" href="./assets/favicon-32.png?v=20261025-reel-v11" sizes="32x32" type="image/png" />
+    <link rel="apple-touch-icon" href="./assets/apple-touch-icon.png?v=20261025-reel-v11" sizes="180x180" />
+    <link rel="stylesheet" href="./assets/styles.css?v=20261025-reel-v11" />
+    <link rel="stylesheet" href="./assets/scene-explorer.css?v=20261025-reel-v11" />
+    <link rel="stylesheet" href="./assets/workspace.css?v=20261124-review-v8" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <aside class="sidebar" id="sidebar">
+        <a class="brand" href="#discover" data-view-link="discover" aria-label="CineScene home">
+          <img class="brand-mark" src="./assets/brand-mark-512.png?v=20261025-reel-v11" width="52" height="52" alt="" />
+          <span class="brand-copy"><strong>Cine<span>Scene</span></strong><small>Retrieval Studio</small></span>
+        </a>
+
+        <nav class="primary-nav" aria-label="Workspace">
+          <a class="nav-item active" href="#discover" data-view-link="discover" aria-current="page">
+            <i data-lucide="search"></i><span>Search</span>
+          </a>
+          <a class="nav-item" href="#scenes" data-view-link="scenes">
+            <i data-lucide="film"></i><span>Video library</span>
+          </a>
+          <a class="nav-item" href="#library" data-view-link="library">
+            <i data-lucide="bookmark"></i><span>Saved &amp; history</span>
+          </a>
+        </nav>
+
+        <nav class="utility-nav" aria-label="Help and settings">
+          <a class="nav-item" href="./?choose=1" data-open-intro><i data-lucide="clapperboard"></i><span>Introduction</span></a>
+          <a class="nav-item" href="./?choose=1&amp;return=discover" data-language-link><i data-lucide="languages"></i><span>Language</span></a>
+          <a class="nav-item" href="#system" data-view-link="system"><i data-lucide="settings-2"></i><span>Settings</span></a>
+        </nav>
+        <div class="sidebar-status">
+          <span class="status-dot" id="statusDot"></span>
+          <div><strong id="sidebarStatus">Loading catalog</strong><small id="sidebarModel">Browser edition</small></div>
+          <button class="icon-button ghost" id="installButton" type="button" title="Install app" aria-label="Install app" hidden>
+            <i data-lucide="download"></i>
+          </button>
+        </div>
+      </aside>
+
+      <div class="app-main">
+        <header class="topbar">
+          <button class="icon-button mobile-menu" id="mobileMenuButton" type="button" aria-label="Open navigation">
+            <i data-lucide="menu"></i>
+          </button>
+          <div class="view-heading"><span class="mobile-wordmark">CineScene</span><h1 id="viewTitle" tabindex="-1">Search</h1></div>
+          <div class="topbar-actions">
+            <a class="button secondary compact" href="#import-video" data-view-link="import-video" aria-label="Add video" title="Add video"><i data-lucide="upload"></i><span>Add video</span></a>
+          </div>
+        </header>
+
+        <main class="content">
+          <section class="view active" id="discoverView" data-view="discover">
+            <div class="search-stage">
+              <div class="search-heading">
+                <div><h2>Find a film or series</h2></div>
+              </div>
+              <div class="query-composer">
+                <div class="query-field">
+                  <label for="queryInput"><i data-lucide="scan-line"></i> Scene description</label>
+                  <textarea id="queryInput" rows="2" maxlength="1000" dir="auto" aria-label="Scene description" placeholder="A line of dialogue or a moment you remember..."></textarea>
+                </div>
+                <div class="composer-toolbar">
+                  <div class="search-settings">
+                    <i data-lucide="list-filter" aria-hidden="true"></i>
+                    <select id="sourceFilter" aria-label="Search scope"><option value="all">Movies &amp; series</option><option value="quick">Text search (no models)</option><option value="dialogue">Exact dialogue</option><option value="offline">With scene evidence</option><option value="movies">Movies</option><option value="series">Series</option></select>
+                  </div>
+                  <div class="search-heading-actions">
+                    <button class="icon-button ghost" id="shareSearchButton" type="button" title="Copy search link" aria-label="Copy search link" disabled><i data-lucide="link"></i></button>
+                    <button class="icon-button ghost" id="clearButton" type="button" title="Clear search" aria-label="Clear search"><i data-lucide="x"></i></button>
+                    <button class="button primary search-button" id="searchButton" type="button"><i data-lucide="search"></i><span>Search</span></button>
+                  </div>
+                </div>
+              </div>
+              <div class="search-tools">
+                <span class="examples-label">Examples</span>
+                <div class="prompt-list" aria-label="Example searches">
+                  <button type="button" data-query="A soldier dies during a battle and wakes up on the same day over and over.">Time loop<i data-lucide="arrow-up-right"></i></button>
+                  <button type="button" data-query="a dream collapses while people run through a rotating hallway">Rotating hallway<i data-lucide="arrow-up-right"></i></button>
+                  <button type="button" data-query="مردی سرنخ‌های یک پرونده را روی بدنش خالکوبی می‌کند"><span lang="fa" dir="rtl">سرنخ‌های خالکوبی</span><i data-lucide="arrow-up-right"></i></button>
+                </div>
+              </div>
+              <div id="searchProgress" class="search-progress" role="status" aria-live="polite" hidden></div>
+            </div>
+
+            <section class="recent-section" hidden><span>Recent searches</span><div id="recentSearches" class="recent-searches"></div></section>
+
+            <section class="results-section">
+              <p id="searchWarning" class="search-progress" role="status" hidden></p>
+              <details id="queryInterpretation" class="story-evidence" hidden><summary>English interpretation</summary><p id="translatedQuery" dir="ltr"></p></details>
+              <div class="section-header">
+                <div><span class="section-kicker">Ranked matches</span><h3>Results</h3></div>
+                <span class="count-label" id="resultMeta">Ready</span>
+              </div>
+              <div id="results" class="results-grid empty-results">
+                <div class="empty-visual"><i data-lucide="scan-search"></i></div>
+                <strong data-search-idle>No search yet</strong>
+              </div>
+            </section>
+          </section>
+
+          <section class="view" id="scenesView" data-view="scenes">
+            <div class="page-heading">
+              <div><h2>Video library</h2></div>
+            </div>
+
+            <section class="video-connection" aria-labelledby="videoConnectionHeading">
+              <i data-lucide="monitor-up" aria-hidden="true"></i>
+              <div><h3 id="videoConnectionHeading" tabindex="-1">Add a film to your collection</h3><p>To add a film and find it in Search later, connect to CineScene Studio. The preview below only plays the file in your browser.</p></div>
+              <button class="button primary compact" type="button" data-connect-computer><i data-lucide="plug"></i><span>Connect to Studio</span></button>
+            </section>
+
+            <details class="add-media-panel"><summary><i data-lucide="play"></i><span>Preview a local file</span><i data-lucide="chevron-down"></i></summary><div class="lab-layout">
+              <section class="tool-panel upload-panel">
+                <div class="panel-heading"><span>01</span><div><h3>Local video</h3></div></div>
+                <div class="drop-zone" id="videoDropZone" role="region" aria-label="Local video preview">
+                  <input id="videoInput" type="file" accept="video/mp4,video/x-matroska,video/webm,video/quicktime,video/*" hidden />
+                  <div class="drop-icon"><i data-lucide="file-video-2"></i></div>
+                  <strong id="videoDropTitle">Drop a video here</strong>
+                  <span id="videoDropMeta">MP4, MKV, MOV, AVI, WEBM</span>
+                  <button class="button secondary compact" type="button" id="chooseVideoButton"><i data-lucide="folder-open"></i>Browse</button>
+                </div>
+                <div class="file-row" id="selectedVideo" hidden>
+                  <i data-lucide="film"></i><div><strong></strong><span></span></div>
+                  <button class="icon-button ghost" id="removeVideoButton" type="button" aria-label="Remove video"><i data-lucide="trash-2"></i></button>
+                </div>
+                <button class="button primary full-width" id="previewVideoButton" type="button" disabled><i data-lucide="play"></i><span>Preview selected media</span></button>
+              </section>
+
+            </div></details>
+
+            <section class="timeline-section">
+              <div class="section-header"><div><h3>Scene examples</h3></div></div>
+              <div id="sceneTimeline" class="media-timeline empty-inline">Loading processed scenes...</div>
+            </section>
+            <details class="video-example">
+              <summary><i data-lucide="flask-conical"></i><span>Silent video test</span><i data-lucide="chevron-down"></i></summary>
+              <div class="video-example-content">
+                <p>See how images captured at different times helped identify a scene in a clip with no dialogue.</p>
+                <button class="button secondary compact" type="button" data-silent-example><i data-lucide="play"></i><span>Open recorded test</span></button>
+              </div>
+            </details>
+          </section>
+
+          <section class="view" id="libraryView" data-view="library">
+            <div class="page-heading"><div><h2>Saved &amp; history</h2></div></div>
+            <div class="memory-tabs" role="tablist" aria-label="Saved items and history"><button class="active" role="tab" aria-selected="true" data-memory-tab="saved" type="button">Saved titles</button><button role="tab" aria-selected="false" data-memory-tab="history" type="button">Search history</button></div>
+            <section data-memory-panel="saved"><div id="favoriteList" class="memory-list"></div></section>
+            <section data-memory-panel="history" hidden><div class="memory-panel-header"><h3>Search history</h3><button class="icon-button ghost" id="clearHistoryButton" type="button" title="Clear search history" aria-label="Clear search history"><i data-lucide="trash-2"></i></button></div><div id="historyList" class="memory-list"></div></section>
+          </section>
+
+          <section class="view" id="systemView" data-view="system">
+            <div class="page-heading"><div><h2>Settings</h2></div><span class="status-pill" id="statusPill">Loading catalog</span></div>
+            <div class="preference-row"><label for="topKInput">Results per search</label><input id="topKInput" type="number" min="1" max="20" value="8" /></div>
+            <div class="preference-row"><span>Search engine</span><span class="mode-badge">On-device semantic search</span></div>
+            <div class="preference-row"><span>Search release</span><span id="metricRelease">-</span></div>
+            <div class="preference-row"><span>Models</span><span>BGE-large · multilingual E5-base · MiniLM</span></div>
+            <div class="preference-row"><span>Initial model downloads</span><span>About 650 MB, cached on this device</span></div>
+            <div class="preference-row"><label for="translationInput">Persian sentence translation</label><input id="translationInput" type="checkbox" checked /></div>
+            <div class="preference-row"><span>Persian model</span><span>NLLB-600M · additional 870 MB · CC BY-NC 4.0</span></div>
+            <div class="preference-row"><span>Episode metadata</span><a href="https://www.tvmaze.com" target="_blank" rel="noopener">TVmaze · CC BY-SA</a></div>
+            <div class="preference-row"><span>Indexed episode summaries</span><strong id="metricEpisodes">-</strong></div>
+            <div class="preference-row"><span>Downloaded models</span><button id="clearModelsButton" class="button secondary compact" type="button"><i data-lucide="trash-2"></i>Remove downloads</button></div>
+            <div class="preference-row"><span>Video processing</span><button class="button secondary compact" type="button" data-connect-computer><i data-lucide="plug"></i>Connect computer</button></div>
+            <details class="technical-details"><summary>Catalog information</summary><p class="count-label"><span id="metricCatalog">-</span> catalog titles</p><div class="stat-strip" aria-label="Catalog summary">
+              <div><i data-lucide="clapperboard"></i><span><strong id="metricIndexed">-</strong><small>searchable titles</small></span></div>
+              <div><i data-lucide="library"></i><span><strong id="metricOffline">-</strong><small>series titles</small></span></div>
+              <div><i data-lucide="binary"></i><span><strong id="metricScenes">-</strong><small>scene records</small></span></div>
+              <div><i data-lucide="timer"></i><span><strong id="metricLatency">-</strong><small>last search</small></span></div>
+            </div></details>
+          </section>
+        </main>
+      </div>
+    </div>
+
+    <dialog id="playerDialog" class="player-dialog">
+      <div class="player-topbar"><div><strong id="playerTitle">Local media preview</strong><span id="playerTimecode">Browser-only playback</span></div><button class="icon-button ghost" id="closePlayerButton" type="button" aria-label="Close player"><i data-lucide="x"></i></button></div>
+      <video id="scenePlayer" controls preload="metadata"></video>
+      <div class="player-caption" id="playerCaption">The selected file remains on this device.</div>
+    </dialog>
+
+    <div class="toast-region" id="toastRegion" aria-live="polite"></div>
+    <script src="./assets/lucide.min.js?v=0.468.0"></script>
+    <script src="./assets/scene-explorer.js?v=20261123-archive-v3"></script>
+    <script src="./assets/workspace-ui.js?v=20261123-workflow-v5"></script>
+    <script src="./assets/semantic-client.js?v=20261124-text-v1"></script>
+    <script src="./assets/companion-connect.js?v=20261031-companion-v26"></script>
+    <script src="./assets/intro/workspace-language.js?v=20261124-intro-v9"></script>
+    <script src="./assets/app.js?v=20261124-text-v1"></script>
+  </body>
+</html>

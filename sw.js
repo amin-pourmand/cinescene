@@ -1,15 +1,15 @@
-const CACHE_NAME = "cinescene-pwa-v20261124-evidence-v1";
+const CACHE_NAME = "cinescene-pwa-v20261124-home-v1";
 const ASSETS = [
   "./",
   "./index.html",
+  "./studio.html",
   "./manifest.webmanifest",
   "./assets/styles.css?v=20261025-reel-v11",
   "./assets/app.js?v=20261124-text-v1",
-  "./assets/intro/entry.js?v=20261124-intro-v10",
   "./assets/intro/workspace-language.js?v=20261124-intro-v9",
   "./assets/intro/index.html",
   "./assets/intro/intro.css?v=20261124-evidence-v1",
-  "./assets/intro/intro.js?v=20261124-evidence-v1",
+  "./assets/intro/intro.js?v=20261124-home-v1",
   "./assets/intro/cinema.webp",
   "./assets/intro/clue.webp",
   "./assets/intro/reel.webp",
@@ -83,8 +83,9 @@ self.addEventListener("fetch", (event) => {
   if (event.request.method !== "GET" || event.request.headers.has("range") ||
       url.origin !== self.location.origin || !url.href.startsWith(self.registration.scope)) return;
   const route = url.pathname.slice(new URL(self.registration.scope).pathname.length);
-  if (event.request.mode === "navigate" && ["", "index.html", "assets/intro/index.html"].includes(route)) {
-    event.respondWith(freshPage(event.request, route === "assets/intro/index.html" ? "./assets/intro/index.html" : "./index.html"));
+  const page = route || "index.html";
+  if (event.request.mode === "navigate" && ["index.html", "studio.html", "assets/intro/index.html"].includes(page)) {
+    event.respondWith(freshPage(event.request, `./${page}`));
     return;
   }
   event.respondWith(

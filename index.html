@@ -1,207 +1,180 @@
 <!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="theme-color" content="#f4f6f4" />
-    <meta name="description" content="CineScene retrieves movies and series from a remembered scene." />
-    <title>CineScene Retrieval Studio</title>
-    <script src="./assets/intro/entry.js?v=20261124-intro-v10"></script>
-    <link rel="manifest" href="./manifest.webmanifest" />
-    <meta property="og:title" content="CineScene" />
-    <meta property="og:description" content="Discover movies by their scenes." />
-    <meta property="og:image" content="https://amin-pourmand.github.io/cinescene/assets/brand-lockup.jpg" />
-    <meta property="og:image:width" content="1024" />
-    <meta property="og:image:height" content="1024" />
-    <link rel="icon" href="./assets/icon.svg?v=20261025-reel-v11" type="image/svg+xml" />
-    <link rel="icon" href="./assets/favicon-32.png?v=20261025-reel-v11" sizes="32x32" type="image/png" />
-    <link rel="apple-touch-icon" href="./assets/apple-touch-icon.png?v=20261025-reel-v11" sizes="180x180" />
-    <link rel="stylesheet" href="./assets/styles.css?v=20261025-reel-v11" />
-    <link rel="stylesheet" href="./assets/scene-explorer.css?v=20261025-reel-v11" />
-    <link rel="stylesheet" href="./assets/workspace.css?v=20261124-review-v8" />
-  </head>
-  <body>
-    <div class="app-shell">
-      <aside class="sidebar" id="sidebar">
-        <a class="brand" href="#discover" data-view-link="discover" aria-label="CineScene home">
-          <img class="brand-mark" src="./assets/brand-mark-512.png?v=20261025-reel-v11" width="52" height="52" alt="" />
-          <span class="brand-copy"><strong>Cine<span>Scene</span></strong><small>Retrieval Studio</small></span>
-        </a>
-
-        <nav class="primary-nav" aria-label="Workspace">
-          <a class="nav-item active" href="#discover" data-view-link="discover" aria-current="page">
-            <i data-lucide="search"></i><span>Search</span>
-          </a>
-          <a class="nav-item" href="#scenes" data-view-link="scenes">
-            <i data-lucide="film"></i><span>Video library</span>
-          </a>
-          <a class="nav-item" href="#library" data-view-link="library">
-            <i data-lucide="bookmark"></i><span>Saved &amp; history</span>
-          </a>
-        </nav>
-
-        <nav class="utility-nav" aria-label="Help and settings">
-          <a class="nav-item" href="./assets/intro/index.html?choose=1" data-open-intro><i data-lucide="clapperboard"></i><span>Introduction</span></a>
-          <a class="nav-item" href="./assets/intro/index.html?choose=1&amp;return=discover" data-language-link><i data-lucide="languages"></i><span>Language</span></a>
-          <a class="nav-item" href="#system" data-view-link="system"><i data-lucide="settings-2"></i><span>Settings</span></a>
-        </nav>
-        <div class="sidebar-status">
-          <span class="status-dot" id="statusDot"></span>
-          <div><strong id="sidebarStatus">Loading catalog</strong><small id="sidebarModel">Browser edition</small></div>
-          <button class="icon-button ghost" id="installButton" type="button" title="Install app" aria-label="Install app" hidden>
-            <i data-lucide="download"></i>
-          </button>
-        </div>
-      </aside>
-
-      <div class="app-main">
-        <header class="topbar">
-          <button class="icon-button mobile-menu" id="mobileMenuButton" type="button" aria-label="Open navigation">
-            <i data-lucide="menu"></i>
-          </button>
-          <div class="view-heading"><span class="mobile-wordmark">CineScene</span><h1 id="viewTitle" tabindex="-1">Search</h1></div>
-          <div class="topbar-actions">
-            <a class="button secondary compact" href="#import-video" data-view-link="import-video" aria-label="Add video" title="Add video"><i data-lucide="upload"></i><span>Add video</span></a>
-          </div>
-        </header>
-
-        <main class="content">
-          <section class="view active" id="discoverView" data-view="discover">
-            <div class="search-stage">
-              <div class="search-heading">
-                <div><h2>Find a film or series</h2></div>
-              </div>
-              <div class="query-composer">
-                <div class="query-field">
-                  <label for="queryInput"><i data-lucide="scan-line"></i> Scene description</label>
-                  <textarea id="queryInput" rows="2" maxlength="1000" dir="auto" aria-label="Scene description" placeholder="A line of dialogue or a moment you remember..."></textarea>
-                </div>
-                <div class="composer-toolbar">
-                  <div class="search-settings">
-                    <i data-lucide="list-filter" aria-hidden="true"></i>
-                    <select id="sourceFilter" aria-label="Search scope"><option value="all">Movies &amp; series</option><option value="quick">Text search (no models)</option><option value="dialogue">Exact dialogue</option><option value="offline">With scene evidence</option><option value="movies">Movies</option><option value="series">Series</option></select>
-                  </div>
-                  <div class="search-heading-actions">
-                    <button class="icon-button ghost" id="shareSearchButton" type="button" title="Copy search link" aria-label="Copy search link" disabled><i data-lucide="link"></i></button>
-                    <button class="icon-button ghost" id="clearButton" type="button" title="Clear search" aria-label="Clear search"><i data-lucide="x"></i></button>
-                    <button class="button primary search-button" id="searchButton" type="button"><i data-lucide="search"></i><span>Search</span></button>
-                  </div>
-                </div>
-              </div>
-              <div class="search-tools">
-                <span class="examples-label">Examples</span>
-                <div class="prompt-list" aria-label="Example searches">
-                  <button type="button" data-query="A soldier dies during a battle and wakes up on the same day over and over.">Time loop<i data-lucide="arrow-up-right"></i></button>
-                  <button type="button" data-query="a dream collapses while people run through a rotating hallway">Rotating hallway<i data-lucide="arrow-up-right"></i></button>
-                  <button type="button" data-query="مردی سرنخ‌های یک پرونده را روی بدنش خالکوبی می‌کند"><span lang="fa" dir="rtl">سرنخ‌های خالکوبی</span><i data-lucide="arrow-up-right"></i></button>
-                </div>
-              </div>
-              <div id="searchProgress" class="search-progress" role="status" aria-live="polite" hidden></div>
-            </div>
-
-            <section class="recent-section" hidden><span>Recent searches</span><div id="recentSearches" class="recent-searches"></div></section>
-
-            <section class="results-section">
-              <p id="searchWarning" class="search-progress" role="status" hidden></p>
-              <details id="queryInterpretation" class="story-evidence" hidden><summary>English interpretation</summary><p id="translatedQuery" dir="ltr"></p></details>
-              <div class="section-header">
-                <div><span class="section-kicker">Ranked matches</span><h3>Results</h3></div>
-                <span class="count-label" id="resultMeta">Ready</span>
-              </div>
-              <div id="results" class="results-grid empty-results">
-                <div class="empty-visual"><i data-lucide="scan-search"></i></div>
-                <strong data-search-idle>No search yet</strong>
-              </div>
-            </section>
-          </section>
-
-          <section class="view" id="scenesView" data-view="scenes">
-            <div class="page-heading">
-              <div><h2>Video library</h2></div>
-            </div>
-
-            <section class="video-connection" aria-labelledby="videoConnectionHeading">
-              <i data-lucide="monitor-up" aria-hidden="true"></i>
-              <div><h3 id="videoConnectionHeading" tabindex="-1">Add a film to your collection</h3><p>To add a film and find it in Search later, connect to CineScene Studio. The preview below only plays the file in your browser.</p></div>
-              <button class="button primary compact" type="button" data-connect-computer><i data-lucide="plug"></i><span>Connect to Studio</span></button>
-            </section>
-
-            <details class="add-media-panel"><summary><i data-lucide="play"></i><span>Preview a local file</span><i data-lucide="chevron-down"></i></summary><div class="lab-layout">
-              <section class="tool-panel upload-panel">
-                <div class="panel-heading"><span>01</span><div><h3>Local video</h3></div></div>
-                <div class="drop-zone" id="videoDropZone" role="region" aria-label="Local video preview">
-                  <input id="videoInput" type="file" accept="video/mp4,video/x-matroska,video/webm,video/quicktime,video/*" hidden />
-                  <div class="drop-icon"><i data-lucide="file-video-2"></i></div>
-                  <strong id="videoDropTitle">Drop a video here</strong>
-                  <span id="videoDropMeta">MP4, MKV, MOV, AVI, WEBM</span>
-                  <button class="button secondary compact" type="button" id="chooseVideoButton"><i data-lucide="folder-open"></i>Browse</button>
-                </div>
-                <div class="file-row" id="selectedVideo" hidden>
-                  <i data-lucide="film"></i><div><strong></strong><span></span></div>
-                  <button class="icon-button ghost" id="removeVideoButton" type="button" aria-label="Remove video"><i data-lucide="trash-2"></i></button>
-                </div>
-                <button class="button primary full-width" id="previewVideoButton" type="button" disabled><i data-lucide="play"></i><span>Preview selected media</span></button>
-              </section>
-
-            </div></details>
-
-            <section class="timeline-section">
-              <div class="section-header"><div><h3>Scene examples</h3></div></div>
-              <div id="sceneTimeline" class="media-timeline empty-inline">Loading processed scenes...</div>
-            </section>
-            <details class="video-example">
-              <summary><i data-lucide="flask-conical"></i><span>Silent video test</span><i data-lucide="chevron-down"></i></summary>
-              <div class="video-example-content">
-                <p>See how images captured at different times helped identify a scene in a clip with no dialogue.</p>
-                <button class="button secondary compact" type="button" data-silent-example><i data-lucide="play"></i><span>Open recorded test</span></button>
-              </div>
-            </details>
-          </section>
-
-          <section class="view" id="libraryView" data-view="library">
-            <div class="page-heading"><div><h2>Saved &amp; history</h2></div></div>
-            <div class="memory-tabs" role="tablist" aria-label="Saved items and history"><button class="active" role="tab" aria-selected="true" data-memory-tab="saved" type="button">Saved titles</button><button role="tab" aria-selected="false" data-memory-tab="history" type="button">Search history</button></div>
-            <section data-memory-panel="saved"><div id="favoriteList" class="memory-list"></div></section>
-            <section data-memory-panel="history" hidden><div class="memory-panel-header"><h3>Search history</h3><button class="icon-button ghost" id="clearHistoryButton" type="button" title="Clear search history" aria-label="Clear search history"><i data-lucide="trash-2"></i></button></div><div id="historyList" class="memory-list"></div></section>
-          </section>
-
-          <section class="view" id="systemView" data-view="system">
-            <div class="page-heading"><div><h2>Settings</h2></div><span class="status-pill" id="statusPill">Loading catalog</span></div>
-            <div class="preference-row"><label for="topKInput">Results per search</label><input id="topKInput" type="number" min="1" max="20" value="8" /></div>
-            <div class="preference-row"><span>Search engine</span><span class="mode-badge">On-device semantic search</span></div>
-            <div class="preference-row"><span>Search release</span><span id="metricRelease">-</span></div>
-            <div class="preference-row"><span>Models</span><span>BGE-large · multilingual E5-base · MiniLM</span></div>
-            <div class="preference-row"><span>Initial model downloads</span><span>About 650 MB, cached on this device</span></div>
-            <div class="preference-row"><label for="translationInput">Persian sentence translation</label><input id="translationInput" type="checkbox" checked /></div>
-            <div class="preference-row"><span>Persian model</span><span>NLLB-600M · additional 870 MB · CC BY-NC 4.0</span></div>
-            <div class="preference-row"><span>Episode metadata</span><a href="https://www.tvmaze.com" target="_blank" rel="noopener">TVmaze · CC BY-SA</a></div>
-            <div class="preference-row"><span>Indexed episode summaries</span><strong id="metricEpisodes">-</strong></div>
-            <div class="preference-row"><span>Downloaded models</span><button id="clearModelsButton" class="button secondary compact" type="button"><i data-lucide="trash-2"></i>Remove downloads</button></div>
-            <div class="preference-row"><span>Video processing</span><button class="button secondary compact" type="button" data-connect-computer><i data-lucide="plug"></i>Connect computer</button></div>
-            <details class="technical-details"><summary>Catalog information</summary><p class="count-label"><span id="metricCatalog">-</span> catalog titles</p><div class="stat-strip" aria-label="Catalog summary">
-              <div><i data-lucide="clapperboard"></i><span><strong id="metricIndexed">-</strong><small>searchable titles</small></span></div>
-              <div><i data-lucide="library"></i><span><strong id="metricOffline">-</strong><small>series titles</small></span></div>
-              <div><i data-lucide="binary"></i><span><strong id="metricScenes">-</strong><small>scene records</small></span></div>
-              <div><i data-lucide="timer"></i><span><strong id="metricLatency">-</strong><small>last search</small></span></div>
-            </div></details>
-          </section>
-        </main>
-      </div>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#101d22">
+  <title>CineScene</title>
+  <meta name="description" content="Find a film or series from a scene you remember.">
+  <meta property="og:title" content="CineScene">
+  <meta property="og:description" content="Discover movies by their scenes.">
+  <meta property="og:image" content="https://amin-pourmand.github.io/cinescene/assets/brand-lockup.jpg">
+  <script>
+    (() => {
+      const url = new URL(location.href);
+      const params = url.searchParams;
+      if (params.get("intro") === "1") {
+        params.delete("intro");
+        params.set("choose", "1");
+        history.replaceState(null, "", url);
+      } else if (!params.has("choose") && !["#start", "#memory", "#video", "#evidence"].includes(url.hash)) {
+        const workspaceView = ["#scenes", "#videos", "#import-video", "#library", "#system"].includes(url.hash);
+        if (workspaceView || ["q", "draft", "type"].some(key => params.get(key)?.trim())) {
+          const studio = new URL("./studio.html", url);
+          studio.search = url.search;
+          studio.hash = url.hash;
+          location.replace(studio);
+          return;
+        }
+        if (url.hash === "#discover") {
+          url.hash = "";
+          history.replaceState(null, "", url);
+        }
+      }
+      if ("serviceWorker" in navigator) {
+        window.addEventListener("load", () => navigator.serviceWorker.register("./sw.js").catch(console.warn));
+      }
+    })();
+  </script>
+  <link rel="manifest" href="./manifest.webmanifest">
+  <link rel="icon" href="./assets/icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="./assets/apple-touch-icon.png?v=20261025-reel-v11">
+  <link rel="preload" href="./assets/intro/cinema.webp" as="image">
+  <link rel="stylesheet" href="./assets/intro/intro.css?v=20261124-evidence-v1">
+  <script src="./assets/lucide.min.js?v=0.468.0" defer></script>
+  <script src="./assets/intro/intro.js?v=20261124-home-v1" defer></script>
+</head>
+<body>
+  <header class="opening-bar">
+    <a class="signature" href="#start"><img src="./assets/brand-mark-512.png?v=20261025-reel-v11" alt="" width="36" height="36"><span lang="en" dir="ltr">Cine<b>Scene</b></span></a>
+    <nav aria-label="Introduction" id="chapterNav" hidden>
+      <a href="#memory" data-copy="navSearch">Find a film</a>
+      <a href="#video" data-copy="navVideo">Add a film</a>
+      <a href="#evidence" data-copy="navEvidence">Results</a>
+    </nav>
+    <div class="opening-actions">
+      <button id="switchLanguage" class="language-button" type="button" hidden><i data-lucide="languages"></i><span lang="fa">فارسی</span></button>
+      <a class="enter-link" id="headerEnter" href="./studio.html#discover"><span data-copy="open">Open CineScene</span><i data-lucide="arrow-up-right"></i></a>
     </div>
+    <div class="reading-line" aria-hidden="true"></div>
+  </header>
 
-    <dialog id="playerDialog" class="player-dialog">
-      <div class="player-topbar"><div><strong id="playerTitle">Local media preview</strong><span id="playerTimecode">Browser-only playback</span></div><button class="icon-button ghost" id="closePlayerButton" type="button" aria-label="Close player"><i data-lucide="x"></i></button></div>
-      <video id="scenePlayer" controls preload="metadata"></video>
-      <div class="player-caption" id="playerCaption">The selected file remains on this device.</div>
-    </dialog>
+  <main id="start">
+    <section class="language-gate" id="languageGate" aria-labelledby="chooseLanguage">
+      <div class="cinema-copy">
+        <span class="opening-kicker">Welcome to CineScene</span>
+        <h1 id="chooseLanguage" lang="fa" dir="rtl">از کدام زبان شروع کنیم؟</h1>
+        <p>Which language would you like to use?</p>
+        <div class="language-options">
+          <button type="button" data-language="en" lang="en" disabled><span>English</span><i data-lucide="arrow-right"></i></button>
+          <button type="button" data-language="fa" lang="fa" disabled><span>فارسی</span><i data-lucide="arrow-left"></i></button>
+        </div>
+      </div>
+    </section>
 
-    <div class="toast-region" id="toastRegion" aria-live="polite"></div>
-    <script src="./assets/lucide.min.js?v=0.468.0"></script>
-    <script src="./assets/scene-explorer.js?v=20261123-archive-v3"></script>
-    <script src="./assets/workspace-ui.js?v=20261123-workflow-v5"></script>
-    <script src="./assets/semantic-client.js?v=20261124-text-v1"></script>
-    <script src="./assets/companion-connect.js?v=20261031-companion-v26"></script>
-    <script src="./assets/intro/workspace-language.js?v=20261124-intro-v9"></script>
-    <script src="./assets/app.js?v=20261124-text-v1"></script>
-  </body>
+    <article id="journey" hidden>
+      <div class="cinema-stage">
+      <section class="cinema-hero chapter" aria-labelledby="mainTitle">
+        <div class="cinema-copy">
+          <h1 id="mainTitle" tabindex="-1">Cine<span>Scene</span></h1>
+          <p class="hero-line"><span data-copy="heroLead">Know the scene?</span> <span data-copy="heroSecond">Let’s find the film.</span></p>
+          <span class="hero-caption" data-copy="heroCaption">Describe a scene to find a film or series, even without its name.</span>
+          <div class="hero-actions">
+            <a class="opal-button" href="./studio.html#discover"><i data-lucide="search"></i><span data-copy="startSearch">Start searching</span></a>
+            <a class="sample-link" href="#memory"><span data-copy="example">See a search example</span><i data-lucide="arrow-down"></i></a>
+          </div>
+        </div>
+        <div class="reel-edge" aria-hidden="true"><span>01</span><i></i><span>03</span></div>
+      </section>
+      </div>
+
+      <section id="memory" class="memory-chapter chapter">
+        <div class="chapter-splice"><b>01</b><span data-copy="chapterOne">FIND A FILM</span><i></i></div>
+        <div class="chapter-layout">
+          <div class="chapter-copy reveal">
+            <h2 tabindex="-1" data-copy="memoryTitle">Find a film from a scene description</h2>
+            <p data-copy="memoryBody">Describe a line of dialogue, an action, or a setting. CineScene compares the meaning of your description with stories and scenes in its collection.</p>
+            <p data-copy="memoryDetail">You do not need the title or the exact words. Start with what you remember, and add a distinctive detail if several films sound similar. You can search in Persian or English.</p>
+            <figure class="query-proof">
+              <div><i data-lucide="search"></i><q data-copy="query">A man who cannot form new memories tattoos clues on his body and uses Polaroid photographs to investigate his wife's murder.</q></div>
+              <figcaption data-scroll-cue><i data-lucide="film"></i><span lang="en" dir="ltr">Memento</span><span class="result-year">2000</span><span class="result-evidence" data-copy="story">Story match</span></figcaption>
+            </figure>
+            <p class="chapter-note" data-copy="exampleDetail">In this example, the tattoos and instant photographs are the clues that point to Memento.</p>
+            <a class="chapter-link" id="tryExample" href="./studio.html#discover"><span data-copy="try">Try the search</span><i data-lucide="arrow-up-right"></i></a>
+          </div>
+          <figure class="clue-figure scene-frame reveal"><img src="./assets/intro/clue.webp" width="1100" height="733" alt="" loading="lazy"></figure>
+        </div>
+      </section>
+
+      <section id="video" class="video-chapter chapter">
+        <div class="chapter-splice"><b>02</b><span data-copy="chapterTwo">ADD A FILM</span><i></i></div>
+        <div class="chapter-inner">
+          <div class="reel-layout">
+            <div class="chapter-heading reveal">
+              <h2 tabindex="-1" data-copy="videoTitle">Add a film to your collection</h2>
+              <p data-copy="videoBody">Choose a film file in Studio and select Add to collection. CineScene goes through the film and adds it to your collection so it can show up in Search.</p>
+              <p class="stage-output" data-copy="videoResult">When the film is ready, describe a scene from it. You can find the film and, when a scene matches, open that part of the video.</p>
+              <a class="chapter-link" href="./studio.html#import-video"><span data-copy="openVideos">Add a film in Studio</span><i data-lucide="arrow-up-right"></i></a>
+            </div>
+            <figure class="reel-figure scene-frame reveal"><img src="./assets/intro/reel.webp" width="1100" height="733" alt="" loading="lazy"></figure>
+          </div>
+          <ol class="process-rail reveal">
+            <li data-scroll-cue><span class="step-icon"><i data-lucide="file-video"></i></span><div><strong data-copy="import">Choose the film file</strong><span data-copy="importDetail">For several films, you can enter the folder path in Studio. Subtitles are optional and help with dialogue searches.</span></div></li>
+            <li data-scroll-cue><span class="step-icon"><i data-lucide="scissors"></i></span><div><strong data-copy="segment">Let CineScene go through the film</strong><span data-copy="segmentDetail">It finds where scenes begin and end, then saves useful details such as images and any available dialogue.</span></div></li>
+            <li data-scroll-cue><span class="step-icon"><i data-lucide="scan-search"></i></span><div><strong data-copy="index">Find the film in Search</strong><span data-copy="indexDetail">When Studio confirms the film was added, go to Search and describe a scene from it.</span></div></li>
+          </ol>
+        </div>
+      </section>
+
+      <section id="evidence" class="evidence-chapter chapter" aria-labelledby="evidenceTitle">
+        <div class="chapter-splice"><b>03</b><span data-copy="chapterThree">SEARCH RESULTS</span><i></i></div>
+        <div class="chapter-layout">
+          <div class="chapter-copy reveal">
+            <h2 id="evidenceTitle" tabindex="-1" data-copy="evidenceTitle">See why a result matches</h2>
+            <p data-copy="evidenceBody">A title is just the start. Open a result to see what connects your description to the film or episode: a detail in its story, a matching moment in the video, or both.</p>
+            <p data-copy="evidenceDetail">A story match helps you recognize the title. A timed scene match can also take you to the moment you were looking for.</p>
+          </div>
+          <figure class="evidence-cover scene-frame reveal"><img src="./assets/intro/evidence.webp" width="1200" height="800" alt="" loading="lazy" decoding="async"></figure>
+        </div>
+
+        <div class="evidence-sequence">
+          <section id="story-match" class="evidence-stop" aria-labelledby="storyTitle">
+            <div class="evidence-copy reveal">
+              <p class="evidence-cue" data-scroll-cue><i data-lucide="book-open"></i><span class="evidence-count" aria-hidden="true">01</span></p>
+              <h3 id="storyTitle" data-copy="story">Story match</h3>
+              <p data-copy="storyDetail">If the film or episode has a written summary, CineScene can show the passage that best fits your description. Read it to see whether the details match what you remember.</p>
+              <p class="evidence-example"><i data-lucide="quote"></i><span data-copy="storyExample">For example, the tattoos and instant photos in the Memento search come from the story summary. They point to the film, not to a specific minute.</span></p>
+            </div>
+            <figure class="evidence-shot scene-frame reveal"><img src="./assets/intro/story-match.webp" width="1200" height="800" alt="" loading="lazy" decoding="async"></figure>
+          </section>
+
+          <section id="timed-match" class="evidence-stop evidence-stop-timed" aria-labelledby="timedTitle">
+            <div class="evidence-copy reveal">
+              <p class="evidence-cue" data-scroll-cue><i data-lucide="timer"></i><span class="evidence-count" aria-hidden="true">02</span></p>
+              <h3 id="timedTitle" data-copy="scene">Timed scene match</h3>
+              <p data-copy="sceneDetail">When you add a video in Studio, CineScene records where each section begins and ends. If your description matches a section, the result can show that time range and open the video at its start.</p>
+              <p class="evidence-example"><i data-lucide="play"></i><span data-copy="timedExample">For example, search for a moment in a film you added. When a scene matches, you can watch it without scrubbing through the whole film.</span></p>
+            </div>
+            <figure class="evidence-shot scene-frame reveal"><img src="./assets/intro/timed-match.webp" width="1200" height="800" alt="" loading="lazy" decoding="async"></figure>
+          </section>
+        </div>
+        <details class="recorded-example">
+          <summary><i data-lucide="flask-conical"></i><span data-copy="recordedExample">View a recorded scene test</span></summary>
+          <p data-copy="recordedResult">In an eight-second silent clip, a description of the change from a flower to a building matched scene 2, starting at 00:04.000.</p>
+          <div class="recorded-frames">
+            <figure><img src="./assets/silent-study/frame-early.jpg" width="384" height="256" alt="" loading="lazy"><figcaption><span data-copy="flower">Flower</span><time datetime="PT6S">00:06.000</time></figcaption></figure>
+            <figure><img src="./assets/silent-study/frame-late.jpg" width="384" height="256" alt="" loading="lazy"><figcaption><span data-copy="tower">Tower</span><time datetime="PT7.667S">00:07.667</time></figcaption></figure>
+          </div>
+          <a class="chapter-link" href="./assets/silent-study/credits.txt" data-copy="credits">Image sources</a>
+        </details>
+      </section>
+
+      <footer class="journey-end">
+        <h2 data-copy="endTitle">What scene do you remember?</h2>
+        <p data-copy="endBody">Start with a scene, a line of dialogue, or a detail that stayed with you.</p>
+        <a class="opal-button" href="./studio.html#discover"><span data-copy="startSearch">Start searching</span><i data-lucide="arrow-up-right"></i></a>
+      </footer>
+    </article>
+  </main>
+</body>
 </html>

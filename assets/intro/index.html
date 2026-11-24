@@ -1,147 +1,16 @@
 <!doctype html>
-<html lang="en" dir="ltr">
+<html lang="en">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#101d22">
   <title>CineScene</title>
-  <link rel="icon" href="../icon.svg" type="image/svg+xml">
-  <link rel="preload" href="cinema.webp" as="image">
-  <link rel="stylesheet" href="intro.css?v=20261124-evidence-v1">
-  <script src="../lucide.min.js?v=0.468.0" defer></script>
-  <script src="intro.js?v=20261124-evidence-v1" defer></script>
+  <link rel="canonical" href="../../">
+  <script>
+    const home = new URL("../../", location.href);
+    home.search = location.search;
+    home.hash = location.hash;
+    location.replace(home);
+  </script>
 </head>
-<body>
-  <header class="opening-bar">
-    <a class="signature" href="#start"><img src="../brand-mark-512.png?v=20261025-reel-v11" alt="" width="36" height="36"><span lang="en" dir="ltr">Cine<b>Scene</b></span></a>
-    <nav aria-label="Introduction" id="chapterNav" hidden>
-      <a href="#memory" data-copy="navSearch">Find a film</a>
-      <a href="#video" data-copy="navVideo">Add a film</a>
-      <a href="#evidence" data-copy="navEvidence">Results</a>
-    </nav>
-    <div class="opening-actions">
-      <button id="switchLanguage" class="language-button" type="button" hidden><i data-lucide="languages"></i><span lang="fa">فارسی</span></button>
-      <a class="enter-link" id="headerEnter" href="../../#discover"><span data-copy="open">Open CineScene</span><i data-lucide="arrow-up-right"></i></a>
-    </div>
-    <div class="reading-line" aria-hidden="true"></div>
-  </header>
-
-  <main id="start">
-    <section class="language-gate" id="languageGate" aria-labelledby="chooseLanguage">
-      <div class="cinema-copy">
-        <span class="opening-kicker">Welcome to CineScene</span>
-        <h1 id="chooseLanguage" lang="fa" dir="rtl">از کدام زبان شروع کنیم؟</h1>
-        <p>Which language would you like to use?</p>
-        <div class="language-options">
-          <button type="button" data-language="en" lang="en" disabled><span>English</span><i data-lucide="arrow-right"></i></button>
-          <button type="button" data-language="fa" lang="fa" disabled><span>فارسی</span><i data-lucide="arrow-left"></i></button>
-        </div>
-      </div>
-    </section>
-
-    <article id="journey" hidden>
-      <div class="cinema-stage">
-      <section class="cinema-hero chapter" aria-labelledby="mainTitle">
-        <div class="cinema-copy">
-          <h1 id="mainTitle" tabindex="-1">Cine<span>Scene</span></h1>
-          <p class="hero-line"><span data-copy="heroLead">Know the scene?</span> <span data-copy="heroSecond">Let’s find the film.</span></p>
-          <span class="hero-caption" data-copy="heroCaption">Describe a scene to find a film or series, even without its name.</span>
-          <div class="hero-actions">
-            <a class="opal-button" href="../../#discover"><i data-lucide="search"></i><span data-copy="startSearch">Start searching</span></a>
-            <a class="sample-link" href="#memory"><span data-copy="example">See a search example</span><i data-lucide="arrow-down"></i></a>
-          </div>
-        </div>
-        <div class="reel-edge" aria-hidden="true"><span>01</span><i></i><span>03</span></div>
-      </section>
-      </div>
-
-      <section id="memory" class="memory-chapter chapter">
-        <div class="chapter-splice"><b>01</b><span data-copy="chapterOne">FIND A FILM</span><i></i></div>
-        <div class="chapter-layout">
-          <div class="chapter-copy reveal">
-            <h2 tabindex="-1" data-copy="memoryTitle">Find a film from a scene description</h2>
-            <p data-copy="memoryBody">Describe a line of dialogue, an action, or a setting. CineScene compares the meaning of your description with stories and scenes in its collection.</p>
-            <p data-copy="memoryDetail">You do not need the title or the exact words. Start with what you remember, and add a distinctive detail if several films sound similar. You can search in Persian or English.</p>
-            <figure class="query-proof">
-              <div><i data-lucide="search"></i><q data-copy="query">A man who cannot form new memories tattoos clues on his body and uses Polaroid photographs to investigate his wife's murder.</q></div>
-              <figcaption data-scroll-cue><i data-lucide="film"></i><span lang="en" dir="ltr">Memento</span><span class="result-year">2000</span><span class="result-evidence" data-copy="story">Story match</span></figcaption>
-            </figure>
-            <p class="chapter-note" data-copy="exampleDetail">In this example, the tattoos and instant photographs are the clues that point to Memento.</p>
-            <a class="chapter-link" id="tryExample" href="../../#discover"><span data-copy="try">Try the search</span><i data-lucide="arrow-up-right"></i></a>
-          </div>
-          <figure class="clue-figure scene-frame reveal"><img src="clue.webp" width="1100" height="733" alt="" loading="lazy"></figure>
-        </div>
-      </section>
-
-      <section id="video" class="video-chapter chapter">
-        <div class="chapter-splice"><b>02</b><span data-copy="chapterTwo">ADD A FILM</span><i></i></div>
-        <div class="chapter-inner">
-          <div class="reel-layout">
-            <div class="chapter-heading reveal">
-              <h2 tabindex="-1" data-copy="videoTitle">Add a film to your collection</h2>
-              <p data-copy="videoBody">Choose a film file in Studio and select Add to collection. CineScene goes through the film and adds it to your collection so it can show up in Search.</p>
-              <p class="stage-output" data-copy="videoResult">When the film is ready, describe a scene from it. You can find the film and, when a scene matches, open that part of the video.</p>
-              <a class="chapter-link" href="../../#import-video"><span data-copy="openVideos">Add a film in Studio</span><i data-lucide="arrow-up-right"></i></a>
-            </div>
-            <figure class="reel-figure scene-frame reveal"><img src="reel.webp" width="1100" height="733" alt="" loading="lazy"></figure>
-          </div>
-          <ol class="process-rail reveal">
-            <li data-scroll-cue><span class="step-icon"><i data-lucide="file-video"></i></span><div><strong data-copy="import">Choose the film file</strong><span data-copy="importDetail">For several films, you can enter the folder path in Studio. Subtitles are optional and help with dialogue searches.</span></div></li>
-            <li data-scroll-cue><span class="step-icon"><i data-lucide="scissors"></i></span><div><strong data-copy="segment">Let CineScene go through the film</strong><span data-copy="segmentDetail">It finds where scenes begin and end, then saves useful details such as images and any available dialogue.</span></div></li>
-            <li data-scroll-cue><span class="step-icon"><i data-lucide="scan-search"></i></span><div><strong data-copy="index">Find the film in Search</strong><span data-copy="indexDetail">When Studio confirms the film was added, go to Search and describe a scene from it.</span></div></li>
-          </ol>
-        </div>
-      </section>
-
-      <section id="evidence" class="evidence-chapter chapter" aria-labelledby="evidenceTitle">
-        <div class="chapter-splice"><b>03</b><span data-copy="chapterThree">SEARCH RESULTS</span><i></i></div>
-        <div class="chapter-layout">
-          <div class="chapter-copy reveal">
-            <h2 id="evidenceTitle" tabindex="-1" data-copy="evidenceTitle">See why a result matches</h2>
-            <p data-copy="evidenceBody">A title is just the start. Open a result to see what connects your description to the film or episode: a detail in its story, a matching moment in the video, or both.</p>
-            <p data-copy="evidenceDetail">A story match helps you recognize the title. A timed scene match can also take you to the moment you were looking for.</p>
-          </div>
-          <figure class="evidence-cover scene-frame reveal"><img src="evidence.webp" width="1200" height="800" alt="" loading="lazy" decoding="async"></figure>
-        </div>
-
-        <div class="evidence-sequence">
-          <section id="story-match" class="evidence-stop" aria-labelledby="storyTitle">
-            <div class="evidence-copy reveal">
-              <p class="evidence-cue" data-scroll-cue><i data-lucide="book-open"></i><span class="evidence-count" aria-hidden="true">01</span></p>
-              <h3 id="storyTitle" data-copy="story">Story match</h3>
-              <p data-copy="storyDetail">If the film or episode has a written summary, CineScene can show the passage that best fits your description. Read it to see whether the details match what you remember.</p>
-              <p class="evidence-example"><i data-lucide="quote"></i><span data-copy="storyExample">For example, the tattoos and instant photos in the Memento search come from the story summary. They point to the film, not to a specific minute.</span></p>
-            </div>
-            <figure class="evidence-shot scene-frame reveal"><img src="story-match.webp" width="1200" height="800" alt="" loading="lazy" decoding="async"></figure>
-          </section>
-
-          <section id="timed-match" class="evidence-stop evidence-stop-timed" aria-labelledby="timedTitle">
-            <div class="evidence-copy reveal">
-              <p class="evidence-cue" data-scroll-cue><i data-lucide="timer"></i><span class="evidence-count" aria-hidden="true">02</span></p>
-              <h3 id="timedTitle" data-copy="scene">Timed scene match</h3>
-              <p data-copy="sceneDetail">When you add a video in Studio, CineScene records where each section begins and ends. If your description matches a section, the result can show that time range and open the video at its start.</p>
-              <p class="evidence-example"><i data-lucide="play"></i><span data-copy="timedExample">For example, search for a moment in a film you added. When a scene matches, you can watch it without scrubbing through the whole film.</span></p>
-            </div>
-            <figure class="evidence-shot scene-frame reveal"><img src="timed-match.webp" width="1200" height="800" alt="" loading="lazy" decoding="async"></figure>
-          </section>
-        </div>
-        <details class="recorded-example">
-          <summary><i data-lucide="flask-conical"></i><span data-copy="recordedExample">View a recorded scene test</span></summary>
-          <p data-copy="recordedResult">In an eight-second silent clip, a description of the change from a flower to a building matched scene 2, starting at 00:04.000.</p>
-          <div class="recorded-frames">
-            <figure><img src="../silent-study/frame-early.jpg" width="384" height="256" alt="" loading="lazy"><figcaption><span data-copy="flower">Flower</span><time datetime="PT6S">00:06.000</time></figcaption></figure>
-            <figure><img src="../silent-study/frame-late.jpg" width="384" height="256" alt="" loading="lazy"><figcaption><span data-copy="tower">Tower</span><time datetime="PT7.667S">00:07.667</time></figcaption></figure>
-          </div>
-          <a class="chapter-link" href="../silent-study/credits.txt" data-copy="credits">Image sources</a>
-        </details>
-      </section>
-
-      <footer class="journey-end">
-        <h2 data-copy="endTitle">What scene do you remember?</h2>
-        <p data-copy="endBody">Start with a scene, a line of dialogue, or a detail that stayed with you.</p>
-        <a class="opal-button" href="../../#discover"><span data-copy="startSearch">Start searching</span><i data-lucide="arrow-up-right"></i></a>
-      </footer>
-    </article>
-  </main>
-</body>
+<body><a href="../../">Open the CineScene introduction</a></body>
 </html>

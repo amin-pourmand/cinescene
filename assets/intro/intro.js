@@ -34,6 +34,7 @@
   const save = (key,value) => { try { localStorage.setItem(key,value); } catch {} };
   const gate = document.getElementById("languageGate"), journey = document.getElementById("journey");
   const change = document.getElementById("switchLanguage");
+  const workspace = document.getElementById("headerEnter").href;
   const params = new URLSearchParams(location.search);
   const returnView = params.get("return");
   const motion = !matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -52,10 +53,9 @@
     change.setAttribute("aria-label", lang === "fa" ? "Switch to English" : "تغییر زبان به فارسی");
     document.getElementById("chapterNav").hidden = false;
     document.getElementById("chapterNav").setAttribute("aria-label", lang === "fa" ? "فصل‌های معرفی" : "Introduction chapters");
-    const root = new URL("../../", location.href);
-    root.searchParams.set("draft", copy.query);
-    root.hash = "discover";
-    document.getElementById("tryExample").href = root;
+    const example = new URL(workspace);
+    example.searchParams.set("draft", copy.query);
+    document.getElementById("tryExample").href = example;
     gate.hidden = true;
     journey.hidden = false;
     document.documentElement.classList.add("journey-open");
@@ -77,9 +77,9 @@
     button.addEventListener("click", () => {
       if (params.has("choose") && ["discover","ingest","scenes","library","system"].includes(returnView)) {
         save("cinescene-language", button.dataset.language);
-        const root = new URL("../../", location.href);
-        root.hash = returnView;
-        location.replace(root);
+        const destination = new URL(workspace);
+        destination.hash = returnView;
+        location.replace(destination);
       } else {
         pick(button.dataset.language, {reset:true});
       }
