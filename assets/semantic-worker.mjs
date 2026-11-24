@@ -1,5 +1,5 @@
 import { pipeline, AutoTokenizer, AutoModelForSequenceClassification, env } from "./vendor/transformers.min.js";
-import { createSearchRuntime } from "./search-runtime.mjs?v=20261028-parity-v25";
+import { createSearchRuntime } from "./search-runtime.mjs?v=20261123-scene-scope-v1";
 
 env.allowLocalModels = false;
 env.useBrowserCache = true;

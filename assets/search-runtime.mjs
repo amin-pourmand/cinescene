@@ -1,4 +1,4 @@
-import { processQuery, similarities, englishRanks, multilingualRanks, lexicalScores, fuseRecords, collapseRecords, evidencePairs, rankEvidence, storyWindows, selectStoryEvidence } from "./hybrid-ranking.mjs?v=20261028-parity-v25";
+import { processQuery, similarities, englishRanks, multilingualRanks, lexicalScores, fuseRecords, collapseRecords, evidencePairs, rankEvidence, storyWindows, selectStoryEvidence } from "./hybrid-ranking.mjs?v=20261123-scene-scope-v1";
 
 export function createSearchRuntime({ pipeline, AutoTokenizer, AutoModelForSequenceClassification, fetchAsset, progress = () => {}, modelOptions = {} }) {
 const session_options = { enableCpuMemArena: false, enableMemPattern: false };
@@ -101,16 +101,18 @@ async function search({ query: value, source, count, translatePersian = false })
   }
   if (query.persian && !query.translated) interpretation.warning = "English translation is unavailable. Search uses the original query without English reranking.";
   let english = [], multilingual = [];
+  const sceneOnly = source === "offline";
+  const accept = sceneOnly ? (index) => manifest.records[index]?.kind === "scene" : undefined;
   if (manifest.multilingual) {
     const vector = await encode(query.cleaned, manifest.multilingual);
-    multilingual = multilingualRanks(similarities(vector, await matrix("hybrid-multilingual.f32"), manifest.multilingual.dimension), manifest.multilingual.records);
+    multilingual = multilingualRanks(similarities(vector, await matrix("hybrid-multilingual.f32"), manifest.multilingual.dimension), manifest.multilingual.records, accept);
   }
   if (!query.persian || query.translated) {
     const vector = await encode(query.english || query.cleaned, manifest.english);
-    english = englishRanks(similarities(vector, await matrix("hybrid-en.f32"), manifest.english.dimension), manifest.records);
+    english = englishRanks(similarities(vector, await matrix("hybrid-en.f32"), manifest.english.dimension), manifest.records, sceneOnly);
   }
-  const lexical = lexicalScores(query.english || query.cleaned, manifest, ids, weights);
-  const originalLexical = query.translated ? lexicalScores(query.cleaned, manifest, ids, weights) : null;
+  const lexical = lexicalScores(query.english || query.cleaned, manifest, ids, weights, accept);
+  const originalLexical = query.translated ? lexicalScores(query.cleaned, manifest, ids, weights, accept) : null;
   let records = fuseRecords(query, manifest, catalog, english, lexical, multilingual, source, originalLexical);
   const evidence = new Map(multilingual.map(([index, , row]) => [index, manifest.multilingual.texts?.[row] || ""]));
   records = records.map((entry) => ({ ...entry, passage: selectStoryEvidence(query.english || query.cleaned,
@@ -125,6 +127,11 @@ async function search({ query: value, source, count, translatePersian = false })
     return { item, score: entry.score, scene, episode, evidence: scene ? scene.transcript || scene.visual_caption : episode ? record.overview : entry.passage || record.overview || item.overview || "",
       evidenceKind: scene ? "scene" : episode ? "episode" : "story", method: reranked ? "hybrid + reranker" : "multilingual + BM25" };
   });
+  if (candidates[0]?.scoreKind === "relevance_logit" && candidates[0].score < -4) {
+    interpretation.weak_evidence = true;
+    interpretation.warning = "Weak evidence: none of the checked passages strongly matches this description. Suggestions may be unrelated.";
+    return { results: [], alternatives: results, interpretation };
+  }
   return { results, interpretation };
 }
 return { search };

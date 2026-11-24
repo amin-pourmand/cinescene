@@ -28,11 +28,15 @@
 
   function navigation() {
     const sidebar = document.querySelector(".sidebar");
+    const main = document.querySelector(".app-main");
     const button = document.querySelector("#mobileMenuButton");
+    const language = sidebar.querySelector("[data-language-link]");
+    const word = window.cinesceneWord || String;
     const backdrop = document.createElement("button");
     backdrop.className = "nav-backdrop";
     backdrop.type = "button";
-    backdrop.setAttribute("aria-label", "Close navigation");
+    backdrop.setAttribute("aria-label", word("Close navigation"));
+    backdrop.tabIndex = -1;
     backdrop.hidden = true;
     document.body.append(backdrop);
     sidebar.id ||= "workspaceSidebar";
@@ -42,7 +46,8 @@
       const open = mobile.matches && document.body.classList.contains("nav-open");
       backdrop.hidden = !open;
       button.setAttribute("aria-expanded", String(open));
-      button.setAttribute("aria-label", open ? "Close navigation" : "Open navigation");
+      button.setAttribute("aria-label", word(open ? "Close navigation" : "Open navigation"));
+      main.inert = open;
       sidebar.inert = mobile.matches && !open;
       sidebar.setAttribute("aria-hidden", String(mobile.matches && !open));
     };
@@ -58,7 +63,7 @@
       if (backdrop.hidden) return;
       if (event.key === "Escape") { event.preventDefault(); close(true); }
       if (event.key === "Tab") {
-        const items = [...sidebar.querySelectorAll('a[href], button:not([disabled]):not([hidden])')];
+        const items = [...sidebar.querySelectorAll('a[href], button:not([disabled])')].filter(item => item.getClientRects().length);
         const first = items[0], last = items[items.length - 1];
         if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last?.focus(); }
         else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first?.focus(); }
@@ -66,7 +71,22 @@
     });
     mobile.addEventListener("change", () => close());
     update();
-    return { close };
+    function show(view, title) {
+      const changed = document.querySelector(".view.active")?.dataset.view !== view;
+      document.querySelectorAll(".view").forEach(item => item.classList.toggle("active", item.dataset.view === view));
+      document.querySelectorAll(".nav-item[data-view-link]").forEach(item => {
+        const selected = item.dataset.viewLink === view;
+        item.classList.toggle("active", selected);
+        if (selected) item.setAttribute("aria-current", "page"); else item.removeAttribute("aria-current");
+      });
+      document.getElementById("viewTitle").textContent = word(title);
+      const languageURL = new URL(language.href);
+      languageURL.searchParams.set("return", view);
+      language.href = languageURL;
+      close();
+      return changed;
+    }
+    return { show };
   }
 
   function searchState(query, type, count) {
@@ -168,16 +188,40 @@
     }
   }
 
-  async function confirmAction(title, action) {
+  async function confirmAction(title, action, description = "") {
     const dialog = document.createElement("dialog");
     dialog.className = "confirm-dialog";
     dialog.setAttribute("aria-labelledby", "confirmTitle");
-    dialog.innerHTML = `<form method="dialog"><h2 id="confirmTitle">${html(title)}</h2><div><button class="button secondary" value="cancel">Cancel</button><button class="button primary" value="confirm">${html(action)}</button></div></form>`;
+    dialog.innerHTML = `<form method="dialog"><h2 id="confirmTitle">${html(title)}</h2>${description ? `<p>${html(description)}</p>` : ""}<div><button class="button secondary" value="cancel">Cancel</button><button class="button primary" value="confirm">${html(action)}</button></div></form>`;
     document.body.append(dialog);
     const result = new Promise((resolve) => dialog.addEventListener("close", () => { resolve(dialog.returnValue === "confirm"); dialog.remove(); }, { once: true }));
     dialog.showModal();
     return result;
   }
 
-  window.CineSceneUI = { html, key, storyAttribution, canonicalIdentity, known, formatDate, navigation, recent, searchState, readSearch, memoryTabs, TitleDetails, confirmAction };
+  function weakMatch(container, counter, count, reveal) {
+    counter.textContent = "No strong match";
+    container.className = "results-grid empty-results";
+    container.innerHTML = '<div class="empty-visual"><i data-lucide="scan-search"></i></div><strong>No reliable match for this description</strong><span>Try a line of dialogue, a distinctive action, or a location.</span><button class="button secondary" type="button"><i data-lucide="list"></i><span></span></button>';
+    const button = container.querySelector("button");
+    button.querySelector("span").textContent = `Show possible leads (${count})`;
+    button.addEventListener("click", () => { reveal(); container.querySelector(".title-link")?.focus(); }, { once: true });
+    icons();
+  }
+
+  function dialogueResults(query, catalog, limit) {
+    const normalize = value => String(value || "").normalize("NFKC").toLowerCase().replace(/\u064a/g, "\u06cc").replace(/\u0643/g, "\u06a9").replace(/[^\p{L}\p{N}]+/gu, " ").trim();
+    const phrase = normalize(query);
+    if (!phrase) return [];
+    const results = [];
+    for (const item of catalog) {
+      const scene = (item.scene_timeline || []).filter(row => row?.start_sec != null && row.end_sec != null
+        && (" " + normalize(row.transcript) + " ").includes(" " + phrase + " ")).sort((a, b) => a.start_sec - b.start_sec)[0];
+      if (scene) results.push({ item, scene, method: "Exact dialogue", evidence: scene.transcript });
+      if (results.length >= limit) break;
+    }
+    return results;
+  }
+
+  window.CineSceneUI = { html, key, storyAttribution, canonicalIdentity, known, formatDate, navigation, recent, searchState, readSearch, memoryTabs, TitleDetails, confirmAction, weakMatch, dialogueResults };
 })();

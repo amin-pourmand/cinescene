@@ -1,20 +1,34 @@
-const CACHE_NAME = "cinescene-pwa-v20261028-parity-v25";
+const CACHE_NAME = "cinescene-pwa-v20261124-review-v8";
 const ASSETS = [
   "./",
   "./index.html",
   "./manifest.webmanifest",
   "./assets/styles.css?v=20261025-reel-v11",
-  "./assets/app.js?v=20261028-parity-v25",
-  "./assets/semantic-client.js?v=20261028-parity-v25",
-  "./assets/semantic-worker.mjs?v=20261028-parity-v25",
-  "./assets/search-runtime.mjs?v=20261028-parity-v25",
-  "./assets/hybrid-ranking.mjs?v=20261028-parity-v25",
+  "./assets/app.js?v=20261123-workflow-v5",
+  "./assets/intro/entry.js?v=20261123-cinema-v1",
+  "./assets/intro/workspace-language.js?v=20261124-review-v8",
+  "./assets/intro/index.html",
+  "./assets/intro/intro.css?v=20261123-guide-v7",
+  "./assets/intro/intro.js?v=20261123-guide-v7",
+  "./assets/intro/cinema.webp",
+  "./assets/intro/clue.webp",
+  "./assets/intro/reel.webp",
+  "./assets/semantic-client.js?v=20261123-scene-scope-v1",
+  "./assets/semantic-worker.mjs?v=20261123-scene-scope-v1",
+  "./assets/search-runtime.mjs?v=20261123-scene-scope-v1",
+  "./assets/hybrid-ranking.mjs?v=20261123-scene-scope-v1",
   "./assets/vendor/transformers.min.js",
   "./assets/vendor/ort-wasm-simd-threaded.jsep.mjs",
   "./assets/vendor/ort-wasm-simd-threaded.jsep.wasm",
-  "./assets/workspace-ui.js?v=20261028-parity-v25",
-  "./assets/workspace.css?v=20261025-semantic-v13",
-  "./assets/scene-explorer.js?v=20261025-reel-v11",
+  "./assets/workspace-ui.js?v=20261123-workflow-v5",
+  "./assets/workspace.css?v=20261124-review-v8",
+  "./assets/companion-connect.js?v=20261031-companion-v26",
+  "./assets/scene-explorer.js?v=20261123-archive-v3",
+  "./assets/silent-study/comparison.mp4",
+  "./assets/silent-study/frame-early.jpg",
+  "./assets/silent-study/frame-late.jpg",
+  "./assets/silent-study/report.json",
+  "./assets/silent-study/credits.txt",
   "./assets/scene-explorer.css?v=20261025-reel-v11",
   "./assets/brand-mark-512.png?v=20261025-reel-v11",
   "./assets/icon.svg?v=20261025-reel-v11",
@@ -52,7 +66,7 @@ self.addEventListener("fetch", (event) => {
   if (event.request.method !== "GET" || event.request.headers.has("range") ||
       url.origin !== self.location.origin || !url.href.startsWith(self.registration.scope)) return;
   event.respondWith(
-    caches.match(event.request).then((cached) => {
+    caches.match(event.request, {ignoreSearch: event.request.mode === "navigate" && url.pathname.endsWith("/assets/intro/index.html")}).then((cached) => {
       if (cached) return cached;
       return fetch(event.request)
         .then((response) => {

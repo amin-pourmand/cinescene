@@ -1,0 +1,67 @@
+{
+  "scope": "two scenes in a silent synthetic clip; real E5 scene retrieval, not full catalog accuracy",
+  "expected_start_sec": 4.0,
+  "queries": [
+    "گلی دیده می‌شود و بعد نمای یک ساختمان ظاهر می‌شود",
+    "A flower gives way to a building."
+  ],
+  "modes": {
+    "midpoint": {
+      "captions": [
+        "two orange flowers with green leaves in the background",
+        "two orange flowers with green leaves in the background"
+      ],
+      "checks": [
+        {
+          "unique_top": false,
+          "top_start_sec": null,
+          "correct": false
+        },
+        {
+          "unique_top": false,
+          "top_start_sec": null,
+          "correct": false
+        }
+      ]
+    },
+    "ordered": {
+      "captions": [
+        "two orange flowers with green leaves in the background.",
+        "First: two orange flowers with green leaves in the background. Then: a view of a pagoda tower from the top of a hill."
+      ],
+      "checks": [
+        {
+          "unique_top": true,
+          "top_start_sec": 4.0,
+          "correct": true
+        },
+        {
+          "unique_top": true,
+          "top_start_sec": 4.0,
+          "correct": true
+        }
+      ]
+    }
+  },
+  "observations": [
+    [
+      {
+        "frame": 24,
+        "time_sec": 2.0,
+        "caption": "two orange flowers with green leaves in the background"
+      }
+    ],
+    [
+      {
+        "frame": 72,
+        "time_sec": 6.0,
+        "caption": "two orange flowers with green leaves in the background"
+      },
+      {
+        "frame": 92,
+        "time_sec": 7.667,
+        "caption": "a view of a pagoda tower from the top of a hill"
+      }
+    ]
+  ]
+}

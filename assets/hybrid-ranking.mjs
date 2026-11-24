@@ -38,7 +38,8 @@ export function processQuery(value, processor) {
   filters.genres = filters.genres.filter((genre) => !filters.excluded.includes(genre));
   const director = query.match(/\bdirected by\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+)*)/);
   if (director) filters.director = director[1];
-  const cleaned = query.replace(/\b(?:from|released(?:\s+in)?|release\s+year|year)\s+(?:19\d{2}|20\d{2})\b/gi, " ")
+  const cleaned = query.replace(/\b(?:raise|rise)\s+to\s+the\s+life\b(?!\s+of\b)/gi, "come back to life")
+    .replace(/\b(?:from|released(?:\s+in)?|release\s+year|year)\s+(?:19\d{2}|20\d{2})\b/gi, " ")
     .replace(/\bdirected by\s+[A-Z][a-z]+(?:\s+[A-Z][a-z]+)*/g, " ").replace(/\s+/g, " ").trim();
   const additions = [];
   for (const [phrase, synonyms] of Object.entries(processor.expansions)) {
@@ -59,23 +60,24 @@ export function similarities(query, vectors, dimension) {
   }
   return scores;
 }
-const ranked = (scores, limit) => [...scores.entries()].filter(([, score]) => Number.isFinite(score))
+const ranked = (scores, limit, accept = () => true) => [...scores.entries()].filter(([i, score]) => Number.isFinite(score) && accept(i))
   .sort((a, b) => b[1] - a[1] || a[0] - b[0]).slice(0, limit);
-export function englishRanks(scores, records) {
+export function englishRanks(scores, records, sceneOnly = false) {
+  if (sceneOnly) return ranked(scores, 100, (index) => records[index].kind === "scene");
   const titles = ranked(scores, scores.length).filter(([i]) => records[i].kind !== "scene").slice(0, 100);
   const scenes = ranked(scores, scores.length).filter(([i]) => records[i].kind === "scene").slice(0, 100);
   return [...titles, ...scenes].sort((a, b) => b[1] - a[1] || a[0] - b[0]);
 }
-export function multilingualRanks(scores, mapping) {
+export function multilingualRanks(scores, mapping, accept) {
   const best = new Map();
-  for (const [row, score] of ranked(scores, 600)) {
+  for (const [row, score] of ranked(scores, 600, accept && ((i) => accept(mapping[i])))) {
     const record = mapping[row];
     if (score > (best.get(record)?.[0] ?? -Infinity)) best.set(record, [score, row]);
   }
   return [...best.entries()].map(([record, [score, row]]) => [record, score, row])
     .sort((a, b) => b[1] - a[1] || a[0] - b[0]).slice(0, 150);
 }
-export function lexicalScores(query, manifest, ids, weights) {
+export function lexicalScores(query, manifest, ids, weights, accept) {
   const scores = new Float64Array(manifest.records.length), overlap = new Uint16Array(scores.length);
   const seen = new Set();
   for (const token of tokens(query, manifest.processor)) {
@@ -88,7 +90,7 @@ export function lexicalScores(query, manifest, ids, weights) {
     }
     seen.add(token);
   }
-  return { ranks: ranked(scores, 100).filter(([, score]) => score > 0), overlap };
+  return { ranks: ranked(scores, 100, accept).filter(([, score]) => score > 0), overlap };
 }
 export function fuseRecords(query, manifest, catalog, vectors, lexical, multilingual, source, originalLexical = null) {
   const totals = new Map();
@@ -102,7 +104,7 @@ export function fuseRecords(query, manifest, catalog, vectors, lexical, multilin
   const results = [];
   for (const [index, value] of totals) {
     const record = manifest.records[index], item = catalog[record.item];
-    if (source === "offline" && item.source !== "offline_video_ingestion") continue;
+    if (source === "offline" && record.kind !== "scene") continue;
     if (source === "series" && item.media_type !== "series") continue;
     if (source === "movies" && item.media_type === "series") continue;
     const genres = (item.genres || []).map((genre) => genre.replace("Science-Fiction", "Science Fiction")), f = query.filters;
@@ -175,7 +177,7 @@ export function rankEvidence(candidates, pairs, scores, limit = 40) {
   if (scores.length !== pairs.length || scores.some((score) => !Number.isFinite(score))) throw new Error("The relevance model returned invalid scores.");
   const winners = new Map();
   pairs.forEach((row, index) => {
-    if (!winners.has(row.item) || scores[index] > winners.get(row.item).score) winners.set(row.item, { ...row, score: scores[index] });
+    if (!winners.has(row.item) || scores[index] > winners.get(row.item).score) winners.set(row.item, { ...row, score: scores[index], scoreKind: "relevance_logit" });
   });
   return [...winners.values()].sort((a, b) => b.score - a.score).concat(candidates.slice(limit));
 }

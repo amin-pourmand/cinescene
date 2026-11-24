@@ -83,15 +83,16 @@ function toast(message, type = "info") {
   window.setTimeout(() => item.remove(), 4200);
 }
 
-function setView(view, updateHash = true) {
+function setView(view, { historyMode = "replace", focus = false } = {}) {
+  const importing = view === "import-video";
+  if (view === "videos" || importing) view = "scenes";
   const next = ["discover", "scenes", "library", "system"].includes(view) ? view : "discover";
-  document.querySelectorAll(".view").forEach((item) => item.classList.toggle("active", item.dataset.view === next));
-  document.querySelectorAll(".nav-item").forEach((item) => item.classList.toggle("active", item.dataset.viewLink === next));
-  const titles = { discover: "Search", scenes: "Videos", library: "Saved & history", system: "Settings" };
-  els.viewTitle.textContent = titles[next];
-  navigation.close();
-  document.querySelectorAll(".nav-item").forEach((item) => { if (item.dataset.viewLink === next) item.setAttribute("aria-current", "page"); else item.removeAttribute("aria-current"); });
-  if (updateHash) history.replaceState(null, "", `#${next}`);
+  const titles = { discover: "Search", scenes: "Video library", library: "Saved & history", system: "Settings" };
+  const changed = navigation.show(next, titles[next]);
+  const hash = importing ? "#import-video" : `#${next}`;
+  if (historyMode && location.hash !== hash) history[historyMode === "push" ? "pushState" : "replaceState"](null, "", hash);
+  if (changed || importing) window.scrollTo({ top: 0, behavior: "instant" });
+  if (focus) (importing ? document.getElementById("videoConnectionHeading") : els.viewTitle).focus({ preventScroll: true });
   if (next === "library") renderMemory();
 }
 
@@ -127,21 +128,32 @@ function chips(items, limit = 7) {
   return (items || []).slice(0, limit).map((item) => `<span class="chip">${escapeHtml(item)}</span>`).join("");
 }
 
-function renderResults(entries, query, elapsedMs) {
+function renderResults(entries, query, elapsedMs, alternatives = []) {
   state.results = entries;
   state.history = [{ query, at: new Date().toISOString(), count: entries.length }, ...state.history.filter((entry) => entry.query !== query)].slice(0, 24);
   saveMemory();
   ui.recent(els.recentSearches, state.history.map((item) => item.query));
   els.metricLatency.textContent = `${elapsedMs.toFixed(0)}ms`;
-  els.resultMeta.textContent = entries.length ? `${entries.length} matches · ${entries[0].method || "semantic"}` : "No matches";
+  if (!entries.length && alternatives.length) {
+    ui.weakMatch(els.results, els.resultMeta, alternatives.length, () => drawResults(alternatives, true));
+    return;
+  }
+  drawResults(entries);
+}
+
+function drawResults(entries, approximate = false) {
+  state.results = entries;
+  els.resultMeta.textContent = entries.length ? `${entries.length} ${entries.length === 1 ? "match" : "matches"} · ${entries[0].method || "Semantic"}` : "No matches";
   if (!entries.length) {
     els.results.className = "results-grid empty-results";
     els.results.innerHTML = `<div class="empty-visual"><i data-lucide="circle-slash-2"></i></div><strong>No indexed titles in this selection.</strong>`;
+    if (els.sourceFilter.value === "dialogue") els.results.textContent = "No matching dialogue in the public sample transcripts.";
     refreshIcons(els.results);
     return;
   }
 
   els.results.className = "results-grid";
+  if (approximate) els.resultMeta.textContent = `${entries.length} possible leads`;
   els.results.innerHTML = entries.map(({ item, score, scene, episode, evidence }, index) => {
     const image = scene?.keyframe || item.poster;
     const media = image
@@ -152,14 +164,14 @@ function renderResults(entries, query, elapsedMs) {
     return `<article class="result-card ${image ? "has-frame" : "catalog-only"}">
       ${media}
       <div class="result-body">
-        <div class="result-title-row"><div><button class="title-link" data-details="${index}" type="button">${escapeHtml(item.title)}</button><small>${escapeHtml(mediaLabel(item))}${ui.known(item.year) ? ` &middot; ${escapeHtml(item.year)}` : ""}${item.director && item.director !== "Unknown" ? ` &middot; ${escapeHtml(item.director)}` : ""}</small></div></div>
+        <div class="result-title-row"><div><button class="title-link" data-details="${index}" type="button">${escapeHtml(item.title)}</button><small>${escapeHtml(mediaLabel(item))}${ui.known(item.year) ? ` &middot; ${escapeHtml(item.year)}` : ""}${item.director && item.director !== "Unknown" ? ` &middot; ${escapeHtml(item.director)}` : ""}</small></div><span class="result-kind"><i data-lucide="${scene ? "film" : episode ? "tv" : "book-open"}"></i>${scene ? "Timed scene" : episode ? "Episode summary" : "Story match"}</span></div>
         ${item.source === "offline_video_ingestion" ? "" : `<p class="result-overview">${escapeHtml(item.overview || "")}</p>`}
         ${scene ? `<div class="matched-scene"><div class="scene-label"><span>Best matching scene</span><time>${timecode(scene.start_sec)} - ${timecode(scene.end_sec)}</time></div><p dir="auto">${escapeHtml(sceneCopy)}</p></div>` : ""}
         ${!scene && evidence ? `<details class="story-evidence"><summary>${episode ? `Episode S${String(episode.season).padStart(2, "0")}E${String(episode.episode).padStart(2, "0")} · ${escapeHtml(episode.name)}` : "Matching story passage"}</summary><p dir="auto">${escapeHtml(evidence)}</p>${episode?.source_url ? `<a href="${escapeHtml(episode.source_url)}" target="_blank" rel="noopener">Episode summary: TVmaze · CC BY-SA</a>` : ui.storyAttribution(item)}</details>` : ""}
         <div class="chip-row">${chips(tags)}</div>
         <div class="result-actions">
           <button class="button secondary" type="button" data-details="${index}"><i data-lucide="info"></i>Details</button>
-          ${item.source === "offline_video_ingestion" ? `<button class="icon-button ghost" type="button" data-open-media="${escapeHtml(item.id)}" title="Explore scenes" aria-label="Explore scenes"><i data-lucide="list-video"></i></button>` : ""}
+          ${item.source === "offline_video_ingestion" ? `<button class="button secondary compact" type="button" data-open-media="${escapeHtml(item.id)}" data-scene-number="${escapeHtml(scene?.scene_number || (scene ? item.scene_timeline?.indexOf(scene) + 1 : "") || "")}"><i data-lucide="list-video"></i>Scene timeline</button>` : ""}
           <button class="icon-button ghost" type="button" data-favorite="${escapeHtml(item.id)}" aria-pressed="${isSaved(item)}" title="${isSaved(item) ? "Remove from saved" : "Save title"}" aria-label="${isSaved(item) ? "Remove from saved" : "Save title"}"><i data-lucide="bookmark"></i></button>
         </div>
       </div>
@@ -177,11 +189,16 @@ async function runSearch(queryOverride) {
     els.queryInput.focus();
     return;
   }
-  const translatePersian = /[\u0600-\u06ff]/u.test(query) && els.translationInput.checked;
+  const exact = els.sourceFilter.value === "dialogue";
+  let translatePersian = !exact && /[\u0600-\u06ff]/u.test(query) && els.translationInput.checked;
   if (translatePersian && localStorage.getItem("cinescene-pwa-translation-consent") !== "1") {
     const accepted = await ui.confirmAction("The Persian model adds about 870 MB to this browser's storage. CC BY-NC 4.0: research/non-commercial use. Download it?", "Download model");
-    if (!accepted) return;
-    localStorage.setItem("cinescene-pwa-translation-consent", "1");
+    if (accepted) localStorage.setItem("cinescene-pwa-translation-consent", "1");
+    else {
+      translatePersian = false;
+      els.translationInput.checked = false;
+      localStorage.setItem("cinescene-pwa-translation", "0");
+    }
   }
   setView("discover");
   state.query = query;
@@ -189,6 +206,8 @@ async function runSearch(queryOverride) {
   els.shareSearchButton.disabled = false;
   els.queryInput.value = query;
   state.searching = true;
+  state.results = [];
+  els.results.replaceChildren();
   els.searchWarning.hidden = true;
   els.queryInterpretation.hidden = true;
   els.searchButton.innerHTML = '<i data-lucide="square"></i><span>Cancel</span>';
@@ -201,6 +220,12 @@ async function runSearch(queryOverride) {
   refreshIcons(els.searchButton);
   const start = performance.now();
   try {
+    if (exact) {
+      const entries = ui.dialogueResults(query, state.catalog, Number(els.topKInput.value || 8));
+      renderResults(entries, query, performance.now() - start);
+      setStatus("Dialogue search ready", true);
+      return;
+    }
     const entries = await state.semantic.search(query, els.sourceFilter.value, Number(els.topKInput.value || 8), (message) => {
       status.textContent = message;
       els.resultMeta.textContent = "Searching";
@@ -210,11 +235,13 @@ async function runSearch(queryOverride) {
     els.searchWarning.hidden = !interpretation.warning;
     els.translatedQuery.textContent = interpretation.translated_query || "";
     els.queryInterpretation.hidden = !interpretation.translated_query;
-    renderResults(entries, query, performance.now() - start);
+    renderResults(entries, query, performance.now() - start, state.semantic.alternatives);
     setStatus("Semantic search ready", true);
   } catch (error) {
     if (error.name === "AbortError") {
       els.resultMeta.textContent = "Cancelled";
+      els.results.className = "results-grid empty-results";
+      els.results.textContent = "Search cancelled.";
     } else {
       setStatus("Search unavailable", false);
       els.resultMeta.textContent = "Search error";
@@ -227,7 +254,8 @@ async function runSearch(queryOverride) {
     status.hidden = true;
     els.results.removeAttribute("aria-busy");
     els.sourceFilter.disabled = false;
-    els.searchButton.innerHTML = '<i data-lucide="search"></i><span>Search</span>';
+    els.searchButton.innerHTML = '<i data-lucide="search"></i><span></span>';
+    els.searchButton.querySelector("span").textContent = (window.cinesceneWord || String)("Search");
     refreshIcons();
   }
 }
@@ -315,11 +343,12 @@ async function loadCatalog() {
     document.getElementById("metricRelease").textContent = manifest.index_generation ? manifest.index_generation.replace("T", " ").slice(0, 19) + " UTC" : manifest.fusion_version;
     els.metricOffline.textContent = seriesCount.toLocaleString();
     els.metricScenes.textContent = sceneCount.toLocaleString();
-    els.sidebarModel.textContent = "BGE + BM25 · E5 Persian · reranker";
     setStatus("Catalog ready", true);
     renderTimeline();
     renderMemory();
     const shared = ui.readSearch();
+    const draft = new URL(location.href).searchParams.get("draft");
+    if (draft && !shared.query && (!location.hash || location.hash === "#discover")) els.queryInput.value = draft.slice(0, 1000);
     if ([...els.sourceFilter.options].some((option) => option.value === shared.type)) els.sourceFilter.value = shared.type;
     els.topKInput.value = (!location.hash || location.hash === "#discover") && new URL(location.href).searchParams.has("count") ? shared.count : Math.min(20, Math.max(1, Number(localStorage.getItem("cinescene-pwa-results-count")) || 8));
     if (shared.query) {
@@ -341,10 +370,16 @@ document.addEventListener("click", (event) => {
   const details = event.target.closest("[data-details]");
   const favorite = event.target.closest("[data-favorite]");
   if (viewLink) {
+    if (event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) return;
     event.preventDefault();
-    setView(viewLink.dataset.viewLink);
+    setView(viewLink.dataset.viewLink, { historyMode: "push", focus: true });
   }
-  if (queryLink) runSearch(queryLink.dataset.query);
+  if (queryLink?.closest(".prompt-list")) {
+    if (state.searching) return;
+    els.sourceFilter.value = "all";
+    els.queryInput.value = queryLink.dataset.query;
+    els.queryInput.focus();
+  } else if (queryLink) runSearch(queryLink.dataset.query);
   if (details) { const entry = state.results[Number(details.dataset.details)]; if (entry) state.details.open(asMovie(entry.item, entry.scene, entry.episode)); }
   if (favorite) {
     const item = state.results.find((entry) => String(entry.item.id) === favorite.dataset.favorite)?.item
@@ -356,7 +391,7 @@ document.addEventListener("click", (event) => {
   if (saved) state.details.open(asMovie(state.favorites[Number(saved.dataset.openSaved)]));
   if (remove) { try { toggleFavorite(state.favorites[Number(remove.dataset.removeSaved)]); } catch (error) { toast(error.message, "error"); } }
   const scene = event.target.closest("[data-open-media]");
-  if (scene) state.explorer.open(scene.dataset.openMedia);
+  if (scene) state.explorer.open(scene.dataset.openMedia, scene.dataset.sceneNumber);
 });
 
 els.searchButton.addEventListener("click", () => runSearch());
@@ -379,7 +414,7 @@ els.clearButton.addEventListener("click", () => {
   state.results = [];
   els.resultMeta.textContent = "Ready";
   els.results.className = "results-grid empty-results";
-  els.results.innerHTML = `<div class="empty-visual"><i data-lucide="scan-search"></i></div><strong>No search yet</strong>`;
+  els.results.innerHTML = `<div class="empty-visual"><i data-lucide="scan-search"></i></div><strong data-search-idle>No search yet</strong>`;
   els.shareSearchButton.disabled = true;
   ui.searchState("", "all", 8);
   refreshIcons();
@@ -420,7 +455,7 @@ els.closePlayerButton.addEventListener("click", () => els.playerDialog.close());
 els.playerDialog.addEventListener("close", () => { els.scenePlayer.pause(); els.scenePlayer.removeAttribute("src"); els.scenePlayer.load(); });
 els.scenePlayer.addEventListener("error", () => { if (els.playerDialog.open && els.scenePlayer.getAttribute("src")) els.playerCaption.textContent = "This video format cannot be played by your browser."; });
 
-window.addEventListener("hashchange", () => setView(location.hash.slice(1), false));
+window.addEventListener("hashchange", () => setView(location.hash.slice(1), { historyMode: null, focus: true }));
 window.addEventListener("beforeinstallprompt", (event) => {
   event.preventDefault();
   state.installPrompt = event;
@@ -470,5 +505,5 @@ function asMovie(item, scene, episode) {
 }
 state.details = new ui.TitleDetails({ saved: isSaved, save: toggleFavorite, timeline: (movie) => state.explorer.open(String(movie.id)) });
 refreshIcons();
-setView(location.hash.slice(1) || "discover", false);
+setView(location.hash.slice(1) || "discover", { historyMode: null });
 loadCatalog();
