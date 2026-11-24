@@ -75,7 +75,6 @@
     button.addEventListener("click", () => {
       if (params.has("choose") && ["discover","ingest","scenes","library","system"].includes(returnView)) {
         save("cinescene-language", button.dataset.language);
-        save("cinescene-intro-complete", "1");
         const root = new URL("../../", location.href);
         root.hash = returnView;
         location.replace(root);
@@ -86,10 +85,6 @@
     button.disabled = false;
   });
   change.addEventListener("click", () => pick(language === "fa" ? "en" : "fa"));
-  document.querySelectorAll('a[href^="../../"]').forEach(a => a.addEventListener("click", () => {
-    if (!read("cinescene-language")) save("cinescene-language", language);
-    save("cinescene-intro-complete","1");
-  }));
   if (motion) document.documentElement.classList.add("motion-ready");
   let waiting = false;
   const links = [...document.querySelectorAll("#chapterNav a")];

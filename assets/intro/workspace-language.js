@@ -2,7 +2,7 @@
   let fa = false;
   try { fa = localStorage.getItem("cinescene-language") === "fa"; } catch {}
   const labels = {Search:"جست‌وجو","Your videos":"ویدیوهای شما",Videos:"ویدیوها","Saved & history":"ذخیره‌شده‌ها و تاریخچه",Settings:"تنظیمات",
-    "Video library":"مجموعهٔ ویدیوها","Video import guide":"راهنمای افزودن ویدیو",Language:"زبان",
+    "Video library":"مجموعهٔ ویدیوها",Introduction:"معرفی سین‌سین",Language:"زبان",
     "Open navigation":"باز کردن منو","Close navigation":"بستن منو",
     "Add a video":"افزودن ویدیو","Add a film to your collection":"افزودن فیلم به مجموعه","Connect to Studio":"اتصال به استودیو",
     "Preview a local file":"پخش فایل در مرورگر","Processed videos":"ویدیوهای پردازش‌شده","Scene examples":"نمونهٔ صحنه‌ها",

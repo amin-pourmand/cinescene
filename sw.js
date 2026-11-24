@@ -1,15 +1,15 @@
-const CACHE_NAME = "cinescene-pwa-v20261124-text-v1";
+const CACHE_NAME = "cinescene-pwa-v20261124-intro-v10";
 const ASSETS = [
   "./",
   "./index.html",
   "./manifest.webmanifest",
   "./assets/styles.css?v=20261025-reel-v11",
   "./assets/app.js?v=20261124-text-v1",
-  "./assets/intro/entry.js?v=20261123-cinema-v1",
-  "./assets/intro/workspace-language.js?v=20261124-text-v1",
+  "./assets/intro/entry.js?v=20261124-intro-v10",
+  "./assets/intro/workspace-language.js?v=20261124-intro-v9",
   "./assets/intro/index.html",
   "./assets/intro/intro.css?v=20261123-guide-v7",
-  "./assets/intro/intro.js?v=20261123-guide-v7",
+  "./assets/intro/intro.js?v=20261124-intro-v10",
   "./assets/intro/cinema.webp",
   "./assets/intro/clue.webp",
   "./assets/intro/reel.webp",
@@ -61,12 +61,31 @@ self.addEventListener("activate", (event) => {
   );
 });
 
+async function freshPage(request, key) {
+  const cache = await caches.open(CACHE_NAME);
+  try {
+    const response = await fetch(request, {cache: "no-cache"});
+    if (response.ok) {
+      await cache.put(key, response.clone()).catch(() => {});
+      return response;
+    }
+    return (await cache.match(key)) || response;
+  } catch {
+    return (await cache.match(key)) || Response.error();
+  }
+}
+
 self.addEventListener("fetch", (event) => {
   const url = new URL(event.request.url);
   if (event.request.method !== "GET" || event.request.headers.has("range") ||
       url.origin !== self.location.origin || !url.href.startsWith(self.registration.scope)) return;
+  const route = url.pathname.slice(new URL(self.registration.scope).pathname.length);
+  if (event.request.mode === "navigate" && ["", "index.html", "assets/intro/index.html"].includes(route)) {
+    event.respondWith(freshPage(event.request, route === "assets/intro/index.html" ? "./assets/intro/index.html" : "./index.html"));
+    return;
+  }
   event.respondWith(
-    caches.match(event.request, {ignoreSearch: event.request.mode === "navigate" && url.pathname.endsWith("/assets/intro/index.html")}).then((cached) => {
+    caches.match(event.request).then((cached) => {
       if (cached) return cached;
       return fetch(event.request)
         .then((response) => {
