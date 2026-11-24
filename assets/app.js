@@ -10,8 +10,11 @@ const state = {
   query: "",
   results: [],
   searching: false,
+  searchController: null,
+  catalogLoaded: false,
   semantic: new window.CineSceneSemanticSearch(),
 };
+let catalogReady;
 
 const ids = [
   "viewTitle", "mobileMenuButton", "installButton", "statusDot", "sidebarStatus", "sidebarModel",
@@ -181,8 +184,23 @@ function drawResults(entries, approximate = false) {
 
 }
 
+function cancelSearch() {
+  state.searchController?.abort();
+  state.semantic.cancel();
+}
+
+async function waitForCatalog(signal) {
+  let onAbort;
+  const cancelled = new Promise((_, reject) => {
+    onAbort = () => reject(signal.reason);
+    signal.addEventListener("abort", onAbort, { once: true });
+  });
+  try { return await Promise.race([ensureCatalog(), cancelled]); }
+  finally { signal.removeEventListener("abort", onAbort); }
+}
+
 async function runSearch(queryOverride) {
-  if (state.searching) { state.semantic.cancel(); return; }
+  if (state.searching) { cancelSearch(); return; }
   const query = String(queryOverride || els.queryInput.value).trim();
   if (!query) {
     toast("Describe a scene first.", "error");
@@ -206,6 +224,8 @@ async function runSearch(queryOverride) {
   ui.searchState(query, els.sourceFilter.value, els.topKInput.value);
   els.shareSearchButton.disabled = false;
   els.queryInput.value = query;
+  const controller = new AbortController();
+  state.searchController = controller;
   state.searching = true;
   state.results = [];
   els.results.replaceChildren();
@@ -214,13 +234,19 @@ async function runSearch(queryOverride) {
   els.searchButton.innerHTML = '<i data-lucide="square"></i><span>Cancel</span>';
   els.sourceFilter.disabled = true;
   els.results.setAttribute("aria-busy", "true");
-  els.resultMeta.textContent = quick ? "Preparing text search" : "Preparing semantic search";
   const status = document.getElementById("searchProgress");
   status.hidden = false;
-  status.textContent = quick ? "Loading text search" : "Loading semantic search";
   refreshIcons(els.searchButton);
   const start = performance.now();
   try {
+    if (!state.catalogLoaded) {
+      els.resultMeta.textContent = "Loading catalog";
+      status.textContent = "Search will start when the catalog is ready.";
+      if (!await waitForCatalog(controller.signal)) return;
+      controller.signal.throwIfAborted();
+    }
+    els.resultMeta.textContent = exact ? "Searching dialogue" : quick ? "Preparing text search" : "Preparing semantic search";
+    status.textContent = exact ? "Searching dialogue" : quick ? "Loading text search" : "Loading semantic search";
     if (exact) {
       const entries = ui.dialogueResults(query, state.catalog, Number(els.topKInput.value || 8));
       renderResults(entries, query, performance.now() - start);
@@ -252,6 +278,7 @@ async function runSearch(queryOverride) {
     }
   } finally {
     state.searching = false;
+    state.searchController = null;
     status.hidden = true;
     els.results.removeAttribute("aria-busy");
     els.sourceFilter.disabled = false;
@@ -323,6 +350,16 @@ function previewVideo() {
   els.scenePlayer.play().catch(() => {});
 }
 
+function ensureCatalog() {
+  if (!catalogReady) {
+    catalogReady = loadCatalog().then(ready => {
+      if (!ready) catalogReady = null;
+      return ready;
+    });
+  }
+  return catalogReady;
+}
+
 async function loadCatalog() {
   try {
     const response = await fetch("./data/catalog-summary.json", { cache: "no-cache" });
@@ -347,22 +384,27 @@ async function loadCatalog() {
     setStatus("Catalog ready", true);
     renderTimeline();
     renderMemory();
-    const shared = ui.readSearch();
-    const draft = new URL(location.href).searchParams.get("draft");
-    if (draft && !shared.query && (!location.hash || location.hash === "#discover")) els.queryInput.value = draft.slice(0, 1000);
-    if ([...els.sourceFilter.options].some((option) => option.value === shared.type)) els.sourceFilter.value = shared.type;
-    els.topKInput.value = (!location.hash || location.hash === "#discover") && new URL(location.href).searchParams.has("count") ? shared.count : Math.min(20, Math.max(1, Number(localStorage.getItem("cinescene-pwa-results-count")) || 8));
-    if (shared.query) {
-      els.queryInput.value = shared.query;
-      if (!location.hash || location.hash === "#discover") runSearch(shared.query);
-    }
+    state.catalogLoaded = true;
+    return true;
   } catch (error) {
     setStatus("Catalog unavailable", false);
     els.resultMeta.textContent = "Load error";
     els.results.className = "results-grid empty-results";
     els.results.innerHTML = `<div class="empty-visual"><i data-lucide="triangle-alert"></i></div><strong>Could not load the public catalog.</strong><span>${escapeHtml(error.message)}</span>`;
     refreshIcons(els.results);
+    return false;
   }
+}
+
+function restoreInitialSearch() {
+  const shared = ui.readSearch();
+  const params = new URLSearchParams(location.search);
+  const discover = !location.hash || location.hash === "#discover";
+  if (shared.query) els.queryInput.value = shared.query;
+  else if (discover && params.has("draft")) els.queryInput.value = params.get("draft").slice(0, 1000);
+  if ([...els.sourceFilter.options].some((option) => option.value === shared.type)) els.sourceFilter.value = shared.type;
+  els.topKInput.value = discover && params.has("count") ? shared.count : Math.min(20, Math.max(1, Number(localStorage.getItem("cinescene-pwa-results-count")) || 8));
+  return discover ? shared.query : "";
 }
 
 document.addEventListener("click", (event) => {
@@ -398,7 +440,7 @@ document.addEventListener("click", (event) => {
 els.searchButton.addEventListener("click", () => runSearch());
 document.getElementById("clearModelsButton").addEventListener("click", async () => {
   if (!await ui.confirmAction("Remove downloaded search models from this device? Saved titles and history will stay.", "Remove models")) return;
-  state.semantic.cancel();
+  cancelSearch();
   try {
     await caches.delete("transformers-cache");
     setStatus("Models not downloaded", true);
@@ -407,7 +449,7 @@ document.getElementById("clearModelsButton").addEventListener("click", async () 
 });
 document.addEventListener("visibilitychange", () => { if (document.hidden) state.semantic.release(); });
 els.clearButton.addEventListener("click", () => {
-  state.semantic.cancel();
+  cancelSearch();
   els.searchWarning.hidden = true;
   els.queryInterpretation.hidden = true;
   els.queryInput.value = "";
@@ -509,4 +551,6 @@ function asMovie(item, scene, episode) {
 state.details = new ui.TitleDetails({ saved: isSaved, save: toggleFavorite, timeline: (movie) => state.explorer.open(String(movie.id)) });
 refreshIcons();
 setView(location.hash.slice(1) || "discover", { historyMode: null });
-loadCatalog();
+const initialSearch = restoreInitialSearch();
+ensureCatalog();
+if (initialSearch) runSearch(initialSearch);
