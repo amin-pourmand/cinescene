@@ -7,9 +7,9 @@
   <title>CineScene</title>
   <link rel="icon" href="../icon.svg" type="image/svg+xml">
   <link rel="preload" href="cinema.webp" as="image">
-  <link rel="stylesheet" href="intro.css?v=20261123-guide-v7">
+  <link rel="stylesheet" href="intro.css?v=20261124-evidence-v1">
   <script src="../lucide.min.js?v=0.468.0" defer></script>
-  <script src="intro.js?v=20261124-intro-v10" defer></script>
+  <script src="intro.js?v=20261124-evidence-v1" defer></script>
 </head>
 <body>
   <header class="opening-bar">
@@ -93,18 +93,37 @@
         </div>
       </section>
 
-      <section id="evidence" class="evidence-chapter chapter">
+      <section id="evidence" class="evidence-chapter chapter" aria-labelledby="evidenceTitle">
         <div class="chapter-splice"><b>03</b><span data-copy="chapterThree">SEARCH RESULTS</span><i></i></div>
         <div class="chapter-layout">
           <div class="chapter-copy reveal">
-            <h2 tabindex="-1" data-copy="evidenceTitle">See the scene behind the result</h2>
-            <p data-copy="evidenceBody">Open a result to see why CineScene suggested it. Depending on what is available for that film or series, you will see part of its story or a matching scene in the video.</p>
-            <p data-copy="evidenceDetail">Not every film has an exact scene time. The Memento example comes from its story summary. For a film added through Studio, a matched scene can take you straight to that moment in the video.</p>
+            <h2 id="evidenceTitle" tabindex="-1" data-copy="evidenceTitle">See why a result matches</h2>
+            <p data-copy="evidenceBody">A title is just the start. Open a result to see what connects your description to the film or episode: a detail in its story, a matching moment in the video, or both.</p>
+            <p data-copy="evidenceDetail">A story match helps you recognize the title. A timed scene match can also take you to the moment you were looking for.</p>
           </div>
-          <dl class="match-types reveal">
-            <div data-scroll-cue><dt><i data-lucide="book-open"></i><span data-copy="story">Story match</span></dt><dd data-copy="storyDetail">Read the relevant passage from a film or episode summary when available.</dd></div>
-            <div data-scroll-cue><dt><i data-lucide="timer"></i><span data-copy="scene">Timed scene match</span></dt><dd data-copy="sceneDetail">For videos analyzed in Studio, see the matching scene and open it at the recorded time.</dd></div>
-          </dl>
+          <figure class="evidence-cover scene-frame reveal"><img src="evidence.webp" width="1200" height="800" alt="" loading="lazy" decoding="async"></figure>
+        </div>
+
+        <div class="evidence-sequence">
+          <section id="story-match" class="evidence-stop" aria-labelledby="storyTitle">
+            <div class="evidence-copy reveal">
+              <p class="evidence-cue" data-scroll-cue><i data-lucide="book-open"></i><span class="evidence-count" aria-hidden="true">01</span></p>
+              <h3 id="storyTitle" data-copy="story">Story match</h3>
+              <p data-copy="storyDetail">If the film or episode has a written summary, CineScene can show the passage that best fits your description. Read it to see whether the details match what you remember.</p>
+              <p class="evidence-example"><i data-lucide="quote"></i><span data-copy="storyExample">For example, the tattoos and instant photos in the Memento search come from the story summary. They point to the film, not to a specific minute.</span></p>
+            </div>
+            <figure class="evidence-shot scene-frame reveal"><img src="story-match.webp" width="1200" height="800" alt="" loading="lazy" decoding="async"></figure>
+          </section>
+
+          <section id="timed-match" class="evidence-stop evidence-stop-timed" aria-labelledby="timedTitle">
+            <div class="evidence-copy reveal">
+              <p class="evidence-cue" data-scroll-cue><i data-lucide="timer"></i><span class="evidence-count" aria-hidden="true">02</span></p>
+              <h3 id="timedTitle" data-copy="scene">Timed scene match</h3>
+              <p data-copy="sceneDetail">When you add a video in Studio, CineScene records where each section begins and ends. If your description matches a section, the result can show that time range and open the video at its start.</p>
+              <p class="evidence-example"><i data-lucide="play"></i><span data-copy="timedExample">For example, search for a moment in a film you added. When a scene matches, you can watch it without scrubbing through the whole film.</span></p>
+            </div>
+            <figure class="evidence-shot scene-frame reveal"><img src="timed-match.webp" width="1200" height="800" alt="" loading="lazy" decoding="async"></figure>
+          </section>
         </div>
         <details class="recorded-example">
           <summary><i data-lucide="flask-conical"></i><span data-copy="recordedExample">View a recorded scene test</span></summary>

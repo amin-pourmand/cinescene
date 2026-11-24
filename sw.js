@@ -1,4 +1,4 @@
-const CACHE_NAME = "cinescene-pwa-v20261124-intro-v10";
+const CACHE_NAME = "cinescene-pwa-v20261124-evidence-v1";
 const ASSETS = [
   "./",
   "./index.html",
@@ -8,11 +8,14 @@ const ASSETS = [
   "./assets/intro/entry.js?v=20261124-intro-v10",
   "./assets/intro/workspace-language.js?v=20261124-intro-v9",
   "./assets/intro/index.html",
-  "./assets/intro/intro.css?v=20261123-guide-v7",
-  "./assets/intro/intro.js?v=20261124-intro-v10",
+  "./assets/intro/intro.css?v=20261124-evidence-v1",
+  "./assets/intro/intro.js?v=20261124-evidence-v1",
   "./assets/intro/cinema.webp",
   "./assets/intro/clue.webp",
   "./assets/intro/reel.webp",
+  "./assets/intro/evidence.webp",
+  "./assets/intro/story-match.webp",
+  "./assets/intro/timed-match.webp",
   "./assets/semantic-client.js?v=20261124-text-v1",
   "./assets/semantic-worker.mjs?v=20261124-text-v1",
   "./assets/search-runtime.mjs?v=20261124-text-v1",
