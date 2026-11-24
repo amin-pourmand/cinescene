@@ -1,8 +1,8 @@
-import { processQuery, similarities, englishRanks, multilingualRanks, lexicalScores, fuseRecords, collapseRecords, evidencePairs, rankEvidence, storyWindows, selectStoryEvidence } from "./hybrid-ranking.mjs?v=20261123-scene-scope-v1";
+import { processQuery, similarities, englishRanks, multilingualRanks, lexicalScores, catalogTextScores, fuseRecords, collapseRecords, evidencePairs, rankEvidence, storyWindows, selectStoryEvidence } from "./hybrid-ranking.mjs?v=20261124-text-v1";
 
 export function createSearchRuntime({ pipeline, AutoTokenizer, AutoModelForSequenceClassification, fetchAsset, progress = () => {}, modelOptions = {} }) {
 const session_options = { enableCpuMemArena: false, enableMemPattern: false };
-let catalog, manifest, ids, weights, preparing;
+let catalog, manifest, lexicalIndex, preparing;
 const matrices = new Map();
 function downloadProgress(event) {
   if (event.status === "progress" && event.total) progress(`Downloading ${event.file?.includes("onnx") ? "search model" : "tokenizer"}: ${Math.floor(event.progress || 0)}% of ${Math.ceil(event.total / 1048576)} MB`);
@@ -16,7 +16,8 @@ async function sha256(buffer) {
 async function artifact(name) {
   const buffer = await checkedFetch(`../data/${name}`);
   const expected = manifest.files[name];
-  if (buffer.byteLength !== expected.bytes || await sha256(buffer) !== expected.sha256) throw new Error("Search data versions differ. Reload to get the current release.");
+  if (buffer.byteLength !== expected.bytes) throw new Error(`Search data download is incomplete: ${name} (${buffer.byteLength}/${expected.bytes} bytes). Try again.`);
+  if (await sha256(buffer) !== expected.sha256) throw new Error(`Search data versions differ (${name}). Reload to get the current release.`);
   return buffer;
 }
 async function matrix(name) {
@@ -30,9 +31,13 @@ async function prepare() {
   const bytes = await checkedFetch("../data/catalog.sample.json");
   if (await sha256(bytes) !== manifest.catalog_sha256) throw new Error("Catalog and search index versions differ. Reload to update.");
   catalog = JSON.parse(new TextDecoder().decode(bytes)).items;
-  const postings = await artifact("hybrid-lexical.bin"), size = manifest.lexical.postings;
-  ids = new Uint32Array(postings, 0, size);
-  weights = new Float32Array(postings, size * 4, size);
+}
+async function loadLexical() {
+  if (!lexicalIndex) {
+    const postings = await artifact("hybrid-lexical.bin"), size = manifest.lexical.postings;
+    lexicalIndex = { ids: new Uint32Array(postings, 0, size), weights: new Float32Array(postings, size * 4, size) };
+  }
+  return lexicalIndex;
 }
 async function encode(text, config) {
   progress(`Loading ${config.pooling === "cls" ? "English" : "multilingual"} search model`);
@@ -87,8 +92,10 @@ async function search({ query: value, source, count, translatePersian = false })
   if (!preparing) preparing = prepare().catch((error) => { preparing = null; throw error; });
   await preparing;
   const query = processQuery(value, manifest.processor);
+  const textOnly = source === "quick";
+  const postings = textOnly ? null : await loadLexical();
   const interpretation = { language: query.persian ? "fa" : "en", translation: query.persian ? "unavailable" : "not_needed", translated_query: null };
-  if (query.persian && translatePersian) {
+  if (!textOnly && query.persian && translatePersian) {
     try {
       query.english = await translate(query.cleaned);
       query.translated = true;
@@ -99,33 +106,34 @@ async function search({ query: value, source, count, translatePersian = false })
       progress("Translation unavailable; continuing with the multilingual model");
     }
   }
-  if (query.persian && !query.translated) interpretation.warning = "English translation is unavailable. Search uses the original query without English reranking.";
+  if (!textOnly && query.persian && !query.translated) interpretation.warning = "English translation is unavailable. Search uses the original query without English reranking.";
   let english = [], multilingual = [];
   const sceneOnly = source === "offline";
   const accept = sceneOnly ? (index) => manifest.records[index]?.kind === "scene" : undefined;
-  if (manifest.multilingual) {
+  if (!textOnly && manifest.multilingual) {
     const vector = await encode(query.cleaned, manifest.multilingual);
     multilingual = multilingualRanks(similarities(vector, await matrix("hybrid-multilingual.f32"), manifest.multilingual.dimension), manifest.multilingual.records, accept);
   }
-  if (!query.persian || query.translated) {
+  if (!textOnly && (!query.persian || query.translated)) {
     const vector = await encode(query.english || query.cleaned, manifest.english);
     english = englishRanks(similarities(vector, await matrix("hybrid-en.f32"), manifest.english.dimension), manifest.records, sceneOnly);
   }
-  const lexical = lexicalScores(query.english || query.cleaned, manifest, ids, weights, accept);
-  const originalLexical = query.translated ? lexicalScores(query.cleaned, manifest, ids, weights, accept) : null;
+  const lexical = textOnly ? catalogTextScores(query.cleaned, manifest, catalog) :
+    lexicalScores(query.english || query.cleaned, manifest, postings.ids, postings.weights, accept);
+  const originalLexical = query.translated ? lexicalScores(query.cleaned, manifest, postings.ids, postings.weights, accept) : null;
   let records = fuseRecords(query, manifest, catalog, english, lexical, multilingual, source, originalLexical);
   const evidence = new Map(multilingual.map(([index, , row]) => [index, manifest.multilingual.texts?.[row] || ""]));
   records = records.map((entry) => ({ ...entry, passage: selectStoryEvidence(query.english || query.cleaned,
     manifest.records[entry.index].kind === "title" ? storyWindows(catalog[entry.item].plot) : [],
     evidence.get(entry.index) || "", manifest.processor, manifest.lexical) }));
   let candidates = collapseRecords(records);
-  const reranked = !query.persian || query.translated;
+  const reranked = !textOnly && (!query.persian || query.translated);
   if (reranked) candidates = await rerank(query.english || query.cleaned, candidates, records);
   const results = candidates.slice(0, Math.min(20, Math.max(1, count || 8))).map((entry) => {
     const item = catalog[entry.item], scene = entry.scene === null ? null : item.scene_timeline[entry.scene];
     const record = manifest.records[entry.index], episode = record.episode == null ? null : item.episodes[record.episode];
     return { item, score: entry.score, scene, episode, evidence: scene ? scene.transcript || scene.visual_caption : episode ? record.overview : entry.passage || record.overview || item.overview || "",
-      evidenceKind: scene ? "scene" : episode ? "episode" : "story", method: reranked ? "hybrid + reranker" : "multilingual + BM25" };
+      evidenceKind: scene ? "scene" : episode ? "episode" : "story", method: textOnly ? "Text match" : reranked ? "hybrid + reranker" : "multilingual + BM25" };
   });
   if (candidates[0]?.scoreKind === "relevance_logit" && candidates[0].score < -4) {
     interpretation.weak_evidence = true;

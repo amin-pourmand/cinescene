@@ -29,7 +29,7 @@
     "Recent searches":"جست‌وجوهای اخیر",Results:"نتایج",Cancel:"لغو","No matches":"نتیجه‌ای پیدا نشد",
     "Add video":"افزودن ویدیو","Compare frames":"مقایسه فریم‌ها","Connect computer":"اتصال به رایانه",
     "Search scope":"محدودهٔ جست‌وجو","Movies & series":"فیلم‌ها و سریال‌ها",Movies:"فیلم‌ها",Series:"سریال‌ها",
-    "Exact dialogue":"عین دیالوگ","With scene evidence":"دارای شاهد صحنه","Details":"جزئیات",
+    "Exact dialogue":"عین دیالوگ","Text search (no models)":"جست‌وجوی متنی (بدون مدل)","With scene evidence":"دارای شاهد صحنه","Details":"جزئیات",
     "Scene timeline":"خط زمانی صحنه‌ها","Timed scene":"صحنهٔ زمان‌دار","Episode summary":"خلاصهٔ قسمت","Story match":"شاهد داستانی"};
   const word = text => (fa && labels[text]) || text;
   window.cinesceneWord = word;

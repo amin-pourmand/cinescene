@@ -92,6 +92,22 @@ export function lexicalScores(query, manifest, ids, weights, accept) {
   }
   return { ranks: ranked(scores, 100, accept).filter(([, score]) => score > 0), overlap };
 }
+export function catalogTextScores(query, manifest, catalog) {
+  const scores = new Float64Array(manifest.records.length), overlap = new Uint16Array(scores.length);
+  const weights = new Map(tokens(query, manifest.processor).map(term =>
+    [term, Math.log1p(manifest.records.length / (1 + (manifest.lexical.terms[term]?.[1] || 0)))]));
+  if (!weights.size) return { ranks: [], overlap };
+  manifest.records.forEach((record, index) => {
+    const item = catalog[record.item];
+    const scene = record.kind === "scene" ? item.scene_timeline?.[record.scene] : null;
+    const text = record.kind === "title" ? item.plot || record.overview || item.overview :
+      scene ? [scene.transcript, scene.visual_caption].filter(Boolean).join(" ") : record.overview;
+    const found = new Set([...record.title_tokens, ...tokens(text || "", manifest.processor)].filter(term => weights.has(term)));
+    overlap[index] = found.size;
+    for (const term of found) scores[index] += weights.get(term);
+  });
+  return { ranks: ranked(scores, 100).filter(([, score]) => score > 0), overlap };
+}
 export function fuseRecords(query, manifest, catalog, vectors, lexical, multilingual, source, originalLexical = null) {
   const totals = new Map();
   const add = (list, weight = 1) => list.forEach(([index], i) => totals.set(index, (totals.get(index) || 0) + weight / (61 + i)));

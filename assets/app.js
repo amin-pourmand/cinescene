@@ -190,7 +190,8 @@ async function runSearch(queryOverride) {
     return;
   }
   const exact = els.sourceFilter.value === "dialogue";
-  let translatePersian = !exact && /[\u0600-\u06ff]/u.test(query) && els.translationInput.checked;
+  const quick = els.sourceFilter.value === "quick";
+  let translatePersian = !exact && !quick && /[\u0600-\u06ff]/u.test(query) && els.translationInput.checked;
   if (translatePersian && localStorage.getItem("cinescene-pwa-translation-consent") !== "1") {
     const accepted = await ui.confirmAction("The Persian model adds about 870 MB to this browser's storage. CC BY-NC 4.0: research/non-commercial use. Download it?", "Download model");
     if (accepted) localStorage.setItem("cinescene-pwa-translation-consent", "1");
@@ -213,10 +214,10 @@ async function runSearch(queryOverride) {
   els.searchButton.innerHTML = '<i data-lucide="square"></i><span>Cancel</span>';
   els.sourceFilter.disabled = true;
   els.results.setAttribute("aria-busy", "true");
-  els.resultMeta.textContent = "Preparing semantic search";
+  els.resultMeta.textContent = quick ? "Preparing text search" : "Preparing semantic search";
   const status = document.getElementById("searchProgress");
   status.hidden = false;
-  status.textContent = "Loading semantic search";
+  status.textContent = quick ? "Loading text search" : "Loading semantic search";
   refreshIcons(els.searchButton);
   const start = performance.now();
   try {
@@ -236,7 +237,7 @@ async function runSearch(queryOverride) {
     els.translatedQuery.textContent = interpretation.translated_query || "";
     els.queryInterpretation.hidden = !interpretation.translated_query;
     renderResults(entries, query, performance.now() - start, state.semantic.alternatives);
-    setStatus("Semantic search ready", true);
+    setStatus(quick ? "Text search ready" : "Semantic search ready", true);
   } catch (error) {
     if (error.name === "AbortError") {
       els.resultMeta.textContent = "Cancelled";
@@ -246,7 +247,7 @@ async function runSearch(queryOverride) {
       setStatus("Search unavailable", false);
       els.resultMeta.textContent = "Search error";
       els.results.className = "results-grid empty-results";
-      els.results.innerHTML = `<div class="empty-visual"><i data-lucide="triangle-alert"></i></div><strong>Semantic search could not load</strong><span>${escapeHtml(error.message)}</span>`;
+      els.results.innerHTML = `<div class="empty-visual"><i data-lucide="triangle-alert"></i></div><strong>${quick ? "Text search could not load" : "Semantic search could not load"}</strong><span>${escapeHtml(error.message)}</span>`;
       state.results = [];
     }
   } finally {
@@ -420,7 +421,9 @@ els.clearButton.addEventListener("click", () => {
   refreshIcons();
   els.queryInput.focus();
 });
-els.sourceFilter.addEventListener("change", () => { if (state.query) runSearch(state.query); });
+els.sourceFilter.addEventListener("change", () => {
+  if (!state.searching && state.query && els.queryInput.value.trim() === state.query) runSearch(state.query);
+});
 els.topKInput.addEventListener("change", () => { els.topKInput.value = Math.min(20, Math.max(1, Number(els.topKInput.value) || 8)); localStorage.setItem("cinescene-pwa-results-count", els.topKInput.value); });
 els.translationInput.checked = localStorage.getItem("cinescene-pwa-translation") !== "0";
 els.translationInput.addEventListener("change", () => localStorage.setItem("cinescene-pwa-translation", els.translationInput.checked ? "1" : "0"));
